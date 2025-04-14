@@ -10,7 +10,7 @@ class Question(models.Model):
         return self.question_text
     
     def created_recently(self):
-        return self.created_date >=  timezone.now() - datetime.timedelta(days=1)
+        return  timezone.now() - datetime.timedelta(days=1) <= self.created_date <= timezone.now()
 
 class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

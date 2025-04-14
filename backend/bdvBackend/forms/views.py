@@ -3,22 +3,37 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from django.views import generic
 
-from django.db.models import F
+from django.db.models import F, Count
 
 
 from.models import Question, Option, Response
 
+class IndexView(generic.ListView):
+    template_name = 'forms/index.html'
+    context_object_name = 'recent_question_list'
 
-def index(request):
-    recent_question_list = Question.objects.order_by("-created_date")[:5]
-    template = loader.get_template('forms/index.html')
-    context = {'recent_question_list':recent_question_list}
-    return HttpResponse(template.render(context, request))
+    def get_queryset(self):
+        return (
+            Question.objects
+            .filter(created_date__lte=timezone.now())
+            .annotate(options=Count('option'))
+            .filter(options__gt=0)
+            .order_by('-created_date')[:5]
+        )
 
-def detail(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, "forms/detail.html", {"question": question})
+class DetailView(generic.DetailView):
+    model=Question
+    template_name = 'forms/detail.html'
+
+    def get_queryset(self):
+        return Question.objects.filter(created_date__lte=timezone.now())
+
+class ResponsesView(generic.DetailView):
+    model=Question
+    template_name = 'forms/responses.html'
+
 
 def respond(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
