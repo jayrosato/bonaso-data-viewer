@@ -11,6 +11,9 @@ class Question(models.Model):
     
     def created_recently(self):
         return  timezone.now() - datetime.timedelta(days=1) <= self.created_date <= timezone.now()
+    
+    def options(self):
+        return self.option_set.count()
 
 class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

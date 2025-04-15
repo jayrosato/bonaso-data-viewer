@@ -1,3 +1,7 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'forms/styles.css' %}">
+
 {% if recent_question_list %}
 <ul>
     {% for question in recent_question_list %}
