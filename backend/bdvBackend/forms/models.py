@@ -57,7 +57,7 @@ class Form(models.Model):
     
     class Meta:
         db_table_comment = 'Table containing "forms" which consist of a series of "questions" a respondent was asked.'
-        ordering = ['created_date', 'form_name']
+        ordering = ['-created_date', 'form_name']
 
 class Question(models.Model):
     TEXT = 'Text'
@@ -127,7 +127,7 @@ class Response(models.Model):
     
     class Meta:
         db_table_comment = 'Table containing responses, or an instance of a respondent completing a survey.'
-        ordering = ['response_date', 'form', 'respondent']
+        ordering = ['-response_date', 'form', 'respondent']
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

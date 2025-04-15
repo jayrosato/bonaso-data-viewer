@@ -8,7 +8,7 @@ from django.views import generic
 from django.db.models import F, Count
 
 
-from.models import Question, Option, Response
+from.models import Form, FormQuestion, Question, Option, Response
 
 class IndexView(generic.ListView):
     template_name = 'forms/index.html'
@@ -23,12 +23,13 @@ class IndexView(generic.ListView):
             .order_by('-created_date')[:5]
         )
 
-class DetailView(generic.DetailView):
-    model=Question
-    template_name = 'forms/detail.html'
+class FormView(generic.DetailView):
+    model=Form
+    template_name = 'forms/form.html'
 
-    def get_queryset(self):
-        return Question.objects.filter(created_date__lte=timezone.now())
+    def get_queryset(self, form_id):
+        return Question.objects.filter(formqs=form_id)
+
 
 class ResponsesView(generic.DetailView):
     model=Question
