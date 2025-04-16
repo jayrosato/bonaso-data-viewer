@@ -28,11 +28,33 @@ class FormView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         form_instance = self.get_object()
-        formQs = FormQuestion.objects.filter(form=form_instance).values_list()
-        form_questions = Question.objects.filter(id__in=formQs)
+        formQs = FormQuestion.objects.filter(form=form_instance).order_by('index')
+        form_questions = [fq.question for fq in formQs]
         context['form_questions'] = form_questions
         context['form'] = SelectRespondentForm
         return context
+
+def submitResponse(request, form_id):
+    form = get_object_or_404(Form, pk=form_id)
+    user = request.POST['']
+
+    response = Response(form=form, user=user)
+
+    question = get_object_or_404(Question, pk=form_id)
+    try:
+        selected_option = question.option_set.get(pk=request.POST['option'])
+    except(KeyError, Option.DoesNotExist):
+        return render(request, 'forms/detail.html',
+                    {'question':question, 'error_message':'You did not select a response.'},)
+    else:
+        response = Response(option=selected_option, response_date=timezone.now())
+        response.save()
+        return HttpResponseRedirect(reverse("forms:responses", args=(question.id,)))
+
+
+
+
+
 
 
 class ViewRespondents(generic.ListView):
@@ -79,26 +101,6 @@ class ResponsesView(generic.DetailView):
     model=Question
     template_name = 'forms/responses.html'
 
-def submitRespondent(request):
-    if request.method == 'POST':
-        form = RespondentForm(request.POST)
-        if form.is_valid():
-            return HttpResponseRedirect(reverse("forms:index"))
-    if request.method == 'GET':
-        form = RespondentForm()
-        return render(request, 'new-respondent.html', {'form': form})
-
-def submitResponse(request, form_id):
-    question = get_object_or_404(Question, pk=form_id)
-    try:
-        selected_option = question.option_set.get(pk=request.POST['option'])
-    except(KeyError, Option.DoesNotExist):
-        return render(request, 'forms/detail.html',
-                    {'question':question, 'error_message':'You did not select a response.'},)
-    else:
-        response = Response(option=selected_option, response_date=timezone.now())
-        response.save()
-        return HttpResponseRedirect(reverse("forms:responses", args=(question.id,)))
 
 def responses(request, question_id):
     question = get_object_or_404(Question, pk=question_id)

@@ -4,7 +4,8 @@ from django.forms import ModelForm
 from .models import Respondent, Question
 
 class SelectRespondentForm(forms.Form):
-    respondent = forms.ModelChoiceField(queryset=Respondent.objects.all(), label='Respondent')
+    respondent = forms.ModelChoiceField(queryset=Respondent.objects.all(),label='Respondent')
+
 
 class RespondentForm(ModelForm):
     class Meta:
@@ -14,3 +15,8 @@ class RespondentForm(ModelForm):
             'district', 'email', 'contact_no'
             ] 
 
+#resp (1)
+#bg: created date (1)
+#bg: created by user(1)
+#question (nq)
+    #option (no)
