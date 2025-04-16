@@ -1,8 +1,15 @@
-<form action="{% url 'forms:respond' form.id %}" method="none">
+<form id="resp_select" action="" method="post">
+    {%csrf_token%}
+    {{ form }}
+    <input type="submit" value="OK">
+</form>
+
+
+<form action="" method="none">
     {% csrf_token %}
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
     <fieldset>
-        {% for question in form_questions.option_set.all %}
+        {% for question in form_questions %}
             <legend><h1>{{ question.question_text }}</h1></legend>
             {% if question.question_type == 'Single Selection' %}
                 {% for option in question.option_set.all %}
@@ -15,7 +22,7 @@
                     <input type="checkbox" name="option" id="option{{ forloop.counter }}" value="{{ option.id }}">
                     <label for="option{{ forloop.counter }}">{{ option.option_text }}</label><br>
                 {% endfor %}
-            {% elif question.question_type == 'Binary' %}
+            {% elif question.question_type == 'Yes/No' %}
                 <input type="radio" name="yes" id="yes" value="Yes">
                 <label for="yes">Yes</label><br>
                 <input type="radio" name="no" id="no" value="No">

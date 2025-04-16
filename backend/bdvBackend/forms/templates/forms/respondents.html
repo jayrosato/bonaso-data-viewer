@@ -1,0 +1,11 @@
+
+{% if respondents %}
+<ul>
+    {% for respondent in respondents %}
+        <li><a href="{% url 'forms:update-respondent' respondent.id %}">{{respondent}}</a></li>
+    {% endfor %}
+</ul>
+{% else %}
+<<p>Nothing here yet!</p>>
+{% endif %}
+<a href="{% url 'forms:create-respondent' %}"><button>Create New Respondent</button></a>

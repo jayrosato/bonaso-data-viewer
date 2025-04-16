@@ -20,17 +20,17 @@ class Respondent(models.Model):
         (F,'Female'), 
         (NB,'Non-Binary')
         ]
-    id_no = models.CharField(max_length=255, unique=True)
-    fname = models.CharField(max_length=255)
-    lname = models.CharField(max_length=255)
-    dob = models.DateField('Date of Birth')
-    sex = models.CharField(max_length=2, choices=SEX_CHOICES, default=NB)
-    ward = models.CharField(max_length=255)
-    village = models.CharField(max_length=255)
-    district = models.CharField(max_length=255)
-    citizenship = models.CharField(max_length=255)
-    email = models.EmailField()
-    contact_no = models.CharField(max_length=255)
+    id_no = models.CharField(max_length=255, unique=True, verbose_name='ID/Passport Number')
+    fname = models.CharField(max_length=255, verbose_name='First Name')
+    lname = models.CharField(max_length=255, verbose_name='Last Name')
+    dob = models.DateField(verbose_name='Date of Birth')
+    sex = models.CharField(max_length=2, choices=SEX_CHOICES, default=NB, verbose_name='Sex')
+    ward = models.CharField(max_length=255, verbose_name='Ward')
+    village = models.CharField(max_length=255, verbose_name='Village')
+    district = models.CharField(max_length=255, verbose_name='District')
+    citizenship = models.CharField(max_length=255, verbose_name='Citizenship/Nationality')
+    email = models.EmailField(verbose_name='Email Address')
+    contact_no = models.CharField(max_length=255, verbose_name='Phone Number')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -54,6 +54,9 @@ class Form(models.Model):
 
     def __str__(self):
         return self.form_name
+    
+    def isActive(self):
+        return datetime.date.today() >= self.end_date
     
     class Meta:
         db_table_comment = 'Table containing "forms" which consist of a series of "questions" a respondent was asked.'
@@ -94,6 +97,7 @@ class Question(models.Model):
 class FormQuestion(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    index = models.IntegerField()
     def __str__(self):
         return f'Question: {self.question} located in form {self.form}.'
     
