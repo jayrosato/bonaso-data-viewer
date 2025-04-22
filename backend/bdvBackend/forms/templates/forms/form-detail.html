@@ -1,42 +1,12 @@
-<form id="resp_select" action="" method="post">
+<form id="new_response" action="{% url 'forms:new-response' form_meta.id %}" method="post">
     {%csrf_token%}
+    {{ msg }}
     {{ form }}
     <input type="submit" value="OK">
 </form>
 
 
-<form action="" method="none">
-    {% csrf_token %}
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    <fieldset>
-        {% for question in form_questions %}
-            <legend><h1>{{ question.question_text }}</h1></legend>
-            {% if question.question_type == 'Single Selection' %}
-                {% for option in question.option_set.all %}
-                <input type="radio" name="option" id="option{{ forloop.counter }}" value="{{ option.id }}">
-                <label for="option{{ forloop.counter }}">{{ option.option_text }}</label><br>
-                {% endfor %}
 
-            {% elif question.question_type == 'Multiple Selections' %}
-                {% for option in question.option_set.all %}
-                    <input type="checkbox" name="option" id="option{{ forloop.counter }}" value="{{ option.id }}">
-                    <label for="option{{ forloop.counter }}">{{ option.option_text }}</label><br>
-                {% endfor %}
-            {% elif question.question_type == 'Yes/No' %}
-                <input type="radio" name="yes" id="yes" value="Yes">
-                <label for="yes">Yes</label><br>
-                <input type="radio" name="no" id="no" value="No">
-                <label for="yes">No</label><br>
 
-            {% elif question.question_type == 'Number' %}
-                <input type="number" name="{{question}}" id="{{question}}">
-                <label for="{{question}}">Enter a number</label><br>
 
-            {% elif question.question_type == 'Text' %}
-                <input type="text" name="{{question}}" id="{{question}}">
-                <label for="{{question}}">Enter your response</label><br>
-            {% endif %}
-        {% endfor %}
-    </fieldset>
-    <input type="submit" value="respond">
-</form>
+

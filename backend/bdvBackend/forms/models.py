@@ -96,7 +96,9 @@ class Question(models.Model):
 
 class FormQuestion(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='questions')
+    visible_if_question = models.ForeignKey(Question, null=True, blank=True, on_delete=models.SET_NULL, related_name='question_logic')
+    visible_if_answer = models.TextField(null=True, blank=True)
     index = models.IntegerField()
     def __str__(self):
         return f'Question: {self.question} located in form {self.form}.'
@@ -135,12 +137,15 @@ class Response(models.Model):
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    option = models.ForeignKey(Option, on_delete=models.CASCADE, blank=True)
-    open_answer = models.TextField(blank=True)
+    option = models.ForeignKey(Option, on_delete=models.CASCADE, blank=True, null=True)
+    open_answer = models.TextField(blank=True, null=True)
     response = models.ForeignKey(Response, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.response} : {self.option}'
+        if self.option != None:
+            val = self.option
+        else: val = self.open_answer
+        return f'{self.response} : {val}'
     
     class Meta:
         db_table_comment = 'Table containing the actual answers to questions a respondent gave.'

@@ -10,6 +10,7 @@ urlpatterns = [
     path('respondents/<int:pk>/update', views.UpdateRespondent.as_view(), name='update-respondent'),
     path('respondents/<int:pk>/delete', views.DeleteRespondent.as_view(), name='delete-respondent'),
     path('<int:pk>/', views.FormView.as_view(), name='form-detail'),
+    path('<int:pk>/new', views.new_response, name='new-response'),
     path('<int:pk>/responses/', views.ResponsesView.as_view(), name='responses'),
     path('<int:question_id>/respond/', views.ResponsesView.as_view(), name='respond'),
 ]

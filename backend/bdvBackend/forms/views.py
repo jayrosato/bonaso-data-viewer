@@ -5,13 +5,13 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views import generic
 
-from .forms import RespondentForm, SelectRespondentForm
+from .forms import RespondentForm, SelectRespondentForm, ResponseForm
 
 import datetime
 from django.db.models import F, Count
 
 
-from.models import Respondent, Form, FormQuestion, Question, Option, Response
+from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer
 
 class IndexView(generic.ListView):
     template_name = 'forms/index.html'
@@ -30,15 +30,55 @@ class FormView(generic.DetailView):
         form_instance = self.get_object()
         formQs = FormQuestion.objects.filter(form=form_instance).order_by('index')
         form_questions = [fq.question for fq in formQs]
-        context['form_questions'] = form_questions
-        context['form'] = SelectRespondentForm
+        context['form_meta'] = form_instance
+        context['form'] = ResponseForm(formQs=form_questions, formLogic=formQs)
+        context['msg'] = ''
         return context
 
-def submitResponse(request, form_id):
-    form = get_object_or_404(Form, pk=form_id)
-    user = request.POST['']
+def new_response(request, pk):
+    form_meta = get_object_or_404(Form, pk=pk)
+    formQs = FormQuestion.objects.filter(form=form_meta).order_by('index')
+    formLogic = formQs
+    formQs = [fq.question for fq in formQs]
+    if request.method == 'POST':
+        form = ResponseForm(request.POST, formQs=formQs, formLogic=formLogic)
+        test = request.POST.getlist('What will you do in response to this?')
+        print(test)
+        if form.is_valid():
+            respondent_id = request.POST.get('Respondent')
+            response = Response(form=form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id))
+            response.save()
+            for i in range(len(formQs)):
+                if formQs[i].question_type == 'Text' or formQs[i].question_type == 'Number':
+                    openResponse = request.POST.get(formQs[i].question_text)
+                    answer = Answer(response=response, question=formQs[i], open_answer=openResponse, option=None)
+                    answer.save()
+                if formQs[i].question_type == 'Yes/No':
+                    yesNo = request.POST.get(formQs[i].question_text)
+                    answer = Answer(response=response, question=formQs[i], open_answer=yesNo)
+                    answer.save()
+                if formQs[i].question_type == 'Single Selection':
+                    option_id = request.POST.get(formQs[i].question_text)
+                    answer = Answer(response=response, question=formQs[i], option=get_object_or_404(Option, pk=option_id), open_answer=None)
+                    answer.save()
+                if formQs[i].question_type == 'Multiple Selections':
+                    selected_options = request.POST.getlist(formQs[i].question_text)
+                    for o in range(len(selected_options)):
+                        answer = Answer(response=response, question=formQs[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
+                        answer.save()
+            return HttpResponseRedirect(reverse("forms:index"))
+        else:
+            return render(request, 'forms/form-detail.html', 
+                          { 'form': ResponseForm(request.POST, formQs=formQs), 
+                           'form_meta':form_meta, 
+                           'msg':'Double check that all the fields are correctly filled out.' })
 
-    response = Response(form=form, user=user)
+
+
+def submitResponse(request, form_id, user_id):
+    form = get_object_or_404(Form, pk=form_id)
+    respondent = get_object_or_404(Respondent, pk=user_id)
+    response = Response(form=form, respondent=respondent)
 
     question = get_object_or_404(Question, pk=form_id)
     try:
@@ -50,10 +90,6 @@ def submitResponse(request, form_id):
         response = Response(option=selected_option, response_date=timezone.now())
         response.save()
         return HttpResponseRedirect(reverse("forms:responses", args=(question.id,)))
-
-
-
-
 
 
 
