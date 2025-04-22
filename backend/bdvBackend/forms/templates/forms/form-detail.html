@@ -1,9 +1,11 @@
+{% load static %}
 <form id="new_response" action="{% url 'forms:new-response' form_meta.id %}" method="post">
     {%csrf_token%}
     {{ msg }}
     {{ form }}
     <input type="submit" value="OK">
 </form>
+<script src="{% static 'forms/conditionalFormLogic.js' %}"></script>
 
 
 

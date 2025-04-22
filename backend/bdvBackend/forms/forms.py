@@ -26,14 +26,6 @@ class ResponseForm(forms.Form):
         field_name = 'Respondent'
         self.fields[field_name] = forms.ModelChoiceField(queryset=Respondent.objects.all())
         for i in range(len(formQs)):
-            '''
-            if formLogic:
-                conditions = formLogic[i]
-                print(conditions)
-                if(conditions.visible_if_question):
-                    if self.data.get(conditions.visible_if_question) != conditions.visible_if_question:
-                        continue
-            '''
             field_name = formQs[i].question_text
             if formQs[i].question_type == 'Text':
                 self.fields[field_name] = forms.CharField(max_length=100000)
@@ -44,7 +36,14 @@ class ResponseForm(forms.Form):
             if formQs[i].question_type == 'Single Selection':
                 self.fields[field_name] = forms.ModelChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.RadioSelect)
             if formQs[i].question_type == 'Multiple Selections':
-                self.fields[field_name] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.CheckboxSelectMultiple)  
+                self.fields[field_name] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.CheckboxSelectMultiple)
+            if formLogic:
+                conditions = formLogic[i]
+                if(conditions.visible_if_question):
+                    self.fields[field_name].widget.attrs.update({'questionRelation':conditions.visible_if_question})
+                    self.fields[field_name].widget.attrs.update({'valueRelation':conditions.visible_if_answer})   
+            self.fields[field_name].widget.attrs.update({'class':'question'})      
+              
             
 
 
