@@ -12,18 +12,37 @@
     <body>
         {% block header %}
             <div class="header">
-                <p>header/navbar goes here</p>
+                <img class="headerLogo" src="../../static/forms/images/boansoWhite.png" />
+                <div class="headerText">
+                    <h1>BONASO Data Viewer</h1>
+                </div>
             </div>
         {% endblock %}
         <div class="middle">
             {% block sidebar %}
                 <div class="sidebar">
-                    <h4>Welcome, {{ user.username }}</h4>
-                    <div class="sidebarLinks">
-                        <p>icon</p>
-                        <a href="{% url 'forms:respondents' %}">Respondents</a>
-                        <p>icon</p>
-                        <a href="{% url 'forms:forms' %}">Forms</a>
+                    <h2>Welcome, {{ user.username }}</h2>
+                    <div class="sidebarLinksCont">
+                        <h3 class="sbLinkHeader"> Your Apps</h3>
+                        <div class="sidebarLinks">
+                            <img class="sbIcon" src="../../static/forms/images/account-group-outline.svg" />
+                            <a href="{% url 'forms:respondents' %}">Respondents</a>
+                            <img class="sbIcon" src="../../static/forms/images/list-box-outline.svg" />   
+                            <a href="{% url 'forms:forms' %}">Forms</a>
+                        </div>
+
+                        <h3 class="sbLinkHeader">Your Account</h3>
+                            <div class="sidebarLinks">
+                            <img class="sbIcon" src="../../static/forms/images/account-box-edit-outline.svg" /> 
+                            <a href="{% url 'forms:forms' %}">Account</a>
+                            <img class="sbIcon" src="../../static/forms/images/cog.svg" /> 
+                            <a href="{% url 'forms:forms' %}">Settings</a>
+                            <img class="sbIcon" src="../../static/forms/images/logout.svg" /> 
+                            <form id="logout-form" method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="logout">Logout</button>
+                            </form>
+                        </div>
 
                     </div>
                 </div>

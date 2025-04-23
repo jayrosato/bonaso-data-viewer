@@ -46,7 +46,6 @@ class FormView(LoginRequiredMixin, generic.DetailView):
         context['msg'] = ''
         return context
 
-
 def new_response(request, pk):
     form_meta = get_object_or_404(Form, pk=pk)
     formQs = FormQuestion.objects.filter(form=form_meta).order_by('index')
@@ -85,15 +84,29 @@ def new_response(request, pk):
                            'form_meta':form_meta, 
                            'msg':'Double check that all the fields are correctly filled out.' })
 
+
 class ViewRespondents(LoginRequiredMixin, generic.ListView):
     template_name = 'forms/respondents.html'
     context_object_name = 'respondents'
     def get_queryset(self):
         return Respondent.objects.all()
 
+class ViewRespondent(LoginRequiredMixin, generic.DetailView):
+    model=Respondent
+    template_name = 'forms/view-respondent.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        respondent = self.get_object()
+        responses = Response.objects.filter(respondent=respondent).order_by('response_date')
+        context['respondent'] = respondent
+        context['responses'] = responses
+        return context
+
+
 class CreateRespondent(LoginRequiredMixin, generic.CreateView):
     model = Respondent
-    template_name = 'forms/respondent.html'
+    template_name = 'forms/edit-respondent.html'
     fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
             'district', 'email', 'contact_no'
@@ -103,7 +116,7 @@ class CreateRespondent(LoginRequiredMixin, generic.CreateView):
 
 class UpdateRespondent(LoginRequiredMixin, generic.UpdateView):
     model=Respondent
-    template_name = 'forms/respondent.html'
+    template_name = 'forms/edit-respondent.html'
     fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
             'district', 'email', 'contact_no'

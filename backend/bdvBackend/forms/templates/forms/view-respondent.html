@@ -1,0 +1,40 @@
+{% extends 'forms/base.html' %}
+
+{% block content %}
+<div class="content">
+    {% if perms.forms.view_respondent %}
+        <h2>Viewing {{respondent}}</h2>
+        <p>First Name: {{respondent.fname}}</p>
+        <p>Last Name: {{respondent.lname}}</p>
+        <p>Ward: {{respondent.ward}}</p>
+        <p>Village: {{respondent.village}}</p>
+        <p>District: {{respondent.district}}</p>
+        <p>Citizenship: {{respondent.citizenship}}</p>
+        <p>Email: {{respondent.email}}</p>
+        <p>Contact Number: {{respondent.contact_no}}</p>
+
+        <p> Created At: {{respondent.created_at}}</p>
+        <p> Last Updated At: {{respondent.updated_at}}</p>
+
+        <h3>{{respondent}}'s Responses</h3>
+        {% if responses %}
+        <ul>
+            {% for response in responses %}
+            <li>{{response.form}} ({{response.response_date}})</li>
+            {% endfor %}
+
+        </ul>
+        {% else %}
+        <p>This respondent has not responded to any forms</p>
+        {% endif %}
+        {% if perms.forms.edit_respondent %}
+            <a href="{% url 'forms:update-respondent' respondent.id %}"><button>Edit Respondent Details</button></a>
+        {% endif %}
+        {% if perms.forms.delete_respondent %}
+            <a href="{%url 'forms:delete-respondent' respondent.id%}"><button>Delete Respondent</button></a>
+        {% endif %}
+    {% else %}
+            <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
+    {% endif %}
+</div>
+{% endblock %}

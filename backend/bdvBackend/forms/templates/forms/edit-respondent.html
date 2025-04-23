@@ -1,0 +1,26 @@
+{% extends 'forms/base.html' %}
+
+{% block content %}
+<div class="content">
+    {% if perms.forms.view_respondent %}
+    {% if perms.forms.edit_respondent %}
+        <form action="" method="post">
+            {%csrf_token%}
+            {{ form }}
+            <input type="submit" value="Submit">
+        </form>
+    {% endif %}
+    {% if perms.forms.delete_respondent %}
+        {% if respondent.id %}
+            <a href="{%url 'forms:delete-respondent' respondent.id%}">
+                <button>
+                    Delete User
+                </button>
+            </a>
+        {% endif %}
+    {% endif %}
+    {% else %}
+            <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
+    {% endif %}
+</div>
+{% endblock %}

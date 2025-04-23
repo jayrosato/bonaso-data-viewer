@@ -1,11 +1,18 @@
+{% extends 'forms/base.html' %}
 {% load static %}
-<form id="new_response" action="{% url 'forms:new-response' form_meta.id %}" method="post">
-    {%csrf_token%}
-    {{ msg }}
-    {{ form }}
-    <input type="submit" value="OK">
-</form>
+{% block content %}
+
+<div class="content">
+    <form id="new_response" action="{% url 'forms:new-response' form_meta.id %}" method="post">
+        {%csrf_token%}
+        {{ msg }}
+        {{ form }}
+        <input type="submit" value="Submit Response">
+    </form>
+    
+</div>
 <script src="{% static 'forms/conditionalFormLogic.js' %}"></script>
+{% endblock %}
 
 
 

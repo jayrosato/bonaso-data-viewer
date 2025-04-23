@@ -10,6 +10,7 @@ urlpatterns = [
     #allows users to create/edit respondents (demographic data collected about clients)
     path('respondents', views.ViewRespondents.as_view(), name='respondents'),
     path('respondents/create', views.CreateRespondent.as_view(), name='create-respondent'),
+    path('respondents/<int:pk>', views.ViewRespondent.as_view(), name='view-respondent'),
     path('respondents/<int:pk>/update', views.UpdateRespondent.as_view(), name='update-respondent'),
     path('respondents/<int:pk>/delete', views.DeleteRespondent.as_view(), name='delete-respondent'),
 

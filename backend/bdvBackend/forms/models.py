@@ -53,7 +53,7 @@ class Form(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT)
 
     def __str__(self):
-        return f'{self.organization}: {self.form_name} (started:{self.start_date}, ends:{self.end_date})'
+        return f'{self.organization}: {self.form_name}'
     
     def isActive(self):
         return datetime.date.today() >= self.end_date
