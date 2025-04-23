@@ -1,13 +1,21 @@
-{% load static %}
 
-<link rel="stylesheet" href="{% static 'forms/styles.css' %}">
+{% extends 'forms/base.html' %}
 
-{% if active_form %}
-<ul>
-    {% for form in active_form %}
-    <li><a href="{% url 'forms:form-detail' form.id %}">{{form.form_name}}</a></li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>Nothing here yet!</p>
-{% endif %}
+{% block content %}
+<div class="content">
+    {% if active_forms %}
+        <ul>
+            {% for form in active_forms %}
+                <li><a href="{% url 'forms:form-detail' form.id %}">{{form}}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+    <p>Nothing here yet!</p>
+    {% endif %}
+
+    <form id="logout-form" method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-link">Logout</button>
+    </form>
+</div>
+{% endblock %}

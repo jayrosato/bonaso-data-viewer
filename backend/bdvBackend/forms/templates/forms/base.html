@@ -1,0 +1,43 @@
+{% load static %}
+
+{% if user.is_authenticated %}
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="{% static 'forms/styles.css' %}">
+        {% block title %}
+            <title>Bonaso Data Viewer</title>
+        {% endblock %}
+    </head>
+
+    <body>
+        {% block header %}
+            <div class="header">
+                <p>header/navbar goes here</p>
+            </div>
+        {% endblock %}
+        <div class="middle">
+            {% block sidebar %}
+                <div class="sidebar">
+                    <h4>Welcome, {{ user.username }}</h4>
+                    <div class="sidebarLinks">
+                        <p>icon</p>
+                        <a href="{% url 'forms:respondents' %}">Respondents</a>
+                        <p>icon</p>
+                        <a href="{% url 'forms:forms' %}">Forms</a>
+
+                    </div>
+                </div>
+            {% endblock %}
+
+            {% block content %}
+                <!-- Page view template loads here-->
+            {% endblock %}
+        </div>
+        {% block footer %}
+            <div class="footer">
+                <p>footer would be here</p>
+            </div>
+        {% endblock %}
+    </body>
+</html>
+{% endif %}

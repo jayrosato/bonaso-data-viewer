@@ -1,8 +1,11 @@
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+import datetime
 from django.views import generic
 
 from .forms import RespondentForm, SelectRespondentForm, ResponseForm
@@ -12,15 +15,23 @@ from django.db.models import F, Count
 
 
 from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer
+now = timezone.now()
 
-class IndexView(generic.ListView):
+class IndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'forms/index.html'
-    context_object_name = 'active_form'
-
+    context_object_name = 'active_forms'
+    
     def get_queryset(self):
-        return Form.objects.filter(start_date__lte= datetime.date.today(), end_date__gte = datetime.date.today())
+        num_visits = self.request.session.get('num_visits',0)
+        num_visits += 1
+        self.request.session['num_visits'] = num_visits
+        last_login = self.request.session.get('last_login', 0)
+        last_login = now.isoformat()
+        self.request.session['last_login'] = last_login
 
-class FormView(generic.DetailView):
+        return Form.objects.filter(start_date__lte= datetime.date.today(), end_date__gte = datetime.date.today()).order_by('organization')
+
+class FormView(LoginRequiredMixin, generic.DetailView):
     model=Form
     template_name = 'forms/form-detail.html'
     context_object_name = 'form_questions'
@@ -34,6 +45,7 @@ class FormView(generic.DetailView):
         context['form'] = ResponseForm(formQs=form_questions, formLogic=formQs)
         context['msg'] = ''
         return context
+
 
 def new_response(request, pk):
     form_meta = get_object_or_404(Form, pk=pk)
@@ -73,33 +85,13 @@ def new_response(request, pk):
                            'form_meta':form_meta, 
                            'msg':'Double check that all the fields are correctly filled out.' })
 
-
-
-def submitResponse(request, form_id, user_id):
-    form = get_object_or_404(Form, pk=form_id)
-    respondent = get_object_or_404(Respondent, pk=user_id)
-    response = Response(form=form, respondent=respondent)
-
-    question = get_object_or_404(Question, pk=form_id)
-    try:
-        selected_option = question.option_set.get(pk=request.POST['option'])
-    except(KeyError, Option.DoesNotExist):
-        return render(request, 'forms/detail.html',
-                    {'question':question, 'error_message':'You did not select a response.'},)
-    else:
-        response = Response(option=selected_option, response_date=timezone.now())
-        response.save()
-        return HttpResponseRedirect(reverse("forms:responses", args=(question.id,)))
-
-
-
-class ViewRespondents(generic.ListView):
+class ViewRespondents(LoginRequiredMixin, generic.ListView):
     template_name = 'forms/respondents.html'
     context_object_name = 'respondents'
     def get_queryset(self):
         return Respondent.objects.all()
 
-class CreateRespondent(generic.CreateView):
+class CreateRespondent(LoginRequiredMixin, generic.CreateView):
     model = Respondent
     template_name = 'forms/respondent.html'
     fields = [
@@ -108,7 +100,8 @@ class CreateRespondent(generic.CreateView):
             ]
     success_url = reverse_lazy('forms:respondents')
 
-class UpdateRespondent(generic.UpdateView):
+
+class UpdateRespondent(LoginRequiredMixin, generic.UpdateView):
     model=Respondent
     template_name = 'forms/respondent.html'
     fields = [
@@ -117,7 +110,8 @@ class UpdateRespondent(generic.UpdateView):
             ]
     success_url = reverse_lazy('forms:respondents')
    
-class DeleteRespondent(generic.DeleteView):
+
+class DeleteRespondent(LoginRequiredMixin, generic.DeleteView):
     model=Respondent
     success_url = reverse_lazy('forms:respondents')
 

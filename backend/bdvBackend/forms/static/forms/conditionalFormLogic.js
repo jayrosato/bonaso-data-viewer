@@ -31,6 +31,7 @@ function updateForm(){
                         higherUp.style.visibility = 'hidden'
                         higherUp.querySelectorAll('input[type=checkbox]').forEach(option => {option.checked=false});
                         higherUp.querySelectorAll('input[type=radio]').forEach(option => {option.checked=false});
+                        higherUp.querySelectorAll('input[type=text]').forEach(option => {option.value=''});
                     }
                 }
             }

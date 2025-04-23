@@ -1,6 +1,23 @@
-li a {color:green}
+*{
+    margin: 0;
+}
+.header{
+    position: sticky;
+    top: 0;
+    color: white;
+    background-color: rgb(21, 103, 54)
+}
+.middle{
+    padding-top: 3vh;
+    display: grid;
+    grid-template-columns: 25% 75%;
+}
+.sidebar{
+    height: 100vh;
+    padding: 3vh;
+}
 
-body {
-    /* background: white url("images/random.jpg") no-repeat; */
-    background-color: white;
+.sidebarLinks{
+    display: grid;
+    grid-template-columns: 15% 85%;
 }
