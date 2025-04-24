@@ -17,6 +17,7 @@ from django.db.models import F, Count
 from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer
 now = timezone.now()
 
+#views related to forms
 class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
     template_name = 'forms/view-forms-index.html'
     context_object_name = 'active_forms'
@@ -35,6 +36,89 @@ class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
     model=Form
     template_name = 'forms/view-form-detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self.form = self.get_object()
+        self.responses = Response.objects.filter(form=self.form)
+        self.form_structure = FormQuestion.objects.filter(form=self.form).order_by('index')
+        self.form_questions = [fq.question for fq in self.form_structure]
+        self.options_list = []
+        for i in range(len(self.form_questions)):  
+            options = Option.objects.filter(question=self.form_questions[i])
+            if options:
+                self.options_list.append(options)
+            else: 
+                self.options_list.append([])
+        context['form'] = self.form
+        context['form_structure'] = self.form_structure
+        context['question_option_pairs'] = zip(self.form_structure, self.form_questions, self.options_list)
+        return context
+
+class CreateForm(LoginRequiredMixin, generic.CreateView):
+    model = Form
+    template_name = 'forms/update-form.html'
+    fields = [
+            'form_name', 'start_date', 'end_date', 'organization'
+            ]
+    def get_success_url(self):
+        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.id})
+
+
+class UpdateForm(LoginRequiredMixin, generic.UpdateView):
+    model=Form
+    template_name = 'forms/update-form.html'
+    fields = [
+            'form_name', 'start_date', 'end_date', 'organization'
+            ]
+    def get_success_url(self):
+        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.id})
+   
+class DeleteForm(LoginRequiredMixin, generic.DeleteView):
+    model=Form
+    success_url = reverse_lazy('forms:view-forms-index')
+
+#view related to form questions
+class CreateFormQuestion(LoginRequiredMixin, generic.CreateView):
+    model = FormQuestion
+    template_name = 'forms/update-form-question.html'
+    fields = [
+            'question', 'visible_if_question', 'visible_if_answer', 'index'
+            ]
+    
+    def form_valid(self, form):
+        form_id = self.kwargs.get('form_id')
+        form.instance.form_id = form_id
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        print(self.object.form.id)
+        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.form.id})
+
+
+class UpdateFormQuestion(LoginRequiredMixin, generic.UpdateView):
+    model = FormQuestion
+    template_name = 'forms/update-form-question.html'
+    fields = [
+            'question', 'visible_if_question', 'visible_if_answer', 'index'
+            ]
+    
+    def form_valid(self, form):
+        form_id = self.kwargs.get('form_id')
+        form.instance.form_id = form_id
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.form.id})
+
+class RemoveFormQuestion(LoginRequiredMixin, generic.DeleteView):
+    model=FormQuestion
+    def get_success_url(self):
+        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.form.id})
+
+
+
+
+#views related to responses
 class ViewResponseDetail(LoginRequiredMixin, generic.DetailView):
     model=Response
     template_name = 'forms/view-response-detail.html'
@@ -160,8 +244,8 @@ class UpdateResponse(LoginRequiredMixin, View):
 
 class DeleteResponse(LoginRequiredMixin, generic.DeleteView):
     model=Response
-    success_url = reverse_lazy('forms:respondents')
-
+    def get_success_url(self):
+        return reverse_lazy('forms:view-respondent-detail', kwargs={'pk': self.object.respondent.id})
 
 
 class ViewRespondentsIndex(LoginRequiredMixin, generic.ListView):
@@ -185,22 +269,24 @@ class ViewRespondentDetail(LoginRequiredMixin, generic.DetailView):
 
 class CreateRespondent(LoginRequiredMixin, generic.CreateView):
     model = Respondent
-    template_name = 'forms/edit-respondent.html'
+    template_name = 'forms/update-respondent.html'
     fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
             'district', 'email', 'contact_no'
             ]
-    success_url = reverse_lazy('forms:respondents')
+    def get_success_url(self):
+        return reverse_lazy('forms:view-respondent-detail', kwargs={'pk': self.object.id})
 
 
 class UpdateRespondent(LoginRequiredMixin, generic.UpdateView):
     model=Respondent
-    template_name = 'forms/edit-respondent.html'
+    template_name = 'forms/update-respondent.html'
     fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
             'district', 'email', 'contact_no'
             ]
-    success_url = reverse_lazy('forms:respondents')
+    def get_success_url(self):
+        return reverse_lazy('forms:view-respondent-detail', kwargs={'pk': self.object.id})
    
 
 class DeleteRespondent(LoginRequiredMixin, generic.DeleteView):

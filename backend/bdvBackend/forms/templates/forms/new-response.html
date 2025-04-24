@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
 
+{% if perms.forms.edit_response %}
 <div class="content">
     <form id="response_form" action="{% url 'forms:create-response' form_meta.id %}" method="post">
         {%csrf_token%}
@@ -12,6 +13,9 @@
     
 </div>
 <script src="{% static 'forms/conditionalFormLogic.js' %}"></script>
+{% else %}
+<p>You do not have permission to view this page. If you think this is a mistake, please contact your supervisor.</p>
+{% endif %}
 {% endblock %}
 
 

@@ -1,6 +1,7 @@
 {% extends 'forms/base.html' %}
 {% block content %}
 
+{% if perms.forms.delete_response %}
 <div class="content">
     <form method="post">{% csrf_token %}
         <p>
@@ -12,4 +13,7 @@
         <input type="submit" value="Confirm">
     </form>
 </div>
+{% else %}
+<p>You do not have permission to perform this action. If you think this is a mistake, please contact your supervisor.</p>
+{% endif %}
 {% endblock %}

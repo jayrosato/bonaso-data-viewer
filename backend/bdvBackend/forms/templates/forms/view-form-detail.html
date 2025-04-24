@@ -2,15 +2,38 @@
 
 {% block content %}
 <div class="content">
-    {% if active_forms %}
-        <ul>
-            {% for form in active_forms %}
-                <li><a href="{% url 'forms:create-response' form.id %}">{{form}}</a></li>
-            {% endfor %}
-        </ul>
-    {% else %}
-    <p>Nothing here yet!</p>
-    {% endif %}
+    {% if perms.forms.view_form %}
+        <h1>{{ form.form_name }}</h1>
+        <h3> From {{ form.organization }} </h3>
+        <p> Starts On: {{form.start_date}}, Ends On: {{ form.end_date }}</p>
+        {% if perms.forms.edit_form %}
+        <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form Details</button></a>
+        {% endif %}
 
+        {% if perms.forms.delete_form %}
+        <a href="{% url 'forms:delete-form' form.id %}"><button>Delete Form</button></a>
+        {% endif %}
+        
+        {% if question_option_pairs %}
+            {% for meta, question, option_set in question_option_pairs %}
+                <h3>{{ question.question_text }}</h3>
+                <p><i>{{question.question_type}}</i></p>
+                    <ul>
+                    {% if option_set|length > 0 %}
+                        {% for option in option_set %}
+                            <li> {{option.option_text}} </li>
+                        {% endfor %}
+                    {% endif %}
+                    </ul>
+                {% if perms.forms.edit_form %}
+                <a href="{% url 'forms:update-form-question' form_id=form.id pk=meta.id %}" ><button>Edit Question</button></a> 
+                <a href="{% url 'forms:remove-form-question' meta.id %}" ><button>Remove Question</button></a>  
+                {% endif %}  
+            {% endfor %}
+        {% else %}
+            <p>This form does not have any questions.</p>
+        {% endif %}
+        <a href="{% url 'forms:create-form-question' form.id %}"><button>Add a Question</button></a>
+    {% endif %}
 </div>
 {% endblock %}

@@ -4,22 +4,26 @@ from . import views
 
 app_name = "forms"
 urlpatterns = [
-    path('', views.ViewFormsIndex.as_view(), name='index'),
-    path('forms', views.ViewFormsIndex.as_view(), name='view-forms-index'),
-    path('<int:pk>', views.ViewFormDetail.as_view(), name='view-form-detail'),
-    #allows users to create/edit respondents (demographic data collected about clients)
+    path('', views.ViewFormsIndex.as_view(), name='view-forms-index'),
+    path('<int:pk>/view', views.ViewFormDetail.as_view(), name='view-form-detail'),
+    path('new', views.CreateForm.as_view(), name='create-form'),
+    path('<int:pk>/update', views.UpdateForm.as_view(), name='update-form'),
+    path('<int:pk>/delete', views.DeleteForm.as_view(), name='delete-form'),
+
+
+
+    path('<int:form_id>/formquestions/create', views.CreateFormQuestion.as_view(), name='create-form-question'),
+    path('<int:form_id>/formquestions/<int:pk>/update', views.UpdateFormQuestion.as_view(), name='update-form-question'),
+    path('formquestions/<int:pk>/remove', views.RemoveFormQuestion.as_view(), name='remove-form-question'),
+
+    #allows users to view, create, and edit respondents (demographic data collected about clients)
     path('respondents', views.ViewRespondentsIndex.as_view(), name='view-respondents-index'),
     path('respondents/create', views.CreateRespondent.as_view(), name='create-respondent'),
     path('respondents/<int:pk>', views.ViewRespondentDetail.as_view(), name='view-respondent-detail'),
     path('respondents/<int:pk>/update', views.UpdateRespondent.as_view(), name='update-respondent'),
     path('respondents/<int:pk>/delete', views.DeleteRespondent.as_view(), name='delete-respondent'),
 
-    #allows users to collect information about specific indicators related to respondents
-    #path('<int:pk>/new', views.new_response, name='new-response'),
-    #path('<int:pk>/responses/', views.ResponsesView.as_view(), name='responses'),
-    #path('<int:question_id>/respond/', views.ResponsesView.as_view(), name='respond'),
-
-    #allows users to create/edit responses given by respondents
+    #allows users to view, create, andedit responses given by respondents
     path('response/<int:pk>', views.ViewResponseDetail.as_view(), name='view-response-detail'),
     path('response/<int:pk>/create', views.NewResponse.as_view(), name='create-response'),
     path('response/<int:pk>/update', views.UpdateResponse.as_view(), name='update-response'),

@@ -12,6 +12,9 @@
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}
+    {% if perms.forms.create_form %}
+        <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
+    {% endif %}
 
 </div>
 {% endblock %}
