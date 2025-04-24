@@ -1,9 +1,0 @@
-<h1>{{ form.form_text }}</h1>
-
-<ul>
-{% for option in question.option_set.all %}
-    <li>{{ option.option_text }} -- {{ option.responses }}</li>
-{% endfor %}
-</ul>
-
-<a href="{% url 'forms:detail' question.id %}">Vote again?</a>

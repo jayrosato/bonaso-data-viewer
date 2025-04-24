@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="content">
-    <form id="new_response" action="{% url 'forms:new-response' form_meta.id %}" method="post">
+    <form id="response_form" action="{% url 'forms:create-response' form_meta.id %}" method="post">
         {%csrf_token%}
         {{ msg }}
         {{ form }}

@@ -145,7 +145,7 @@ class Answer(models.Model):
         if self.option != None:
             val = self.option
         else: val = self.open_answer
-        return f'{self.response} : {val}'
+        return f'{val}'
     
     class Meta:
         db_table_comment = 'Table containing the actual answers to questions a respondent gave.'

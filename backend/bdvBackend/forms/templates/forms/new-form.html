@@ -1,0 +1,13 @@
+{% extends 'forms/base.html' %}
+
+{% block content %}
+<div class="content">
+    {% if perms.forms.edit_form %}
+        <form action="" method="post">
+            {%csrf_token%}
+            {{ form }}
+            <input type="submit" value="Submit">
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

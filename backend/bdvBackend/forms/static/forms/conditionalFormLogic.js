@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('new_response');
+    const form = document.getElementById('response_form');
 
     form.addEventListener('change', function () {
         updateForm();

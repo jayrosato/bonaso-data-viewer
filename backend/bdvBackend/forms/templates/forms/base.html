@@ -26,17 +26,17 @@
                         <h3 class="sbLinkHeader"> Your Apps</h3>
                         <div class="sidebarLinks">
                             <img class="sbIcon" src="../../static/forms/images/account-group-outline.svg" />
-                            <a href="{% url 'forms:respondents' %}">Respondents</a>
+                            <a href="{% url 'forms:view-respondents-index' %}">Respondents</a>
                             <img class="sbIcon" src="../../static/forms/images/list-box-outline.svg" />   
-                            <a href="{% url 'forms:forms' %}">Forms</a>
+                            <a href="{% url 'forms:view-forms-index' %}">Forms</a>
                         </div>
 
                         <h3 class="sbLinkHeader">Your Account</h3>
                             <div class="sidebarLinks">
                             <img class="sbIcon" src="../../static/forms/images/account-box-edit-outline.svg" /> 
-                            <a href="{% url 'forms:forms' %}">Account</a>
+                            <a href="{% url 'forms:view-forms-index' %}">Account</a>
                             <img class="sbIcon" src="../../static/forms/images/cog.svg" /> 
-                            <a href="{% url 'forms:forms' %}">Settings</a>
+                            <a href="{% url 'forms:view-forms-index' %}">Settings</a>
                             <img class="sbIcon" src="../../static/forms/images/logout.svg" /> 
                             <form id="logout-form" method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}

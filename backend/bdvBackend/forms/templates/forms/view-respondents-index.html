@@ -7,7 +7,7 @@
     <ul>
         {% if perms.forms.view_respondent %}
         {% for respondent in respondents %}
-            <li><a href="{% url 'forms:update-respondent' respondent.id %}">{{respondent}}</a></li>
+            <li><a href="{% url 'forms:view-respondent-detail' respondent.id %}">{{respondent}}</a></li>
         {% endfor %}
 
         {% else %}

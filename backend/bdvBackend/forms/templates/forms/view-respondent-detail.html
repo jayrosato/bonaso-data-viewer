@@ -20,7 +20,7 @@
         {% if responses %}
         <ul>
             {% for response in responses %}
-            <li>{{response.form}} ({{response.response_date}})</li>
+            <a href="{% url 'forms:view-response-detail' response.id %}"> <li>{{response.form}} ({{response.response_date}})</li></a>
             {% endfor %}
 
         </ul>

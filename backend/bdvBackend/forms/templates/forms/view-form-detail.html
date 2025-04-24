@@ -1,0 +1,16 @@
+{% extends 'forms/base.html' %}
+
+{% block content %}
+<div class="content">
+    {% if active_forms %}
+        <ul>
+            {% for form in active_forms %}
+                <li><a href="{% url 'forms:create-response' form.id %}">{{form}}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+    <p>Nothing here yet!</p>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -6,7 +6,7 @@ from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 import datetime
-from django.views import generic
+from django.views import generic, View
 
 from .forms import RespondentForm, SelectRespondentForm, ResponseForm
 
@@ -17,8 +17,8 @@ from django.db.models import F, Count
 from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer
 now = timezone.now()
 
-class IndexView(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/index.html'
+class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
+    template_name = 'forms/view-forms-index.html'
     context_object_name = 'active_forms'
     
     def get_queryset(self):
@@ -31,69 +31,148 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 
         return Form.objects.filter(start_date__lte= datetime.date.today(), end_date__gte = datetime.date.today()).order_by('organization')
 
-class FormView(LoginRequiredMixin, generic.DetailView):
+class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
     model=Form
-    template_name = 'forms/form-detail.html'
-    context_object_name = 'form_questions'
+    template_name = 'forms/view-form-detail.html'
+
+class ViewResponseDetail(LoginRequiredMixin, generic.DetailView):
+    model=Response
+    template_name = 'forms/view-response-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        form_instance = self.get_object()
-        formQs = FormQuestion.objects.filter(form=form_instance).order_by('index')
+        response = self.get_object()
+        form = Form.objects.filter(id = response.form.id).first()
+        formQs = FormQuestion.objects.filter(form = form.id).order_by('index')
         form_questions = [fq.question for fq in formQs]
-        context['form_meta'] = form_instance
-        context['form'] = ResponseForm(formQs=form_questions, formLogic=formQs)
-        context['msg'] = ''
+        answers = []
+        for i in range(len(form_questions)):  
+            answer = Answer.objects.filter(response=response, question=form_questions[i]).first()
+            if answer:
+                answers.append(answer)
+            else: 
+                answers.append('No response given.')
+        print(form_questions)
+        print(answers)
+        context['response'] = response
+        context['question_answer_pairs'] = zip(form_questions, answers)
+        context['form_meta'] = form
         return context
+    
+class NewResponse(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        self.form_meta = get_object_or_404(Form, id=pk)
+        self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
+        self.form_questions = [fq.question for fq in self.form_structure]
+        return render(request, 'forms/new-response.html', 
+                    { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure),
+                    'form_meta': self.form_meta,})
 
-def new_response(request, pk):
-    form_meta = get_object_or_404(Form, pk=pk)
-    formQs = FormQuestion.objects.filter(form=form_meta).order_by('index')
-    formLogic = formQs
-    formQs = [fq.question for fq in formQs]
-    if request.method == 'POST':
-        form = ResponseForm(request.POST, formQs=formQs, formLogic=formLogic)
-        test = request.POST.getlist('What will you do in response to this?')
-        print(test)
-        if form.is_valid():
+    def post(self, request, pk):
+        self.form_meta = get_object_or_404(Form, id=pk)
+        self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
+        self.form_questions = [fq.question for fq in self.form_structure]
+        self.form = ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure)
+
+        if self.form.is_valid():
             respondent_id = request.POST.get('Respondent')
-            response = Response(form=form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id))
+            response = Response(form=self.form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id))
             response.save()
-            for i in range(len(formQs)):
-                if formQs[i].question_type == 'Text' or formQs[i].question_type == 'Number':
-                    openResponse = request.POST.get(formQs[i].question_text)
-                    answer = Answer(response=response, question=formQs[i], open_answer=openResponse, option=None)
+            for i in range(len(self.form_questions)):
+                if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
+                    openResponse = request.POST.get(self.form_questions[i].question_text)
+                    answer = Answer(response=response, question=self.form_questions[i], open_answer=openResponse, option=None)
                     answer.save()
-                if formQs[i].question_type == 'Yes/No':
-                    yesNo = request.POST.get(formQs[i].question_text)
-                    answer = Answer(response=response, question=formQs[i], open_answer=yesNo)
+                if self.form_questions[i].question_type == 'Yes/No':
+                    yesNo = request.POST.get(self.form_questions[i].question_text)
+                    answer = Answer(response=response, question=self.form_questions[i], open_answer=yesNo)
                     answer.save()
-                if formQs[i].question_type == 'Single Selection':
-                    option_id = request.POST.get(formQs[i].question_text)
-                    answer = Answer(response=response, question=formQs[i], option=get_object_or_404(Option, pk=option_id), open_answer=None)
+                if self.form_questions[i].question_type == 'Single Selection':
+                    option_id = request.POST.get(self.form_questions[i].question_text)
+                    answer = Answer(response=response, question=self.form_questions[i], option=get_object_or_404(Option, pk=option_id), open_answer=None)
                     answer.save()
-                if formQs[i].question_type == 'Multiple Selections':
-                    selected_options = request.POST.getlist(formQs[i].question_text)
+                if self.form_questions[i].question_type == 'Multiple Selections':
+                    selected_options = request.POST.getlist(self.form_questions[i].question_text)
                     for o in range(len(selected_options)):
-                        answer = Answer(response=response, question=formQs[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
+                        answer = Answer(response=response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                         answer.save()
             return HttpResponseRedirect(reverse("forms:index"))
         else:
             return render(request, 'forms/form-detail.html', 
-                          { 'form': ResponseForm(request.POST, formQs=formQs), 
-                           'form_meta':form_meta, 
+                          { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure), 
+                           'form_meta':self.form_meta, 
                            'msg':'Double check that all the fields are correctly filled out.' })
 
+class UpdateResponse(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        self.response = get_object_or_404(Response, id=pk)
+        self.form_meta = Form.objects.filter(id=self.response.form.id).first()
+        self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
+        self.form_questions = [fq.question for fq in self.form_structure]
+        return render(request, 'forms/update-response.html', 
+                    { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure, response=self.response),
+                    'form_meta': self.form_meta,
+                    'response': self.response})
 
-class ViewRespondents(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/respondents.html'
+
+    def post(self, request, pk):
+        self.response = get_object_or_404(Response, id=pk)
+        self.form_meta = Form.objects.filter(id=self.response.form.id).first()
+        self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
+        self.form_questions = [fq.question for fq in self.form_structure]
+        self.form = ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure, response=self.response)
+
+
+        if self.form.is_valid():
+            self.response.updated_at = timezone.now()
+            self.response.save()
+
+            for i in range(len(self.form_questions)):
+                if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
+                    openResponse = request.POST.get(self.form_questions[i].question_text)
+                    answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+                    answer.open_answer = openResponse
+                    answer.save()
+                if self.form_questions[i].question_type == 'Yes/No':
+                    yesNo = request.POST.get(self.form_questions[i].question_text)
+                    answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+                    answer.open_answer = yesNo
+                    answer.save()
+                if self.form_questions[i].question_type == 'Single Selection':
+                    option_id = request.POST.get(self.form_questions[i].question_text)
+                    answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+                    answer.option = get_object_or_404(Option, pk=option_id)
+                    answer.save()
+                if self.form_questions[i].question_type == 'Multiple Selections':
+                    selected_options = request.POST.getlist(self.form_questions[i].question_text)
+                    previous_answers =  Answer.objects.filter(response = self.response, question=self.form_questions[i])
+                    for answer in previous_answers:
+                        answer.delete()
+                    for o in range(len(selected_options)):
+                        answer = Answer(response=self.response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
+                        answer.save()
+            return HttpResponseRedirect(reverse("forms:index"))
+        else:
+            return render(request, 'forms/update-response.html', 
+                          { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure, response=self.response), 
+                           'form_meta':self.form_meta, 'response': self.response,
+                           'msg':'Double check that all the fields are correctly filled out.' })
+
+class DeleteResponse(LoginRequiredMixin, generic.DeleteView):
+    model=Response
+    success_url = reverse_lazy('forms:respondents')
+
+
+
+class ViewRespondentsIndex(LoginRequiredMixin, generic.ListView):
+    template_name = 'forms/view-respondents-index.html'
     context_object_name = 'respondents'
     def get_queryset(self):
         return Respondent.objects.all()
 
-class ViewRespondent(LoginRequiredMixin, generic.DetailView):
+class ViewRespondentDetail(LoginRequiredMixin, generic.DetailView):
     model=Respondent
-    template_name = 'forms/view-respondent.html'
+    template_name = 'forms/view-respondent-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -129,22 +208,3 @@ class DeleteRespondent(LoginRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy('forms:respondents')
 
     #logic for instance where respondent has responses would go here
-
-
-
-#None of this here works
-
-
-
-
-
-
-
-class ResponsesView(generic.DetailView):
-    model=Question
-    template_name = 'forms/responses.html'
-
-
-def responses(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, "forms/responses.html", {"question": question})
