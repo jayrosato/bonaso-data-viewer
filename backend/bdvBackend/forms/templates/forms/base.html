@@ -12,7 +12,7 @@
     <body>
         {% block header %}
             <div class="header">
-                <img class="headerLogo" src="../../static/forms/images/boansoWhite.png" />
+                <a href="{% url 'forms:view-forms-index' %}"> <img class="headerLogo" src="../../static/forms/images/boansoWhite.png" /></a> 
                 <div class="headerText">
                     <h1>BONASO Data Viewer</h1>
                 </div>

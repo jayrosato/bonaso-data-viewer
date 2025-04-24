@@ -6,7 +6,10 @@
     {% if active_forms %}
         <ul>
             {% for form in active_forms %}
-                <li><a href="{% url 'forms:view-form-detail' form.id %}">{{form}}</a></li>
+                <li>
+                    <a href="{% url 'forms:view-form-detail' form.id %}">{{form}}</a>
+                    <a href="{% url 'forms:create-response' form.id %}"><button>Record a New Response for this Form</button></a>
+                </li>
             {% endfor %}
         </ul>
     {% else %}

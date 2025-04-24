@@ -180,7 +180,7 @@ class NewResponse(LoginRequiredMixin, View):
                     for o in range(len(selected_options)):
                         answer = Answer(response=response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                         answer.save()
-            return HttpResponseRedirect(reverse("forms:index"))
+            return HttpResponseRedirect(reverse("forms:view-forms-index"))
         else:
             return render(request, 'forms/form-detail.html', 
                           { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure), 
