@@ -12,7 +12,7 @@
     <body>
         {% block header %}
             <div class="header">
-                <a href="{% url 'forms:view-forms-index' %}"> <img class="headerLogo" src="../../static/forms/images/boansoWhite.png" /></a> 
+                <a href="{% url 'forms:view-forms-index' %}"> <img class="headerLogo" src="{% static 'forms/images/boansoWhite.png' %}" /></a> 
                 <div class="headerText">
                     <h1>BONASO Data Viewer</h1>
                 </div>
@@ -25,19 +25,20 @@
                     <div class="sidebarLinksCont">
                         <h3 class="sbLinkHeader"> Your Apps</h3>
                         <div class="sidebarLinks">
-                            <img class="sbIcon" src="../../static/forms/images/account-group-outline.svg" />
+                            
+                            <img class="sbIcon" src="{% static 'forms/images/account-group-outline.svg' %}" />
                             <a href="{% url 'forms:view-respondents-index' %}">Respondents</a>
-                            <img class="sbIcon" src="../../static/forms/images/list-box-outline.svg" />   
+                            <img class="sbIcon" src="{% static 'forms/images/list-box-outline.svg' %}" />   
                             <a href="{% url 'forms:view-forms-index' %}">Forms</a>
                         </div>
 
                         <h3 class="sbLinkHeader">Your Account</h3>
                             <div class="sidebarLinks">
-                            <img class="sbIcon" src="../../static/forms/images/account-box-edit-outline.svg" /> 
+                            <img class="sbIcon" src="{% static 'forms/images/account-box-edit-outline.svg' %}"" /> 
                             <a href="{% url 'forms:view-forms-index' %}">Account</a>
-                            <img class="sbIcon" src="../../static/forms/images/cog.svg" /> 
+                            <img class="sbIcon" src="{% static 'forms/images/cog.svg' %}" /> 
                             <a href="{% url 'forms:view-forms-index' %}">Settings</a>
-                            <img class="sbIcon" src="../../static/forms/images/logout.svg" /> 
+                            <img class="sbIcon" src="{% static 'forms/images/logout.svg' %}" /> 
                             <form id="logout-form" method="post" action="{% url 'logout' %}">
                                 {% csrf_token %}
                                 <button type="submit" class="logout">Logout</button>
