@@ -1,0 +1,24 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    {% if perms.forms.edit_question %}
+    <form action="{% url 'forms:create-form' %}" method="post">
+            {%csrf_token%}
+            <h2>Form Details</h2>
+            {{ form }}
+            <h2>Form Questions</h2>
+            <div class="questions">
+                <div class="existing_question">
+                    {{ form_question }}
+                </div>
+            </div>
+            <button id="add_question">Add Question</button>
+            <button id="submit" type="submit" submit-url="{% url 'forms:create-form' %}">Submit</button>
+        </form>
+    {% endif %}
+</div>
+<script src="{% static 'forms/editFormLogic.js' %}"></script>
+
+{% endblock %}

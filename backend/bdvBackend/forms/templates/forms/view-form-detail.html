@@ -8,7 +8,7 @@
         <h3> From {{ form.organization }} </h3>
         <p> Starts On: {{form.start_date}}, Ends On: {{ form.end_date }}</p>
         {% if perms.forms.edit_form %}
-        <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form Details</button></a>
+        <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form</button></a>
         {% endif %}
 
         {% if perms.forms.delete_form %}
@@ -26,15 +26,10 @@
                         {% endfor %}
                     {% endif %}
                     </ul>
-                {% if perms.forms.edit_form %}
-                <a href="{% url 'forms:update-form-question' form_id=form.id pk=meta.id %}" ><button>Edit Question</button></a> 
-                <a href="{% url 'forms:remove-form-question' meta.id %}" ><button>Remove Question</button></a>  
-                {% endif %}  
             {% endfor %}
         {% else %}
             <p>This form does not have any questions.</p>
         {% endif %}
-        <a href="{% url 'forms:create-form-question' form.id %}"><button>Add a Question</button></a>
     {% endif %}
 </div>
 {% endblock %}

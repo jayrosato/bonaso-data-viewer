@@ -11,13 +11,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import requires_csrf_token
 import json
     
-from .forms import ResponseForm, QuestionForm
+from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm
 
 import datetime
 from django.db.models import F, Count
 
 
-from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer
+from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization
 now = timezone.now()
 
 #views related to forms
@@ -57,28 +57,115 @@ class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
         context['question_option_pairs'] = zip(self.form_structure, self.form_questions, self.options_list)
         return context
 
-class CreateForm(LoginRequiredMixin, generic.CreateView):
-    model = Form
-    template_name = 'forms/update-form.html'
-    fields = [
-            'form_name', 'start_date', 'end_date', 'organization'
-            ]
-    def get_success_url(self):
-        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.id})
+#new form stuff
+class CreateForm(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'forms/create-form-all.html', 
+                          { 'form': FormsForm(), 'form_question':FormQuestionForm(),
+                           'msg':'Double check that all the fields are correctly filled out.' })
+
+    def post(self, request):
+        form = Form(
+            form_name = request.POST.get('form_name'),
+            organization = get_object_or_404(Organization, id=request.POST.get('organization')),
+            start_date = request.POST.get('start_date'),
+            end_date = request.POST.get('end_date'),
+            )
+        form.save()
+        indexValues = request.POST.getlist('index')
+        questionValues = request.POST.getlist('question')
+        qLogicValues = request.POST.getlist('visible_if_question')
+        aLogicValues = request.POST.getlist('visible_if_answer')
+        for i in range(len(indexValues)):
+            if qLogicValues[i] != '':
+                formQ = FormQuestion(
+                    form=form,
+                    index = indexValues[i],
+                    question = get_object_or_404(Question, id=questionValues[i]),
+                    visible_if_question = get_object_or_404(Question, id=qLogicValues[i]),
+                    visible_if_answer = aLogicValues[i]
+                    )
+            else:
+                formQ = FormQuestion(
+                    form=form,
+                    index = indexValues[i],
+                    question = get_object_or_404(Question, id=questionValues[i]),
+                    visible_if_question = None,
+                    visible_if_answer = None
+                    )
+            formQ.save()
+
+        return HttpResponseRedirect(reverse('forms:view-form-detail', kwargs={'pk': form.id}))
 
 
-class UpdateForm(LoginRequiredMixin, generic.UpdateView):
-    model=Form
-    template_name = 'forms/update-form.html'
-    fields = [
-            'form_name', 'start_date', 'end_date', 'organization'
-            ]
-    def get_success_url(self):
-        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.id})
-   
+class UpdateForm(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        form = get_object_or_404(Form, id=pk)
+        formQs = FormQuestion.objects.filter(form = form.id)
+        print(formQs)
+        formQForms = [FormQuestionForm(instance=fq) for fq in formQs]
+        return render(request, 'forms/update-form-all.html', 
+                          { 'form_meta':form,
+                              'form': FormsForm(instance=form), 
+                           'form_question':formQForms,
+                           'msg':'Double check that all the fields are correctly filled out.' })
+
+    def post(self, request, pk):
+        form = get_object_or_404(Form, id=pk)
+        form.form_name = request.POST.get('form_name')
+        form.organization = get_object_or_404(Organization, id=request.POST.get('organization'))
+        form.start_date = request.POST.get('start_date')
+        form.end_date = request.POST.get('end_date')
+        form.save()
+
+        indexValues = request.POST.getlist('index')
+        questionValues = request.POST.getlist('question')
+        qLogicValues = request.POST.getlist('visible_if_question')
+        aLogicValues = request.POST.getlist('visible_if_answer')
+
+        existingQuestions = FormQuestion.objects.filter(form=form.id)
+        if len(existingQuestions) > len(indexValues):
+            for extra in existingQuestions[len(indexValues):]:
+                extra.delete()
+
+        for i in range(len(indexValues)):
+            if i+1 <= len(existingQuestions):
+                formQ = existingQuestions[i]
+                if qLogicValues[i] != '':
+                    formQ.index = indexValues[i]
+                    formQ.question = get_object_or_404(Question, id=questionValues[i])
+                    formQ.visible_if_question = get_object_or_404(Question, id=qLogicValues[i])
+                    formQ.visible_if_answer = aLogicValues[i]
+                else:
+                    formQ.index = indexValues[i]
+                    formQ.question = get_object_or_404(Question, id=questionValues[i])
+                    formQ.visible_if_question = None
+                    formQ.visible_if_answer = None
+            else:
+                if qLogicValues[i] != '':
+                    formQ = FormQuestion(
+                        form=form,
+                        index = indexValues[i],
+                        question = get_object_or_404(Question, id=questionValues[i]),
+                        visible_if_question = get_object_or_404(Question, id=qLogicValues[i]),
+                        visible_if_answer = aLogicValues[i]
+                        )
+                else:
+                    formQ = FormQuestion(
+                        form=form,
+                        index = indexValues[i],
+                        question = get_object_or_404(Question, id=questionValues[i]),
+                        visible_if_question = None,
+                        visible_if_answer = None
+                        )
+            formQ.save()
+        return HttpResponseRedirect(reverse('forms:view-form-detail', kwargs={'pk': form.id}))
+    
+#old form stuff
 class DeleteForm(LoginRequiredMixin, generic.DeleteView):
     model=Form
     success_url = reverse_lazy('forms:view-forms-index')
+
 
 #view related to form questions
 class CreateFormQuestion(LoginRequiredMixin, generic.CreateView):
