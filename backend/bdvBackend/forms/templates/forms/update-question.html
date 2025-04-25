@@ -1,0 +1,26 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    {% if perms.forms.edit_question %}
+            {%csrf_token%}
+            {{ form }}
+            {% if options %}
+                {% for option in options %}
+                    <div class="option_passer" option_text="{{option.option_text}}"></div>
+                {% endfor %}
+            {% endif %}
+            <button id="submit" submit-url="{% url 'forms:update-question' question.id %}">Submit</button>
+            {% if perms.forms.delete_question %}
+                    <a href="{%url 'forms:delete-question' question.id%}">
+                        <button>
+                            Delete Question
+                        </button>
+                    </a>
+            {% endif %}
+    {% endif %}
+    <script src="{% static 'forms/editQuestionLogic.js' %}"></script>
+</div>
+
+{% endblock %}

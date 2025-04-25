@@ -2,6 +2,9 @@
 
 {% block content %}
 <div class="content">
+    {% if perms.forms.create_question %}
+        <a href="{% url 'forms:create-question' %}"><button>Create a New Question</button></a>
+    {% endif %}
     {% if perms.forms.edit_form %}
         <form action="" method="post">
             {%csrf_token%}
@@ -10,7 +13,7 @@
         </form>
 
         {% if formquestion.id %}
-            <a href="{%url 'forms:remove-form-question' formquestion.id%}">
+            <a href="{% url 'forms:remove-form-question' formquestion.id%}">
                 <button>
                     Remove Question from Form
                 </button>

@@ -16,6 +16,12 @@ urlpatterns = [
     path('<int:form_id>/formquestions/<int:pk>/update', views.UpdateFormQuestion.as_view(), name='update-form-question'),
     path('formquestions/<int:pk>/remove', views.RemoveFormQuestion.as_view(), name='remove-form-question'),
 
+    path('questions/create', views.CreateQuestion.as_view(), name='create-question'),
+    path('questions/<int:pk>/update', views.UpdateQuestion.as_view(), name='update-question'),
+    path('questions/<int:pk>/delete', views.DeleteQuestion.as_view(), name='delete-question'),
+
+
+
     #allows users to view, create, and edit respondents (demographic data collected about clients)
     path('respondents', views.ViewRespondentsIndex.as_view(), name='view-respondents-index'),
     path('respondents/create', views.CreateRespondent.as_view(), name='create-respondent'),

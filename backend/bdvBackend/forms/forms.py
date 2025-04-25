@@ -63,3 +63,11 @@ class ResponseForm(forms.Form):
                     self.fields[field_name].widget.attrs.update({'valueRelation':conditions.visible_if_answer})
                     self.fields[field_name].required = False   
             self.fields[field_name].widget.attrs.update({'class':'question'})
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = [
+            'question_text', 'question_type'
+        ]
+        

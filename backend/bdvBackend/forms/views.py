@@ -7,8 +7,11 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 import datetime
 from django.views import generic, View
-
-from .forms import RespondentForm, SelectRespondentForm, ResponseForm
+from django.http import JsonResponse
+from django.views.decorators.csrf import requires_csrf_token
+import json
+    
+from .forms import ResponseForm, QuestionForm
 
 import datetime
 from django.db.models import F, Count
@@ -114,6 +117,70 @@ class RemoveFormQuestion(LoginRequiredMixin, generic.DeleteView):
     model=FormQuestion
     def get_success_url(self):
         return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.form.id})
+
+#questions are meant to be modular, and as such are edited separately from forms
+class CreateQuestion(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'forms/create-question.html', 
+                          { 'form': QuestionForm(),
+                           'msg':'Double check that all the fields are correctly filled out.' })
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            question = Question(question_text=data.get('question_text'), question_type=data.get('question_type'))
+            question.save()
+            options = data.get('options')
+            if len(options) > 0:
+                for i in range(len(options)):
+                    option = Option(question = question, option_text=options[i])
+                    option.save()
+            return JsonResponse({'redirect': reverse('forms:view-forms-index')})
+        except:
+            print('Ah nuts')
+
+class UpdateQuestion(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        question = get_object_or_404(Question, id=pk)
+        options = Option.objects.filter(question=question.id)
+        return render(request, 'forms/update-question.html', 
+                          { 'form': QuestionForm(instance=question), 'options': options,
+                           'msg':'Double check that all the fields are correctly filled out.',
+                            'question':question })
+
+    #options are currently assuming same load order
+    #should probably add some validation logic here (at least for length/remove blanks)
+    def post(self, request, pk):
+        try:
+            data = json.loads(request.body)
+            question = get_object_or_404(Question, id=pk)
+            question.question_text = data.get('question_text')
+            question.question_type = data.get('question_type')
+            question.save()
+            options = data.get('options')
+            existingOptions = Option.objects.filter(question=question.id)
+            if len(existingOptions) > len(options):
+                for extra in existingOptions[len(options):]:
+                    extra.delete()
+
+            if len(options) > 0:
+                for i in range(len(options)):
+                    if i+1 <= len(existingOptions):
+                        option = existingOptions[i]
+                        option.option_text = options[i]
+                        option.save()
+                    else:
+                        option = Option(question = question, option_text=options[i])
+                        option.save()
+            return JsonResponse({'redirect': reverse('forms:view-forms-index')})
+        except:
+            print('Ah nuts')
+
+
+class DeleteQuestion(LoginRequiredMixin, generic.DeleteView):
+    model=Question
+    def get_success_url(self):
+        return reverse_lazy('forms:view-forms-index')
 
 
 

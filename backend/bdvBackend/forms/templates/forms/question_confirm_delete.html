@@ -1,0 +1,18 @@
+{% extends 'forms/base.html' %}
+{% block content %}
+
+{% if perms.forms.delete_question %}
+<div class="content">
+    <form method="post">{% csrf_token %}
+        <p>
+            Are you sure you want to delete question "{{ object }}"? This may invalidate certain responses,
+            so please only do this if the question is not and has never been active. 
+        </p>
+        {{ form }}
+        <input type="submit" value="Confirm">
+    </form>
+</div>
+{% else %}
+<p>You do not have permission to perform this action. If you think this is a mistake, please contact your supervisor.</p>
+{% endif %}
+{% endblock %}
