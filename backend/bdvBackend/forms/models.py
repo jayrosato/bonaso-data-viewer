@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.db.models import Count
 
 import datetime
 
@@ -58,6 +59,9 @@ class Form(models.Model):
     def isActive(self):
         return datetime.date.today() >= self.end_date
     
+    def responsesCount(self):
+        return Response.objects.filter(form_id=self.id).count()
+
     class Meta:
         db_table_comment = 'Table containing "forms" which consist of a series of "questions" a respondent was asked.'
         ordering = ['-created_date', 'form_name']
