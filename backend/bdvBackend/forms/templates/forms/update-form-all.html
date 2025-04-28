@@ -3,8 +3,8 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.edit_question %}
-    <form action="{% url 'forms:update-form' form_meta.id %}" method="post">
+    {% if perms.forms.change_form %}
+        <form action="{% url 'forms:update-form' form_meta.id %}" method="post">
             {%csrf_token%}
             <h2>Form Details</h2>
             {{ form.as_p }}
@@ -18,6 +18,8 @@
             </div>
             <button id="submit" type="submit" submit-url="{% url 'forms:create-form' %}">Submit</button>
         </form>
+    {% else %}
+        <p>You do not have permission to view this page. </p>
     {% endif %}
 </div>
 <script src="{% static 'forms/editFormLogic.js' %}"></script>

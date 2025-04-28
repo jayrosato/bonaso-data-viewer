@@ -1,4 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 from django.utils import timezone
 from django.db.models import Count
 
@@ -11,6 +15,20 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.organization_name
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True)
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        default_org = Organization.objects.filter(organization_name='Unassigned')
+        UserProfile.objects.create(user=instance, organization=default_org)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.userprofile.save()
 
 class Respondent(models.Model):
     F = 'F'
@@ -129,6 +147,7 @@ class Option(models.Model):
 class Response(models.Model):
     respondent = models.ForeignKey(Respondent, on_delete=models.CASCADE)
     form = models.ForeignKey(Form, on_delete=models.PROTECT)
+    created_by = models.ForeignKey(User, default=User.objects.first().id, on_delete=models.SET_DEFAULT)
     response_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

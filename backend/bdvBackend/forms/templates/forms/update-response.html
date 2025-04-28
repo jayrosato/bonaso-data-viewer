@@ -3,7 +3,7 @@
 
 {% block content %}
 
-{% if perms.forms.edit_response %}
+{% if perms.forms.change_response %}
 <div class="content">
     <form id="response_form" action="{% url 'forms:update-response' response.id %}" method="post">
         {%csrf_token%}

@@ -28,9 +28,11 @@
         {% else %}
         <p>This respondent has not responded to any forms</p>
         {% endif %}
-        {% if perms.forms.edit_respondent %}
+        
+        {% if perms.forms.change_respondent %}
             <a href="{% url 'forms:update-respondent' respondent.id %}"><button>Edit Respondent Details</button></a>
         {% endif %}
+
         {% if perms.forms.delete_respondent %}
             <a href="{%url 'forms:delete-respondent' respondent.id%}"><button>Delete Respondent</button></a>
         {% endif %}

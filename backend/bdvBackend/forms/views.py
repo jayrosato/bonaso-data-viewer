@@ -32,15 +32,22 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
         last_login = self.request.session.get('last_login', 0)
         last_login = now.isoformat()
         self.request.session['last_login'] = last_login
-
         return Form.objects.filter(start_date__lte= datetime.date.today(), end_date__gte = datetime.date.today()).order_by('organization')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        return context
+    
 class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
     model=Form
     template_name = 'forms/view-form-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
         self.form = self.get_object()
         self.responses = Response.objects.filter(form=self.form)
         self.form_structure = FormQuestion.objects.filter(form=self.form).order_by('index')
@@ -61,7 +68,7 @@ class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
 class CreateForm(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'forms/create-form-all.html', 
-                          { 'form': FormsForm(), 'form_question':FormQuestionForm(),
+                          { 'form': FormsForm(organization=request.user.userprofile.organization), 'form_question':FormQuestionForm(),
                            'msg':'Double check that all the fields are correctly filled out.' })
 
     def post(self, request):
@@ -105,7 +112,7 @@ class UpdateForm(LoginRequiredMixin, View):
         formQForms = [FormQuestionForm(instance=fq) for fq in formQs]
         return render(request, 'forms/update-form-all.html', 
                           { 'form_meta':form,
-                              'form': FormsForm(instance=form), 
+                              'form': FormsForm(organization=request.user.userprofile.organization,instance=form), 
                            'form_question':formQForms,
                            'msg':'Double check that all the fields are correctly filled out.' })
 
@@ -159,49 +166,9 @@ class UpdateForm(LoginRequiredMixin, View):
             formQ.save()
         return HttpResponseRedirect(reverse('forms:view-form-detail', kwargs={'pk': form.id}))
     
-#old form stuff
 class DeleteForm(LoginRequiredMixin, generic.DeleteView):
     model=Form
     success_url = reverse_lazy('forms:view-forms-index')
-
-
-#view related to form questions
-class CreateFormQuestion(LoginRequiredMixin, generic.CreateView):
-    model = FormQuestion
-    template_name = 'forms/update-form-question.html'
-    fields = [
-            'question', 'visible_if_question', 'visible_if_answer', 'index'
-            ]
-    
-    def form_valid(self, form):
-        form_id = self.kwargs.get('form_id')
-        form.instance.form_id = form_id
-        return super().form_valid(form)
-    
-    def get_success_url(self):
-        print(self.object.form.id)
-        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.form.id})
-
-
-class UpdateFormQuestion(LoginRequiredMixin, generic.UpdateView):
-    model = FormQuestion
-    template_name = 'forms/update-form-question.html'
-    fields = [
-            'question', 'visible_if_question', 'visible_if_answer', 'index'
-            ]
-    
-    def form_valid(self, form):
-        form_id = self.kwargs.get('form_id')
-        form.instance.form_id = form_id
-        return super().form_valid(form)
-    
-    def get_success_url(self):
-        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.form.id})
-
-class RemoveFormQuestion(LoginRequiredMixin, generic.DeleteView):
-    model=FormQuestion
-    def get_success_url(self):
-        return reverse_lazy('forms:view-form-detail', kwargs={'pk': self.object.form.id})
 
 #questions are meant to be modular, and as such are edited separately from forms
 class CreateQuestion(LoginRequiredMixin, View):
@@ -300,7 +267,7 @@ class NewResponse(LoginRequiredMixin, View):
         self.form_meta = get_object_or_404(Form, id=pk)
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
-        return render(request, 'forms/new-response.html', 
+        return render(request, 'forms/create-response.html', 
                     { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure),
                     'form_meta': self.form_meta,})
 
@@ -312,7 +279,7 @@ class NewResponse(LoginRequiredMixin, View):
 
         if self.form.is_valid():
             respondent_id = request.POST.get('Respondent')
-            response = Response(form=self.form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id))
+            response = Response(form=self.form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id), created_by=request.user)
             response.save()
             for i in range(len(self.form_questions)):
                 if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
@@ -334,7 +301,7 @@ class NewResponse(LoginRequiredMixin, View):
                         answer.save()
             return HttpResponseRedirect(reverse("forms:view-forms-index"))
         else:
-            return render(request, 'forms/form-detail.html', 
+            return render(request, 'forms/create-response.html', 
                           { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure), 
                            'form_meta':self.form_meta, 
                            'msg':'Double check that all the fields are correctly filled out.' })
