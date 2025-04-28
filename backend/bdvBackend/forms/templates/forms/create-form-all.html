@@ -4,17 +4,16 @@
 {% block content %}
 <div class="content">
     {% if perms.forms.edit_question %}
-    <form action="{% url 'forms:create-form' %}" method="post">
+    <form action="{% url 'forms:create-question' %}" method="post">
             {%csrf_token%}
             <h2>Form Details</h2>
             {{ form }}
             <h2>Form Questions</h2>
-            <div class="questions">
-                <div class="existing_question">
+            <div class="questions" url="{% url 'forms:create-question' %}">
+                <div id="question-1" class="existing-question">
                     {{ form_question }}
                 </div>
             </div>
-            <button id="add_question">Add Question</button>
             <button id="submit" type="submit" submit-url="{% url 'forms:create-form' %}">Submit</button>
         </form>
     {% endif %}

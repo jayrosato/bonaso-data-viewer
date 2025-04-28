@@ -82,5 +82,5 @@ class FormQuestionForm(forms.ModelForm):
     class Meta:
         model = FormQuestion
         fields = [
-            'index', 'question', 'visible_if_question', 'visible_if_answer'
+            'question', 'visible_if_question', 'visible_if_answer'
         ]

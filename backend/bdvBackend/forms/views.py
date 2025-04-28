@@ -72,15 +72,14 @@ class CreateForm(LoginRequiredMixin, View):
             end_date = request.POST.get('end_date'),
             )
         form.save()
-        indexValues = request.POST.getlist('index')
         questionValues = request.POST.getlist('question')
         qLogicValues = request.POST.getlist('visible_if_question')
         aLogicValues = request.POST.getlist('visible_if_answer')
-        for i in range(len(indexValues)):
+        for i in range(len(questionValues)):
             if qLogicValues[i] != '':
                 formQ = FormQuestion(
                     form=form,
-                    index = indexValues[i],
+                    index = i,
                     question = get_object_or_404(Question, id=questionValues[i]),
                     visible_if_question = get_object_or_404(Question, id=qLogicValues[i]),
                     visible_if_answer = aLogicValues[i]
@@ -88,7 +87,7 @@ class CreateForm(LoginRequiredMixin, View):
             else:
                 formQ = FormQuestion(
                     form=form,
-                    index = indexValues[i],
+                    index = i,
                     question = get_object_or_404(Question, id=questionValues[i]),
                     visible_if_question = None,
                     visible_if_answer = None
@@ -118,26 +117,25 @@ class UpdateForm(LoginRequiredMixin, View):
         form.end_date = request.POST.get('end_date')
         form.save()
 
-        indexValues = request.POST.getlist('index')
         questionValues = request.POST.getlist('question')
         qLogicValues = request.POST.getlist('visible_if_question')
         aLogicValues = request.POST.getlist('visible_if_answer')
 
         existingQuestions = FormQuestion.objects.filter(form=form.id)
-        if len(existingQuestions) > len(indexValues):
-            for extra in existingQuestions[len(indexValues):]:
+        if len(existingQuestions) > len(questionValues):
+            for extra in existingQuestions[len(questionValues):]:
                 extra.delete()
 
-        for i in range(len(indexValues)):
+        for i in range(len(questionValues)):
             if i+1 <= len(existingQuestions):
                 formQ = existingQuestions[i]
                 if qLogicValues[i] != '':
-                    formQ.index = indexValues[i]
+                    formQ.index = i
                     formQ.question = get_object_or_404(Question, id=questionValues[i])
                     formQ.visible_if_question = get_object_or_404(Question, id=qLogicValues[i])
                     formQ.visible_if_answer = aLogicValues[i]
                 else:
-                    formQ.index = indexValues[i]
+                    formQ.index = i
                     formQ.question = get_object_or_404(Question, id=questionValues[i])
                     formQ.visible_if_question = None
                     formQ.visible_if_answer = None
@@ -145,7 +143,7 @@ class UpdateForm(LoginRequiredMixin, View):
                 if qLogicValues[i] != '':
                     formQ = FormQuestion(
                         form=form,
-                        index = indexValues[i],
+                        index = i,
                         question = get_object_or_404(Question, id=questionValues[i]),
                         visible_if_question = get_object_or_404(Question, id=qLogicValues[i]),
                         visible_if_answer = aLogicValues[i]
@@ -153,7 +151,7 @@ class UpdateForm(LoginRequiredMixin, View):
                 else:
                     formQ = FormQuestion(
                         form=form,
-                        index = indexValues[i],
+                        index = i,
                         question = get_object_or_404(Question, id=questionValues[i]),
                         visible_if_question = None,
                         visible_if_answer = None

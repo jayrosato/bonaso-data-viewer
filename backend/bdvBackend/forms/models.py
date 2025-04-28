@@ -106,7 +106,7 @@ class FormQuestion(models.Model):
     class Meta:
         db_table_comment = 'Table containing a list of questions asked in a particular form.'
         ordering = ['form', 'question']
-        unique_together = ['form', 'question']
+        #unique_together = ['form', 'question']
 
 class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
