@@ -87,7 +87,8 @@ body{
     cursor: pointer;
 }
 
-.content{
-    margin: 1rem;
-    padding: 3vh;
+a{
+    color: white;
+    font-weight: bold;
+    text-decoration: underline;
 }

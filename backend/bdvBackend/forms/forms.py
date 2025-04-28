@@ -71,3 +71,16 @@ class QuestionForm(forms.ModelForm):
             'question_text', 'question_type'
         ]
         
+class FormsForm(forms.ModelForm):
+    class Meta:
+        model = Form
+        fields = [
+            'form_name', 'organization', 'start_date', 'end_date'
+        ]
+
+class FormQuestionForm(forms.ModelForm):
+    class Meta:
+        model = FormQuestion
+        fields = [
+            'question', 'visible_if_question', 'visible_if_answer'
+        ]

@@ -1,0 +1,25 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    {% if perms.forms.edit_question %}
+    <form action="{% url 'forms:update-form' form_meta.id %}" method="post">
+            {%csrf_token%}
+            <h2>Form Details</h2>
+            {{ form.as_p }}
+            <h2>Form Questions</h2>
+            <div class="questions">
+                {% for fq_form in form_question %}
+                    <div id="question-{{ forloop.counter }}" class="existing-question">
+                        {{ fq_form }}
+                    </div>
+                {% endfor %}
+            </div>
+            <button id="submit" type="submit" submit-url="{% url 'forms:create-form' %}">Submit</button>
+        </form>
+    {% endif %}
+</div>
+<script src="{% static 'forms/editFormLogic.js' %}"></script>
+
+{% endblock %}

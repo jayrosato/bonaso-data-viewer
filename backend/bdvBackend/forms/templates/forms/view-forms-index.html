@@ -3,21 +3,32 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'forms/forms-list-styles.css' %}">
 <div class="content">
-    {% if active_forms %}
-        <ul>
-            {% for form in active_forms %}
-                <li>
-                    <a href="{% url 'forms:view-form-detail' form.id %}">{{form}}</a>
-                    <a href="{% url 'forms:create-response' form.id %}"><button>Record a New Response for this Form</button></a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-    <p>Nothing here yet!</p>
-    {% endif %}
+    <h1>Active Forms</h1>
     {% if perms.forms.create_form %}
         <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
+    {% endif %}
+    {% if active_forms %}
+        <table>
+            <tr>
+                <th>Form</th>
+                <th>Organization</th>
+                <th>Responses</th>
+                <th>Edit</th>
+
+            </tr>
+            {% for form in active_forms %}
+                <tr>
+                    <td><a href="{% url 'forms:view-form-detail' form.id %}">{{form}}</a></td>
+                    <td>{{form.organization}}</td>
+                    <td>{{form.responsesCount}}</td>
+                    <td><a href="{% url 'forms:create-response' form.id %}"><button>Record a New Response for this Form</button></a></td>
+                </tr>
+            {% endfor %}
+            </table>
+    {% else %}
+    <p>Nothing here yet!</p>
     {% endif %}
 
 </div>

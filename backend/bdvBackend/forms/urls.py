@@ -10,12 +10,6 @@ urlpatterns = [
     path('<int:pk>/update', views.UpdateForm.as_view(), name='update-form'),
     path('<int:pk>/delete', views.DeleteForm.as_view(), name='delete-form'),
 
-
-
-    path('<int:form_id>/formquestions/create', views.CreateFormQuestion.as_view(), name='create-form-question'),
-    path('<int:form_id>/formquestions/<int:pk>/update', views.UpdateFormQuestion.as_view(), name='update-form-question'),
-    path('formquestions/<int:pk>/remove', views.RemoveFormQuestion.as_view(), name='remove-form-question'),
-
     path('questions/create', views.CreateQuestion.as_view(), name='create-question'),
     path('questions/<int:pk>/update', views.UpdateQuestion.as_view(), name='update-question'),
     path('questions/<int:pk>/delete', views.DeleteQuestion.as_view(), name='delete-question'),
