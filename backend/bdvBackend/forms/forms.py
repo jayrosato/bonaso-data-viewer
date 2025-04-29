@@ -47,7 +47,10 @@ class ResponseForm(forms.Form):
             if formQs[i].question_type == 'Single Selection':
                 self.fields[field_name] = forms.ModelChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.RadioSelect)
                 if response:
-                    self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().option
+                    try:
+                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().option
+                    except:
+                        continue
            
             if formQs[i].question_type == 'Multiple Selections':
                 self.fields[field_name] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.CheckboxSelectMultiple)

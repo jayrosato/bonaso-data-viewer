@@ -16,6 +16,14 @@
         <a href="{% url 'forms:delete-form' form.id %}"><button>Delete Form</button></a>
         {% endif %}
         
+        {% if perms.forms.change_form %}
+            <a href="{% url 'forms:form-template' form.id %}"><button>Create template for this form.</button></a>
+            <form action="{% url 'forms:form-template' form.id %}" method="post" enctype="multipart/form-data">
+                {%csrf_token%}
+                <input type="file" name="template"/>
+                <button type="submit">Confirm Upload</button>
+            </form>
+        {% endif %}
         {% if question_option_pairs %}
             {% for meta, question, option_set in question_option_pairs %}
                 <h3>{{ question.question_text }}</h3>
