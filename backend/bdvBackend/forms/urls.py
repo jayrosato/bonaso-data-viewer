@@ -10,6 +10,9 @@ urlpatterns = [
     path('<int:pk>/update', views.UpdateForm.as_view(), name='update-form'),
     path('<int:pk>/delete', views.DeleteForm.as_view(), name='delete-form'),
 
+    path('data', views.Data.as_view(), name='data'),
+    path('data/get', views.GetData.as_view(), name='data-get'),
+
     path('questions/create', views.CreateQuestion.as_view(), name='create-question'),
     path('questions/<int:pk>/update', views.UpdateQuestion.as_view(), name='update-question'),
     path('questions/<int:pk>/delete', views.DeleteQuestion.as_view(), name='delete-question'),

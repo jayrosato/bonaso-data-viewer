@@ -14,7 +14,7 @@ import json
 from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm
 
 import datetime
-from django.db.models import Q
+from django.db.models import Q, Count
 
 
 from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization
@@ -518,3 +518,21 @@ class UpdateOrg(LoginRequiredMixin, generic.UpdateView):
 class DeleteOrg(LoginRequiredMixin, generic.DeleteView):
     model=Organization
     success_url = reverse_lazy('forms:view-orgs-index')
+
+class GetData(LoginRequiredMixin, View):
+    def get(self, request):
+        responses_agg = Form.objects.annotate(num_responses=Count('response')).order_by('-num_responses')
+        data = {
+            "labels": [form.form_name for form in responses_agg],
+            "datasets": [{
+                "label": "Responses",
+                "data": [form.num_responses for form in responses_agg],
+                'backgroundColor': "#FFFFFF",
+                'scaleFontColor': '#FFFFFF',
+            }]
+        }
+        return JsonResponse(data)
+
+class Data(LoginRequiredMixin, View):        
+    def get(self, request):
+        return render(request, 'forms/data.html')

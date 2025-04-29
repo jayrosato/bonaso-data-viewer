@@ -1,0 +1,27 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+
+<div class="content">
+    <h1>Data</h1>
+    <canvas id="myChart" width="100" height="100"></canvas>
+</div>
+<script>
+    try{
+        Chart.defaults.color = "#ffffff";
+        fetch("{% url 'forms:data-get' %}")
+            .then(response => response.json())
+            .then(data => {
+                new Chart(document.getElementById("myChart"), {
+                type: 'bar',
+                data: data,
+            });
+        });
+    }
+    catch(err){
+        console.error(err)
+    }
+</script>
+{% endblock %}
