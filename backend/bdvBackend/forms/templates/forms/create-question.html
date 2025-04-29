@@ -3,10 +3,12 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.edit_question %}
+    {% if perms.forms.change_question %}
             {%csrf_token%}
             {{ form }}
             <button id="submit" submit-url="{% url 'forms:create-question' %}">Submit</button>
+    {% else %}
+        <p>You do not have permission to perform this action.</p>
     {% endif %}
     <script src="{% static 'forms/editQuestionLogic.js' %}"></script>
 </div>

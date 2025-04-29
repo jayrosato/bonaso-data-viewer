@@ -1,0 +1,20 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content">
+    <h1>Your Responses</h1>
+    {% if responses %}
+    <ul>
+        {% for response in responses %}
+            {% if user.id == response.created_by.id %}
+                <li><a href="{% url 'forms:view-response-detail' response.id %}">{{response}}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Nothing here yet!</p>
+    {% endif %}
+</div>
+
+{% endblock %}

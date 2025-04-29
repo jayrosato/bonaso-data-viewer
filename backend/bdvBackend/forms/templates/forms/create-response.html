@@ -2,19 +2,23 @@
 {% load static %}
 {% block content %}
 
-{% if perms.forms.create_response %}
+{% if perms.forms.add_response %}
+{% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
 <div class="content">
     <form id="response_form" action="{% url 'forms:create-response' form_meta.id %}" method="post">
         {%csrf_token%}
         {{ msg }}
-        {{ form }}
+        {{ form.as_p }}
         <input type="submit" value="Submit Response">
     </form>
     
 </div>
 <script src="{% static 'forms/conditionalFormLogic.js' %}"></script>
 {% else %}
-<p>You do not have permission to view this page. If you think this is a mistake, please contact your supervisor.</p>
+    <p>You do not have permission to view this page. If you think this is a mistake, please contact your supervisor.</p>
+{% endif %}
+{% else %}
+    <p>You do not have permission to view this page. If you think this is a mistake, please contact your supervisor.</p>
 {% endif %}
 {% endblock %}
 

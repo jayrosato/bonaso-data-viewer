@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{% static 'forms/forms-list-styles.css' %}">
 <div class="content">
     <h1>Active Forms</h1>
-    {% if perms.forms.create_form %}
+    {% if perms.forms.add_form %}
         <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
     {% endif %}
     {% if active_forms %}
@@ -19,12 +19,14 @@
 
             </tr>
             {% for form in active_forms %}
+                {% if form.organization == user_org or user_org.id == 3 %}
                 <tr>
                     <td><a href="{% url 'forms:view-form-detail' form.id %}">{{form}}</a></td>
                     <td>{{form.organization}}</td>
                     <td>{{form.responsesCount}}</td>
                     <td><a href="{% url 'forms:create-response' form.id %}"><button>Record a New Response for this Form</button></a></td>
                 </tr>
+                {% endif %}
             {% endfor %}
             </table>
     {% else %}

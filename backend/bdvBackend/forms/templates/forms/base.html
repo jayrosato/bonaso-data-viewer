@@ -30,6 +30,13 @@
                             <a href="{% url 'forms:view-respondents-index' %}">Respondents</a>
                             <img class="sbIcon" src="{% static 'forms/images/list-box-outline.svg' %}" />   
                             <a href="{% url 'forms:view-forms-index' %}">Forms</a>
+                            {% if perms.forms.view_organization %}
+                            <img class="sbIcon" src="{% static 'forms/images/list-box-outline.svg' %}" />   
+                            <a href="{% url 'forms:view-orgs-index' %}">Organizations</a>
+                            {% endif %}
+                            <img class="sbIcon" src="{% static 'forms/images/list-box-outline.svg' %}" />   
+                            <a href="{% url 'forms:view-responses-index' %}">Responses</a>
+
                         </div>
 
                         <h3 class="sbLinkHeader">Your Account</h3>
@@ -39,7 +46,7 @@
                             <img class="sbIcon" src="{% static 'forms/images/cog.svg' %}" /> 
                             <a href="{% url 'forms:view-forms-index' %}">Settings</a>
                             <img class="sbIcon" src="{% static 'forms/images/logout.svg' %}" /> 
-                            <form id="logout-form" method="post" action="{% url 'logout' %}">
+                            <form id="logout-form" method="post" action="{% url 'logout' %}?next=/accounts/login/">
                                 {% csrf_token %}
                                 <button type="submit" class="logout">Logout</button>
                             </form>
@@ -50,7 +57,9 @@
             {% endblock %}
 
             {% block content %}
+            <div class="content">
                 <!-- Page view template loads here-->
+            </div>
             {% endblock %}
         </div>
         {% block footer %}

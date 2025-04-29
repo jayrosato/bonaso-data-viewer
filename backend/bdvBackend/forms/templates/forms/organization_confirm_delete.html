@@ -1,8 +1,7 @@
 {% extends 'forms/base.html' %}
 {% block content %}
 
-{% if perms.forms.delete_form %}
-{% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
+{% if perms.forms.delete_organization %}
 <div class="content">
     <form method="post">{% csrf_token %}
         <p>
@@ -14,10 +13,6 @@
     </form>
 </div>
 {% else %}
-<p>You do not have permission to perform this action. If you think this is a mistake, please contact your supervisor.</p>
-{% endif %}
-{% else %}
-
-<p>You do not have permission to perform this action. If you think this is a mistake, please contact your supervisor.</p>
+<p>You do not have permission to perform this action. If you think this is a mistake, please contact a site administrator.</p>
 {% endif %}
 {% endblock %}

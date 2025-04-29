@@ -3,11 +3,11 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.view_form %}
+    {% if form.organization == user_org or user_org.id == 3 %}
         <h1>{{ form.form_name }}</h1>
         <h3> From {{ form.organization }} </h3>
         <p> Starts On: {{form.start_date}}, Ends On: {{ form.end_date }}</p>
-        {% if perms.forms.edit_form %}
+        {% if perms.forms.change_form %}
         <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form</button></a>
         {% endif %}
 
@@ -30,6 +30,8 @@
         {% else %}
             <p>This form does not have any questions.</p>
         {% endif %}
+    {% else %}
+        <p>You do not have permission to perform this action.</p>
     {% endif %}
 </div>
 {% endblock %}

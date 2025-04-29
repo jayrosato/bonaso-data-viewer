@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from django.forms import inlineformset_factory
-
+from django.db.models import Q
 from .models import Respondent, Question, Option, FormQuestion, Organization, Form, Answer
 
 class SelectRespondentForm(forms.Form):
@@ -62,7 +62,7 @@ class ResponseForm(forms.Form):
                     self.fields[field_name].widget.attrs.update({'questionRelation':conditions.visible_if_question})
                     self.fields[field_name].widget.attrs.update({'valueRelation':conditions.visible_if_answer})
                     self.fields[field_name].required = False   
-            self.fields[field_name].widget.attrs.update({'class':'question'})
+            self.fields[field_name].widget.attrs.update({'class':'form_question'})
 
 class QuestionForm(forms.ModelForm):
     class Meta:
@@ -77,6 +77,11 @@ class FormsForm(forms.ModelForm):
         fields = [
             'form_name', 'organization', 'start_date', 'end_date'
         ]
+    def __init__(self, *args, organization, **kwargs):
+        super().__init__(*args, **kwargs)
+        if organization.id != 3:
+            self.fields['organization'].queryset = Organization.objects.filter(Q(id=organization.id) | Q(parent_organization=organization.id))
+            self.fields['organization'].initial = organization.id
 
 class FormQuestionForm(forms.ModelForm):
     class Meta:
