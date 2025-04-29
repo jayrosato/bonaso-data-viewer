@@ -3,7 +3,8 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.change_form %}
+    {% if perms.forms.change_form%}
+    {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
         <form action="{% url 'forms:update-form' form_meta.id %}" method="post">
             {%csrf_token%}
             <h2>Form Details</h2>
@@ -20,6 +21,9 @@
         </form>
     {% else %}
         <p>You do not have permission to view this page. </p>
+    {% endif %}
+    {% else %}
+    <p>You do not have permission to view this page. </p>
     {% endif %}
 </div>
 <script src="{% static 'forms/editFormLogic.js' %}"></script>

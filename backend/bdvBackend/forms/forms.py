@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from django.forms import inlineformset_factory
-
+from django.db.models import Q
 from .models import Respondent, Question, Option, FormQuestion, Organization, Form, Answer
 
 class SelectRespondentForm(forms.Form):
@@ -80,7 +80,7 @@ class FormsForm(forms.ModelForm):
     def __init__(self, *args, organization, **kwargs):
         super().__init__(*args, **kwargs)
         if organization.id != 3:
-            self.fields['organization'].queryset = Organization.objects.filter(id=organization.id)
+            self.fields['organization'].queryset = Organization.objects.filter(Q(id=organization.id) | Q(parent_organization=organization.id))
             self.fields['organization'].initial = organization.id
 
 class FormQuestionForm(forms.ModelForm):

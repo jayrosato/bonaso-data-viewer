@@ -9,7 +9,8 @@ from django.db.models import Count
 import datetime
 
 class Organization(models.Model):
-    organization_name = models.CharField(max_length=255)
+    organization_name = models.CharField(max_length=255, verbose_name='Organization Name')
+    parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Parent Organization')
     created_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -48,8 +49,8 @@ class Respondent(models.Model):
     village = models.CharField(max_length=255, verbose_name='Village')
     district = models.CharField(max_length=255, verbose_name='District')
     citizenship = models.CharField(max_length=255, verbose_name='Citizenship/Nationality')
-    email = models.EmailField(verbose_name='Email Address')
-    contact_no = models.CharField(max_length=255, verbose_name='Phone Number')
+    email = models.EmailField(verbose_name='Email Address', null=True, blank=True)
+    contact_no = models.CharField(max_length=255, verbose_name='Phone Number', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

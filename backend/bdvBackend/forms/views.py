@@ -14,7 +14,7 @@ import json
 from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm
 
 import datetime
-from django.db.models import F, Count
+from django.db.models import Q
 
 
 from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization
@@ -111,7 +111,7 @@ class UpdateForm(LoginRequiredMixin, View):
         print(formQs)
         formQForms = [FormQuestionForm(instance=fq) for fq in formQs]
         return render(request, 'forms/update-form-all.html', 
-                          { 'form_meta':form,
+                          { 'form_meta':form, 'user_org':request.user.userprofile.organization,
                               'form': FormsForm(organization=request.user.userprofile.organization,instance=form), 
                            'form_question':formQForms,
                            'msg':'Double check that all the fields are correctly filled out.' })
@@ -238,6 +238,20 @@ class DeleteQuestion(LoginRequiredMixin, generic.DeleteView):
 
 
 #views related to responses
+class ViewResponseIndex(LoginRequiredMixin, generic.ListView):
+    model=Response
+    template_name='forms/view-responses-index.html'
+    context_object_name = 'responses'
+
+    def get_queryset(self):
+        return Response.objects.all()
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['user'] = user
+        return context
+
 class ViewResponseDetail(LoginRequiredMixin, generic.DetailView):
     model=Response
     template_name = 'forms/view-response-detail.html'
@@ -267,8 +281,10 @@ class NewResponse(LoginRequiredMixin, View):
         self.form_meta = get_object_or_404(Form, id=pk)
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
+        user_org = self.request.user.userprofile.organization
         return render(request, 'forms/create-response.html', 
                     { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure),
+                     'user_org':user_org,
                     'form_meta': self.form_meta,})
 
     def post(self, request, pk):
@@ -312,8 +328,10 @@ class UpdateResponse(LoginRequiredMixin, View):
         self.form_meta = Form.objects.filter(id=self.response.form.id).first()
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
+        user_org = self.request.user.userprofile.organization
         return render(request, 'forms/update-response.html', 
                     { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure, response=self.response),
+                     'user':self.request.user, 'user_org':user_org,
                     'form_meta': self.form_meta,
                     'response': self.response})
 
@@ -354,7 +372,7 @@ class UpdateResponse(LoginRequiredMixin, View):
                     for o in range(len(selected_options)):
                         answer = Answer(response=self.response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                         answer.save()
-            return HttpResponseRedirect(reverse("forms:index"))
+            return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': self.response.id}))
         else:
             return render(request, 'forms/update-response.html', 
                           { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure, response=self.response), 
@@ -379,10 +397,12 @@ class ViewRespondentDetail(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
         respondent = self.get_object()
         responses = Response.objects.filter(respondent=respondent).order_by('response_date')
         context['respondent'] = respondent
         context['responses'] = responses
+        context['user_org'] = user_org
         return context
 
 
@@ -410,6 +430,91 @@ class UpdateRespondent(LoginRequiredMixin, generic.UpdateView):
 
 class DeleteRespondent(LoginRequiredMixin, generic.DeleteView):
     model=Respondent
-    success_url = reverse_lazy('forms:respondents')
+    success_url = reverse_lazy('forms:view-respondents-index')
 
     #logic for instance where respondent has responses would go here
+
+
+class ViewOrgsIndex(LoginRequiredMixin, generic.ListView):
+    template_name = 'forms/view-orgs-index.html'
+    context_object_name = 'organizations'
+    def get_queryset(self):
+        return Organization.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        return context
+
+class ViewOrgDetail(LoginRequiredMixin, generic.DetailView):
+    model=Organization
+    template_name='forms/view-org-detail.html'
+    context_object_name = 'organization'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        pk = self.kwargs['pk']
+        child_orgs = Organization.objects.filter(parent_organization = pk)
+        context['user_org'] = user_org
+        context['child_orgs'] = child_orgs
+        return context
+
+class CreateOrg(LoginRequiredMixin, generic.CreateView):
+    model=Organization
+    template_name = 'forms/update-org.html'
+    fields = [
+            'organization_name', 'parent_organization'
+            ]
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        user_org = self.request.user.userprofile.organization
+        if user_org.id != 3:
+            if user_org.parent_organization:
+                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org.parent_organization.id)
+            else:
+                form.fields['parent_organization'].queryset = Organization.objects.filter(Q(id=user_org.id) | Q(id=user_org.parent_organization))
+        return form
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        context['update'] = False
+        return context
+    
+    def get_success_url(self):
+        return reverse_lazy('forms:view-org-detail', kwargs={'pk': self.object.id})
+
+class UpdateOrg(LoginRequiredMixin, generic.UpdateView):
+    model=Organization
+    template_name = 'forms/update-org.html'
+    fields = [
+            'organization_name', 'parent_organization'
+            ]
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        user_org = self.request.user.userprofile.organization
+        if user_org.id != 3:
+            if user_org.parent_organization:
+                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org.parent_organization.id)
+            else:
+                form.fields['parent_organization'].queryset = Organization.objects.filter(Q(id=user_org.id) | Q(id=user_org.parent_organization))
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        context['update'] = True
+        return context
+    
+    def get_success_url(self):
+        return reverse_lazy('forms:view-org-detail', kwargs={'pk': self.object.id})
+    
+class DeleteOrg(LoginRequiredMixin, generic.DeleteView):
+    model=Organization
+    success_url = reverse_lazy('forms:view-orgs-index')

@@ -3,9 +3,9 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.change_question %}
-    <form action="{% url 'forms:create-question' %}" method="post">
-    {% endif %}
+
+    <form action="{% url 'forms:create-form' %}" method="post">
+
     {% if perms.forms.add_form %}
             {%csrf_token%}
             <h2>Form Details</h2>
@@ -16,7 +16,7 @@
                     {{ form_question }}
                 </div>
             </div>
-            <button id="submit" type="submit" submit-url="{% url 'forms:create-form' %}">Submit</button>
+            <button id="submit" type="submit">Submit</button>
         </form>
     {% else %}
     <p>You do not have permission to perform this action.</p>

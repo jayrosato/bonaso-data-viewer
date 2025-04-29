@@ -21,7 +21,9 @@
         {% if responses %}
         <ul>
             {% for response in responses %}
-            <a href="{% url 'forms:view-response-detail' response.id %}"> <li>{{response.form}} ({{response.response_date}})</li></a>
+                {% if response.form.organization.id == user_org.id or user_org.id == 3 %}
+                    <a href="{% url 'forms:view-response-detail' response.id %}"> <li>{{response.form}} ({{response.response_date}})</li></a>
+                {% endif %}
             {% endfor %}
 
         </ul>

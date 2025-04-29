@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.view_response %}
+    {% if perms.forms.view_response or user.id == response.created_by.id %}
         <h2>Viewing {{response}} from {{response.respondent}}</h2>
 
         {% for question, answer in question_answer_pairs %}
@@ -18,7 +18,7 @@
         <p> Last Updated At: {{response.updated_at}}</p>
 
 
-        {% if perms.forms.edit_response %}
+        {% if perms.forms.change_response %}
             <a href="{% url 'forms:update-response' response.id %}"><button>Edit Response</button></a>
         {% endif %}
         {% if perms.forms.delete_response %}
