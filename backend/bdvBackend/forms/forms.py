@@ -92,3 +92,8 @@ class FormQuestionForm(forms.ModelForm):
         fields = [
             'question', 'visible_if_question', 'visible_if_answer'
         ]
+
+class QuestionSelector(forms.ModelForm):
+    class Meta:
+        model = Option
+        fields = ['question']

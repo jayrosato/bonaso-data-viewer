@@ -15,6 +15,7 @@ urlpatterns = [
 
     path('data', views.Data.as_view(), name='data'),
     path('data/get', views.GetData.as_view(), name='data-get'),
+    path('data/getq/<int:pk>', views.GetDataQ.as_view(), name='data-get-q'),
 
     path('questions/create', views.CreateQuestion.as_view(), name='create-question'),
     path('questions/<int:pk>/update', views.UpdateQuestion.as_view(), name='update-question'),

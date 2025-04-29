@@ -21,7 +21,7 @@ const questionsList = document.querySelector('.questions');
 
 //get the url for the question window
 const url = questionsList.getAttribute('url')
-console.log(url)
+
 //so that we can utilize Django forms (instead of building everything from scratch), html comes
 //prepopualted with at least one instance of the form built in. 
 //but for it to be usable, it needs buttons allowing a user to remove it or adjust its position,

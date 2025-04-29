@@ -10,10 +10,10 @@ from django.views import generic, View
 from django.http import JsonResponse
 from django.views.decorators.csrf import requires_csrf_token
 import json
-    
-from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm
 
+from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector
 from datetime import datetime
+
 import csv
 from django.db.models import Q, Count
 
@@ -22,7 +22,7 @@ now = timezone.now()
 
 #views related to forms
 class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/view-forms-index.html'
+    template_name = 'forms/forms/view-forms-index.html'
     context_object_name = 'active_forms'
     
     def get_queryset(self):
@@ -32,7 +32,7 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
         last_login = self.request.session.get('last_login', 0)
         last_login = now.isoformat()
         self.request.session['last_login'] = last_login
-        return Form.objects.filter(start_date__lte= datetime.date.today(), end_date__gte = datetime.date.today()).order_by('organization')
+        return Form.objects.filter(start_date__lte= datetime.today(), end_date__gte = datetime.today()).order_by('organization')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -42,7 +42,7 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
     
 class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
     model=Form
-    template_name = 'forms/view-form-detail.html'
+    template_name = 'forms/forms/view-form-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -67,7 +67,7 @@ class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
 #new form stuff
 class CreateForm(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'forms/create-form-all.html', 
+        return render(request, 'forms/forms/create-form-all.html', 
                           { 'form': FormsForm(organization=request.user.userprofile.organization), 'form_question':FormQuestionForm(),
                            'msg':'Double check that all the fields are correctly filled out.' })
 
@@ -110,7 +110,7 @@ class UpdateForm(LoginRequiredMixin, View):
         formQs = FormQuestion.objects.filter(form = form.id)
         print(formQs)
         formQForms = [FormQuestionForm(instance=fq) for fq in formQs]
-        return render(request, 'forms/update-form-all.html', 
+        return render(request, 'forms/forms/update-form-all.html', 
                           { 'form_meta':form, 'user_org':request.user.userprofile.organization,
                               'form': FormsForm(organization=request.user.userprofile.organization,instance=form), 
                            'form_question':formQForms,
@@ -173,7 +173,7 @@ class DeleteForm(LoginRequiredMixin, generic.DeleteView):
 #questions are meant to be modular, and as such are edited separately from forms
 class CreateQuestion(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'forms/create-question.html', 
+        return render(request, 'forms/questions/create-question.html', 
                           { 'form': QuestionForm(),
                            'msg':'Double check that all the fields are correctly filled out.' })
 
@@ -195,7 +195,7 @@ class UpdateQuestion(LoginRequiredMixin, View):
     def get(self, request, pk):
         question = get_object_or_404(Question, id=pk)
         options = Option.objects.filter(question=question.id)
-        return render(request, 'forms/update-question.html', 
+        return render(request, 'forms/questions/update-question.html', 
                           { 'form': QuestionForm(instance=question), 'options': options,
                            'msg':'Double check that all the fields are correctly filled out.',
                             'question':question })
@@ -235,12 +235,10 @@ class DeleteQuestion(LoginRequiredMixin, generic.DeleteView):
         return reverse_lazy('forms:view-forms-index')
 
 
-
-
 #views related to responses
 class ViewResponseIndex(LoginRequiredMixin, generic.ListView):
     model=Response
-    template_name='forms/view-responses-index.html'
+    template_name='forms/responses/view-responses-index.html'
     context_object_name = 'responses'
 
     def get_queryset(self):
@@ -254,7 +252,7 @@ class ViewResponseIndex(LoginRequiredMixin, generic.ListView):
 
 class ViewResponseDetail(LoginRequiredMixin, generic.DetailView):
     model=Response
-    template_name = 'forms/view-response-detail.html'
+    template_name = 'forms/responses/view-response-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -282,7 +280,7 @@ class NewResponse(LoginRequiredMixin, View):
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
         user_org = self.request.user.userprofile.organization
-        return render(request, 'forms/create-response.html', 
+        return render(request, 'forms/responses/create-response.html', 
                     { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure),
                      'user_org':user_org,
                     'form_meta': self.form_meta,})
@@ -317,7 +315,7 @@ class NewResponse(LoginRequiredMixin, View):
                         answer.save()
             return HttpResponseRedirect(reverse("forms:view-forms-index"))
         else:
-            return render(request, 'forms/create-response.html', 
+            return render(request, 'forms/responses/create-response.html', 
                           { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure), 
                            'form_meta':self.form_meta, 
                            'msg':'Double check that all the fields are correctly filled out.' })
@@ -329,7 +327,7 @@ class UpdateResponse(LoginRequiredMixin, View):
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
         user_org = self.request.user.userprofile.organization
-        return render(request, 'forms/update-response.html', 
+        return render(request, 'forms/responses/update-response.html', 
                     { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure, response=self.response),
                      'user':self.request.user, 'user_org':user_org,
                     'form_meta': self.form_meta,
@@ -374,7 +372,7 @@ class UpdateResponse(LoginRequiredMixin, View):
                         answer.save()
             return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': self.response.id}))
         else:
-            return render(request, 'forms/update-response.html', 
+            return render(request, 'forms/responses/update-response.html', 
                           { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure, response=self.response), 
                            'form_meta':self.form_meta, 'response': self.response,
                            'msg':'Double check that all the fields are correctly filled out.' })
@@ -386,14 +384,14 @@ class DeleteResponse(LoginRequiredMixin, generic.DeleteView):
 
 
 class ViewRespondentsIndex(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/view-respondents-index.html'
+    template_name = 'forms/respondents/view-respondents-index.html'
     context_object_name = 'respondents'
     def get_queryset(self):
         return Respondent.objects.all()
 
 class ViewRespondentDetail(LoginRequiredMixin, generic.DetailView):
     model=Respondent
-    template_name = 'forms/view-respondent-detail.html'
+    template_name = 'forms/respondents/view-respondent-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -408,7 +406,7 @@ class ViewRespondentDetail(LoginRequiredMixin, generic.DetailView):
 
 class CreateRespondent(LoginRequiredMixin, generic.CreateView):
     model = Respondent
-    template_name = 'forms/update-respondent.html'
+    template_name = 'forms/respondents/update-respondent.html'
     fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
             'district', 'email', 'contact_no'
@@ -419,7 +417,7 @@ class CreateRespondent(LoginRequiredMixin, generic.CreateView):
 
 class UpdateRespondent(LoginRequiredMixin, generic.UpdateView):
     model=Respondent
-    template_name = 'forms/update-respondent.html'
+    template_name = 'forms/respondents/update-respondent.html'
     fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
             'district', 'email', 'contact_no'
@@ -436,7 +434,7 @@ class DeleteRespondent(LoginRequiredMixin, generic.DeleteView):
 
 
 class ViewOrgsIndex(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/view-orgs-index.html'
+    template_name = 'forms/orgs/view-orgs-index.html'
     context_object_name = 'organizations'
     def get_queryset(self):
         return Organization.objects.all()
@@ -449,7 +447,7 @@ class ViewOrgsIndex(LoginRequiredMixin, generic.ListView):
 
 class ViewOrgDetail(LoginRequiredMixin, generic.DetailView):
     model=Organization
-    template_name='forms/view-org-detail.html'
+    template_name='forms/orgs/view-org-detail.html'
     context_object_name = 'organization'
 
     def get_context_data(self, **kwargs):
@@ -463,7 +461,7 @@ class ViewOrgDetail(LoginRequiredMixin, generic.DetailView):
 
 class CreateOrg(LoginRequiredMixin, generic.CreateView):
     model=Organization
-    template_name = 'forms/update-org.html'
+    template_name = 'forms/orgs/update-org.html'
     fields = [
             'organization_name', 'parent_organization'
             ]
@@ -490,7 +488,7 @@ class CreateOrg(LoginRequiredMixin, generic.CreateView):
 
 class UpdateOrg(LoginRequiredMixin, generic.UpdateView):
     model=Organization
-    template_name = 'forms/update-org.html'
+    template_name = 'forms/orgs/update-org.html'
     fields = [
             'organization_name', 'parent_organization'
             ]
@@ -533,9 +531,34 @@ class GetData(LoginRequiredMixin, View):
         }
         return JsonResponse(data)
 
+class GetDataQ(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        question = Question.objects.filter(id=pk).first()
+        options_count = Option.objects.filter(question=question.id).annotate(num_answers=Count('answer')).order_by('num_answers')
+        labels = [option.option_text for option in options_count]
+        values = [answer.num_answers for answer in options_count]
+        if not options_count:
+            options_count = Answer.objects.filter(question=question.id).values('open_answer').annotate(count=Count('open_answer')).order_by('-count')
+            labels = [item['open_answer'] for item in options_count]
+            values = [item['count'] for item in options_count]
+            print('open', options_count)
+        data = {
+            "labels": labels,
+            "datasets": [{
+                "label": "Options",
+                "data": values,
+                'backgroundColor': "#FFFFFF",
+                'scaleFontColor': '#FFFFFF',
+            },]
+
+        }
+        return JsonResponse(data)  
+
+
 class Data(LoginRequiredMixin, View):        
     def get(self, request):
-        return render(request, 'forms/data.html')
+        return render(request, 'forms/data.html', 
+        {'form':QuestionSelector()})
     
 class FormTemplate(LoginRequiredMixin, View):
     def get(self, request, pk):

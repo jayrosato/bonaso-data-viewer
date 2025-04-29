@@ -3,25 +3,20 @@
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
-
+<link rel="stylesheet" href="{% static 'forms/styles/dashboard.css' %}">
 <div class="content">
-    <h1>Data</h1>
-    <canvas id="myChart" width="100" height="100"></canvas>
+    <h1>Chart Creator</h1>
+    <div class="chartCont">
+        <canvas id="chart"></canvas>
+    </div>
+
+    {{form}}
+    <button id="qSelect">Go!</button>
+
+    <div class="chartCont">
+        <canvas id="Qchart"></canvas>
+    </div>
+        
 </div>
-<script>
-    try{
-        Chart.defaults.color = "#ffffff";
-        fetch("{% url 'forms:data-get' %}")
-            .then(response => response.json())
-            .then(data => {
-                new Chart(document.getElementById("myChart"), {
-                type: 'bar',
-                data: data,
-            });
-        });
-    }
-    catch(err){
-        console.error(err)
-    }
-</script>
+<script src="{% static 'forms/chartBuilder.js' %}"></script>
 {% endblock %}

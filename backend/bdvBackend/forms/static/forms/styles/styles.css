@@ -4,6 +4,7 @@
 
 body{
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
 }
 
 .header{
@@ -11,6 +12,7 @@ body{
     top: 0;
     color: white;
     background-color: rgb(21, 103, 54);
+    border-bottom: 2px solid white;
     display: flex;
     flex-direction: row;
     z-index:1;

@@ -3,7 +3,7 @@
 {% if user.is_authenticated %}
 <html lang="en">
     <head>
-        <link rel="stylesheet" href="{% static 'forms/styles.css' %}">
+        <link rel="stylesheet" href="{% static 'forms/styles/styles.css' %}">
         {% block title %}
             <title>Bonaso Data Viewer</title>
         {% endblock %}
@@ -36,6 +36,8 @@
                             {% endif %}
                             <img class="sbIcon" src="{% static 'forms/images/record-player.svg' %}" />   
                             <a href="{% url 'forms:view-responses-index' %}">Responses</a>
+                            <img class="sbIcon" src="{% static 'forms/images/record-player.svg' %}" />   
+                            <a href="{% url 'forms:data' %}">Dashboard</a>
 
                         </div>
 
