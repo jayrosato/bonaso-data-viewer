@@ -1,0 +1,28 @@
+label{
+    display: block;
+}
+.questions >*{
+    border: 1px solid white;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 30vw;
+    display: flex;
+    flex-direction: column;
+    max-width: 50%;
+    margin-bottom: 1rem;
+}
+.buttons{
+    max-width: 25vw;
+    position: relative;
+    bottom: 12vh;
+    left: 37vw;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 1rem;
+    gap: 3px;
+}
+
+textarea{
+    max-height: 1.5rem;
+}

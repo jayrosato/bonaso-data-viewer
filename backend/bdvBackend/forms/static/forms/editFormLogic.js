@@ -27,37 +27,64 @@ const url = questionsList.getAttribute('url')
 //but for it to be usable, it needs buttons allowing a user to remove it or adjust its position,
 //so add those buttons to each element that already exists (as indicated by it possessing the existing question class)
 const questions = document.getElementsByClassName('existing-question')
-Array.from(questions).forEach((q) => {
-    const createQuestionButton = document.createElement('button');
-    createQuestionButton.innerText = 'Create a new question';
-    createQuestionButton.type = ('button');
-    createQuestionButton.onclick = () => createQWindow(q);
-    q.appendChild(createQuestionButton);
+
+function createButtons(q){
+    const buttons = document.createElement('div')
+    buttons.setAttribute('class', 'buttons')
+    q.appendChild(buttons)
 
     const addQuestionButton = document.createElement('button');
     addQuestionButton.innerText = 'Add Question Below';
     addQuestionButton.type = ('button');
     addQuestionButton.onclick = () => addQuestion(q);
-    q.appendChild(addQuestionButton);
-
-    const removeQuestionButton = document.createElement('button');
-    removeQuestionButton.innerText = 'Remove Question';
-    removeQuestionButton.type = ('button');
-    removeQuestionButton.onclick = () => removeQuestion(q);
-    q.appendChild(removeQuestionButton);
+    buttons.appendChild(addQuestionButton);
 
     const shiftQUpButton = document.createElement('button');
     shiftQUpButton.innerText = 'Move Question Up';
     shiftQUpButton.setAttribute('type', 'button');
     shiftQUpButton.onclick = () => shiftQUp(q);
-    q.appendChild(shiftQUpButton);
+    buttons.appendChild(shiftQUpButton);
+
+    const createQuestionButton = document.createElement('button');
+    createQuestionButton.innerText = 'Create a new question';
+    createQuestionButton.type = ('button');
+    createQuestionButton.onclick = () => createQWindow();
+    buttons.appendChild(createQuestionButton);
 
     const shiftQDownButton = document.createElement('button');
     shiftQDownButton.innerText = 'Move Question Down';
     shiftQDownButton.setAttribute('type', 'button');
     shiftQDownButton.onclick = () => shiftQDown(q);
-    q.appendChild(shiftQDownButton);
+    buttons.appendChild(shiftQDownButton);
 
+    const removeQuestionButton = document.createElement('button');
+    removeQuestionButton.innerText = 'Remove Question';
+    removeQuestionButton.type = ('button');
+    removeQuestionButton.onclick = () => removeQuestion(q);
+    buttons.appendChild(removeQuestionButton);
+}
+
+function questionLogic(q){
+    const qLogicSelect = q.querySelector('#id_visible_if_question')
+
+    const vLogicInput = q.querySelector('#id_visible_if_answer')
+    const vLogicLabel = q.querySelector(`label[for="id_visible_if_answer"]`)
+    if(!qLogicSelect.value){
+        vLogicInput.value = ''
+        vLogicInput.style.display = 'none'
+        vLogicLabel.style.display = 'none'
+    }
+    else{
+        vLogicInput.style.display = ''
+        vLogicLabel.style.display = ''
+    }
+}
+
+Array.from(questions).forEach((q) => {
+    const qLogicSelect = q.querySelector('#id_visible_if_question')
+    questionLogic(q)
+    qLogicSelect.onchange = () => questionLogic(q)
+    createButtons(q)
 })
 
 
@@ -83,6 +110,11 @@ function addQuestion(question){
     questionsList.insertBefore(questionDiv, question);
     question.after(questionDiv);
 
+    //add checker for showing display if value here
+    const qLogicSelect = questionDiv.querySelector('#id_visible_if_question')
+    questionLogic(questionDiv)
+    qLogicSelect.onchange = () => questionLogic(questionDiv)
+
     //for the purpose of reorganzing quesitons, each question is marked with an id of 'question-id'
     //reset the index here
     const allQuestions =questionsList.children;
@@ -97,39 +129,10 @@ function addQuestion(question){
 
     //this is a little annoying, but when cloning the previous questions, we also clone the buttons,
     //which will not work. So remove those now and then replace them with ones that will work.
-    const buttons = questionDiv.querySelectorAll('button');
-    buttons.forEach((b) => questionDiv.removeChild(b));
 
-    //add the necessary buttons
-    const createQuestionButton = document.createElement('button');
-    createQuestionButton.innerText = 'Create a new question';
-    createQuestionButton.type = ('button');
-    createQuestionButton.onclick = () => createQWindow(questionDiv);
-    questionDiv.appendChild(createQuestionButton);
-
-    const addQuestionButton = document.createElement('button');
-    addQuestionButton.innerText = 'Add Question Below';
-    addQuestionButton.type = ('button');
-    addQuestionButton.onclick = () => addQuestion(questionDiv);
-    questionDiv.appendChild(addQuestionButton);
-
-    const removeQuestionButton = document.createElement('button');
-    removeQuestionButton.innerText = 'Remove Question';
-    removeQuestionButton.setAttribute('type', 'button');
-    removeQuestionButton.onclick = () => removeQuestion(questionDiv);
-    questionDiv.appendChild(removeQuestionButton);
-
-    const shiftQUpButton = document.createElement('button');
-    shiftQUpButton.innerText = 'Move Question Up';
-    shiftQUpButton.setAttribute('type', 'button');
-    shiftQUpButton.onclick = () => shiftQUp(questionDiv);
-    questionDiv.appendChild(shiftQUpButton);
-
-    const shiftQDownButton = document.createElement('button');
-    shiftQDownButton.innerText = 'Move Question Down';
-    shiftQDownButton.setAttribute('type', 'button');
-    shiftQDownButton.onclick = () => shiftQDown(questionDiv);
-    questionDiv.appendChild(shiftQDownButton);
+    const oldButtons = questionDiv.querySelector('.buttons');
+    oldButtons.remove()
+    createButtons(questionDiv)
     
 }
 

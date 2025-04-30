@@ -5,11 +5,20 @@
 {% if perms.forms.add_response %}
 {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
 <div class="content">
+    <button onclick="openInputWindow()">New Respondent</button>
+
+    <script>
+        function openInputWindow() {
+            window.open("{% url 'forms:create-respondent' %}", "Input Window", "width=800,height=600");
+        }
+    </script>
+
+    <div id="messages"></div>
     <form id="response_form" action="{% url 'forms:create-response' form_meta.id %}" method="post">
         {%csrf_token%}
         {{ msg }}
-        {{ form.as_p }}
-        <input type="submit" value="Submit Response">
+        {{ form }}
+        <input type="submit" value="Submit Response" id="submitButton">
     </form>
     
 </div>

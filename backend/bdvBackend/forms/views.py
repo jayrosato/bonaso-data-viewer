@@ -518,6 +518,31 @@ class DeleteOrg(LoginRequiredMixin, generic.DeleteView):
     model=Organization
     success_url = reverse_lazy('forms:view-orgs-index')
 
+class Profile(LoginRequiredMixin, View):
+    def get(self, request):
+        user = self.request.user
+        userProfile = user.userprofile
+        return render(request, 'forms/profile.html', {'user':user, 'userProfile':userProfile})
+
+class Settings(LoginRequiredMixin, View):
+    def get(self, request):
+        user = self.request.user
+        userProfile = user.userprofile
+        return render(request, 'forms/settings.html', {'user':user, 'userProfile':userProfile})
+
+class Dashboard(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'forms/dashboard-creator.html')
+
+class GetQuestions(LoginRequiredMixin, View):
+    def get(self, request):
+        questions = Question.objects.all()
+        data = {
+            'labels':[q.question_text for q in questions],
+            'ids':[q.id for q in questions]
+        }
+        return JsonResponse(data)
+
 class GetData(LoginRequiredMixin, View):
     def get(self, request):
         responses_agg = Form.objects.annotate(num_responses=Count('response')).order_by('-num_responses')
@@ -532,7 +557,7 @@ class GetData(LoginRequiredMixin, View):
         }
         return JsonResponse(data)
 
-class GetDataQ(LoginRequiredMixin, View):
+class GetQuestionData(LoginRequiredMixin, View):
     def get(self, request, pk):
         question = Question.objects.filter(id=pk).first()
         options_count = Option.objects.filter(question=question.id).annotate(num_answers=Count('answer')).order_by('num_answers')
@@ -554,7 +579,6 @@ class GetDataQ(LoginRequiredMixin, View):
 
         }
         return JsonResponse(data)  
-
 
 class Data(LoginRequiredMixin, View):        
     def get(self, request):

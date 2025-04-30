@@ -13,9 +13,9 @@ urlpatterns = [
     
 
 
+    path('dashboard', views.Dashboard.as_view(), name='dashboard'),
     path('data', views.Data.as_view(), name='data'),
     path('data/get', views.GetData.as_view(), name='data-get'),
-    path('data/getq/<int:pk>', views.GetDataQ.as_view(), name='data-get-q'),
 
     path('questions/create', views.CreateQuestion.as_view(), name='create-question'),
     path('questions/<int:pk>/update', views.UpdateQuestion.as_view(), name='update-question'),
@@ -41,4 +41,12 @@ urlpatterns = [
     path('response/<int:pk>/create', views.NewResponse.as_view(), name='create-response'),
     path('response/<int:pk>/update', views.UpdateResponse.as_view(), name='update-response'),
     path('response/<int:pk>/delete', views.DeleteResponse.as_view(), name='delete-response'),
+
+    #misc
+    path('profile', views.Profile.as_view(), name='profile'),
+    path('settings', views.Settings.as_view(), name='settings'),
+
+    #related to getting specific queries
+    path('data/query/questions', views.GetQuestions.as_view()),
+    path('data/query/questions/<int:pk>', views.GetQuestionData.as_view(), name='data-get-q'),
 ]

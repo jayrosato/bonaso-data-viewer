@@ -3,10 +3,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     form.addEventListener('change', function () {
         updateForm();
+        verifyFields();
     });
 
     updateForm(); // Run once on page load
 });
+
+const submitButton = document.getElementById('submitButton')
+let flagged = false
+function verifyFields(){
+    if(flagged == true){
+        submitButton.setAttribute('type', 'button')
+        submitButton.onclick = () => document.getElementById('messages').innerText = 'Please fill out all fields.'
+    }
+    else{
+        submitButton.setAttribute('type', 'submit')
+    }
+}
+
 
 //django forms load multiple choice options within a div, but not text choices, so we need to account for both
 function updateForm(){
@@ -19,7 +33,7 @@ function updateForm(){
             if(questionDependency){
                 const qdValue = questionDependency.getAttribute('questionRelation')
                 const vdValue = questionDependency.getAttribute('valueRelation')
-
+                const label = question.previousElementSibling
                 const dependency = document.getElementsByName(qdValue);
                 let matched = false; // Assume not matched at first
 
@@ -32,12 +46,31 @@ function updateForm(){
                 }
                 if (matched) {
                     question.style.display = '';
+                    label.style.display = '';
+                    const inputs = question.querySelectorAll('input')
+                    for(let i=0; i< inputs.length; i++){
+                        let type = inputs[i].getAttribute('type')
+                        if(type == 'text'){
+                            if(inputs[i].value == ''){
+                                flagged = true
+                                break
+                            }
+                            flagged = false
+                        }
+                        else if(type == 'checkbox' || type =='radio'){
+                            if(inputs[i].checked){
+                                flagged = false
+                                break
+                            }
+                            flagged = true
+                        }
+                    }
                 } 
                 else {
                     question.style.display = 'none';
+                    label.style.display = 'none';
                     question.querySelectorAll('input[type=checkbox]').forEach(option => {option.checked = false});
                     question.querySelectorAll('input[type=radio]').forEach(option => {option.checked = false});
-                    question.querySelectorAll('input[type=text]').forEach(option => {option.value = ''});
                 }
             }
         }
@@ -61,12 +94,18 @@ function updateForm(){
                 if (matched) {
                     questionLabel.style.display = '';
                     question.style.display = '';
+                    if(question.value == ''){
+                        flagged = true
+                        break
+                    }
+                    flagged = false
                 } 
                 else {
                     questionLabel.style.display = 'none';
                     question.style.display = 'none';
                     question.value = ''
                 }
+                
             }
 
         }
