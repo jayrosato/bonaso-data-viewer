@@ -5,15 +5,14 @@
 {% block content %}
 <div class="content">
     <h1>Active Forms</h1>
-    {% if perms.forms.add_form %}
-        <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
-    {% endif %}
     {% if active_forms %}
         <table>
             <tr>
                 <th>Form</th>
                 <th>Organization</th>
                 <th>Responses</th>
+                <th>Started</th>
+                <th>Ends</th>
                 <th>Edit</th>
 
             </tr>
@@ -23,11 +22,16 @@
                     <td><a href="{% url 'forms:view-form-detail' form.id %}">{{form}}</a></td>
                     <td>{{form.organization}}</td>
                     <td>{{form.responsesCount}}</td>
-                    <td><a href="{% url 'forms:create-response' form.id %}"><button>Record a New Response for this Form</button></a></td>
+                    <td>{{form.start_date}}</td>
+                    <td>{{form.end_date}}</td>
+                    <td><a href="{% url 'forms:create-response' form.id %}"><button>New Response</button></a></td>
                 </tr>
                 {% endif %}
             {% endfor %}
-            </table>
+        </table>
+        {% if perms.forms.add_form %}
+            <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
+        {% endif %}
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}

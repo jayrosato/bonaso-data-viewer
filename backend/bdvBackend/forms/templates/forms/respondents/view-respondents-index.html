@@ -5,18 +5,28 @@
 <div class="content">
     <h1>All Respondents</h1>
     {% if respondents %}
-    <ul>
+    <table>
+        <th>Respondent</th>
+        <th>Responses</th>
+        <th>Sex</th>
+        <th>Age</th>
+        <th>Created By</th>
+        <th>Created At</th>
+        <th>Updated At</th>
         {% if perms.forms.view_respondent %}
-        {% for respondent in respondents %}
-            <li><a href="{% url 'forms:view-respondent-detail' respondent.id %}">{{respondent}}</a></li>
-        {% endfor %}
-
-        {% else %}
             {% for respondent in respondents %}
-            <li>{{respondent}}</li>
+            <tr>
+                <td><a href="{% url 'forms:view-respondent-detail' respondent.id %}">{{respondent}}</a></td>
+                <td>{{respondent.responsesCount}}</td>
+                <td>{{respondent.sex}}</td>
+                <td>{{respondent.get_age}}</td>
+                <td>{{respondent.created_by}}</td>
+                <td>{{respondent.created_at}}</td>
+                <td>{{respondent.updated_at}}</td>
+            </tr>
             {% endfor %}
         {% endif %}
-    </ul>
+    </table>
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}

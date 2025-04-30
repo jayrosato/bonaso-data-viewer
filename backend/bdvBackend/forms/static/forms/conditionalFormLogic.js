@@ -11,10 +11,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 const submitButton = document.getElementById('submitButton')
 let flagged = false
+let msg = ''
 function verifyFields(){
     if(flagged == true){
         submitButton.setAttribute('type', 'button')
-        submitButton.onclick = () => document.getElementById('messages').innerText = 'Please fill out all fields.'
+        submitButton.onclick = () => document.getElementById('messages').innerText = `Please enter a response for question ${msg}`
     }
     else{
         submitButton.setAttribute('type', 'submit')
@@ -50,19 +51,14 @@ function updateForm(){
                     const inputs = question.querySelectorAll('input')
                     for(let i=0; i< inputs.length; i++){
                         let type = inputs[i].getAttribute('type')
-                        if(type == 'text'){
-                            if(inputs[i].value == ''){
-                                flagged = true
-                                break
-                            }
-                            flagged = false
-                        }
-                        else if(type == 'checkbox' || type =='radio'){
+                        if(type == 'checkbox' || type =='radio'){
                             if(inputs[i].checked){
                                 flagged = false
+                                msg=''
                                 break
                             }
                             flagged = true
+                            msg = label.textContent
                         }
                     }
                 } 
@@ -96,9 +92,11 @@ function updateForm(){
                     question.style.display = '';
                     if(question.value == ''){
                         flagged = true
+                        msg = question.getAttribute('name')
                         break
                     }
                     flagged = false
+                    msg=''
                 } 
                 else {
                     questionLabel.style.display = 'none';

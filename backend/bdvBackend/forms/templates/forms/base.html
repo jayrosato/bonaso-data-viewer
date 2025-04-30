@@ -3,9 +3,10 @@
 {% if user.is_authenticated %}
 <html lang="en">
     <head>
+        <link rel="icon" type="image/x-icon" href="{% static 'forms/images/boansoWhite.png' %}">
         <link rel="stylesheet" href="{% static 'forms/styles/styles.css' %}">
         {% block title %}
-            <title>Bonaso Data Viewer</title>
+            <title>Bonaso Data Portal</title>
         {% endblock %}
     </head>
 
@@ -14,7 +15,7 @@
             <div class="header">
                 <a href="{% url 'forms:view-forms-index' %}"> <img class="headerLogo" src="{% static 'forms/images/boansoWhite.png' %}" /></a> 
                 <div class="headerText">
-                    <h1>BONASO Data Viewer</h1>
+                    <h1>BONASO Data Portal</h1>
                 </div>
             </div>
         {% endblock %}
@@ -36,7 +37,7 @@
                             <img class="sbIcon" src="{% static 'forms/images/record-player.svg' %}" />   
                             <a href="{% url 'forms:view-responses-index' %}">Responses</a>
                             <img class="sbIcon" src="{% static 'forms/images/monitor-dashboard.svg' %}" />   
-                            <a href="{% url 'forms:data' %}">Dashboard</a>
+                            <a href="{% url 'forms:dashboard' %}">Dashboard</a>
 
                         </div>
 

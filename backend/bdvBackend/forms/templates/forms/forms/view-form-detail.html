@@ -2,42 +2,69 @@
 {% load static %}
 
 {% block content %}
-
+<link rel="stylesheet" href="{% static 'forms/styles/formDetail.css' %}">
 <div class="content">
     {% if form.organization == user_org or user_org.id == 3 %}
-        <h1>{{ form.form_name }}</h1>
-        <h3> From {{ form.organization }} </h3>
-        <p> Starts On: {{form.start_date}}, Ends On: {{ form.end_date }}</p>
-        {% if perms.forms.change_form %}
-        <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form</button></a>
-        {% endif %}
+    <h1>{{ form.form_name }}</h1>
+        <div class="formInfo">
+            <div class="dates">
+                <h3> From {{ form.organization }} </h3>
+                <p> Starts On: {{form.start_date}}</p>
+                <p>Ends On: {{ form.end_date }}</p>
+            </div>
 
-        {% if perms.forms.delete_form %}
-        <a href="{% url 'forms:delete-form' form.id %}"><button>Delete Form</button></a>
-        {% endif %}
-        
-        {% if perms.forms.change_form %}
-            <a href="{% url 'forms:form-template' form.id %}"><button>Create template for this form.</button></a>
-            <form action="{% url 'forms:form-template' form.id %}" method="post" enctype="multipart/form-data">
-                {%csrf_token%}
-                <input type="file" name="template"/>
-                <button type="submit">Confirm Upload</button>
-            </form>
-        {% endif %}
+            <div class="actions">
+                {% if perms.forms.change_form %}
+                <h3>Form Actions</h3>
+                <a href="{% url 'forms:create-response' form.id %}"><button>New Response</button></a>
+                <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form</button></a>
+                {% endif %}
+
+                {% if perms.forms.delete_form %}
+                <a href="{% url 'forms:delete-form' form.id %}"><button>Delete Form</button></a>
+                {% endif %}
+                
+            </div>
+        </div>
+
         {% if question_option_pairs %}
-            {% for meta, question, option_set in question_option_pairs %}
-                <h3>{{ question.question_text }}</h3>
-                <p><i>{{question.question_type}}</i></p>
-                    <ul>
-                    {% if option_set|length > 0 %}
-                        {% for option in option_set %}
-                            <li> {{option.option_text}} </li>
-                        {% endfor %}
-                    {% endif %}
-                    </ul>
-            {% endfor %}
+            <div class="questions">
+                <h2>Questions</h2>
+                {% for meta, question, option_set in question_option_pairs %}
+                    <div class="question">
+                        <h4>{{meta.index|add:1}}. {{ question.question_text }} <i>({{question.question_type}})</i></h4>
+                        {% if meta.visible_if_question %}
+                        <i>Visible if question: "{{meta.visible_if_question}}" is "{{meta.visible_if_answer}}".</i>
+                        {% endif %}
+                            <ul>
+                            {% if option_set|length > 0 %}
+                                {% for option in option_set %}
+                                    <li> {{option.option_text}} </li>
+                                {% endfor %}
+                            {% endif %}
+                            </ul>
+                    </div>
+                {% endfor %}
         {% else %}
             <p>This form does not have any questions.</p>
+        {% endif %}
+            </div>
+
+        {% if perms.forms.change_form %}
+            <div class="templates">
+                <h3>Template Management</h3>
+                <div class="templateUpload">
+                    <h4>Upload Responses</h4>
+                    <form action="{% url 'forms:form-template' form.id %}" method="post" enctype="multipart/form-data">
+                        {%csrf_token%}
+                        <input type="file" name="template"/>
+                        <button type="submit">Confirm Upload</button>
+                    </form>
+                    <i>Upload bulk responses based on a CSV template.</i>
+                </div>
+                <a href="{% url 'forms:form-template' form.id %}"><button>Create template for this form.</button></a>
+                <i>Create a CSV template that you can use to collect data for this form.</i>
+            </div>
         {% endif %}
     {% else %}
         <p>You do not have permission to perform this action.</p>

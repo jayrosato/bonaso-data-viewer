@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.db.models import Count
 
-import datetime
+from datetime import datetime, date
 
 class Organization(models.Model):
     organization_name = models.CharField(max_length=255, verbose_name='Organization Name')
@@ -53,9 +53,16 @@ class Respondent(models.Model):
     contact_no = models.CharField(max_length=255, verbose_name='Phone Number', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, default=User.objects.first().id, on_delete=models.SET_DEFAULT)
 
     def get_full_name(self):
         return f'{self.fname} {self.lname}'
+    
+    def get_age(self):
+        today = date.today()
+        return today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
+    def responsesCount(self):
+        return Response.objects.filter(respondent_id=self.id).count()
     
     def __str__(self):
         return self.get_full_name()
@@ -76,7 +83,7 @@ class Form(models.Model):
         return f'{self.organization}: {self.form_name}'
     
     def isActive(self):
-        return datetime.date.today() >= self.end_date
+        return date.today() >= self.end_date
     
     def responsesCount(self):
         return Response.objects.filter(form_id=self.id).count()
@@ -158,7 +165,7 @@ class Response(models.Model):
     class Meta:
         db_table_comment = 'Table containing responses, or an instance of a respondent completing a survey.'
         ordering = ['-response_date', 'form', 'respondent']
-        unique_together = ['form', 'respondent']
+        #unique_together = ['form', 'respondent']
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

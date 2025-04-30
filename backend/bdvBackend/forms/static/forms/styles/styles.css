@@ -19,13 +19,13 @@ body{
 }
 
 .headerLogo{
-    max-height: 15vh;
+    max-height: 10vh;
     padding: 2vh;
     margin-left: 2vh;
 }
 
 .headerText{
-    margin-left: 3rem;
+    margin-left: 1rem;
     margin-top: auto;
     margin-bottom: auto;
 }
@@ -104,5 +104,26 @@ a{
     text-decoration: underline;
 }
 button{
-    color: green;
+    padding: 5px;
+    margin: 3px;
+    border: 3px solid white;
+    background-color: rgb(18, 87, 46);
+    border-radius: 7px;
+    color: white;
+    font-weight: bold;
 }
+
+
+table {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+td{
+    padding: 2px;
+}
+th {
+    background-color: rgb(13, 60, 32);
+}
+tr:nth-child(odd) {
+    background-color: rgb(18, 87, 46);
+  }
