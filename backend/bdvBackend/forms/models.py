@@ -158,6 +158,7 @@ class Response(models.Model):
     class Meta:
         db_table_comment = 'Table containing responses, or an instance of a respondent completing a survey.'
         ordering = ['-response_date', 'form', 'respondent']
+        unique_together = ['form', 'respondent']
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

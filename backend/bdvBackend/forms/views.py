@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 
 from django.template import loader
 from django.urls import reverse, reverse_lazy
@@ -593,16 +594,33 @@ class FormTemplate(LoginRequiredMixin, View):
             reader = csv.DictReader(decoded_file)
             for row in reader:
                 checkRespondent = Respondent.objects.filter(id_no=row['id_no']).first()
+                raw_date = row['dob'].strip().replace('“', '').replace('”', '').replace('"', '')
+                try:
+                    parsed_date = datetime.strptime(raw_date, '%m/%d/%Y').date()
+                except ValueError:
+                    raise ValueError(f"Invalid date format: {raw_date}. Expected MM/DD/YYYY.")
                 if not checkRespondent:
-                    raw_date = row['dob'].strip().replace('“', '').replace('”', '').replace('"', '')
-                    try:
-                        parsed_date = datetime.strptime(raw_date, '%m/%d/%Y').date()
-                    except ValueError:
-                        raise ValueError(f"Invalid date format: {raw_date}. Expected MM/DD/YYYY.")
                     respondent = Respondent(id_no=row['id_no'], fname=row['fname'], lname=row['lname'], dob=parsed_date, sex=row['sex'], ward=row['ward'], village=row['village'], district=row['district'], citizenship=row['citizenship'], email=row['email'], contact_no=row['contact_no'])
                     respondent.save()
+                #currently this defaults to updating automatially, but we probably shouldn't do that
                 else:
                     respondent = checkRespondent
+                    respondent.fname = row['fname']
+                    respondent.lname = row['lname']
+                    respondent.dob = parsed_date
+                    respondent.sex = row['sex']
+                    respondent.ward = row['ward']
+                    respondent.village = row['village']
+                    respondent.district = row['district']
+                    respondent.citizenship = row['citizenship']
+                    respondent.email = row['email']
+                    respondent.contact_no = row['contact_no']
+                    respondent.save()
+                checkResponse = Response.objects.filter(form = form_meta.id, respondent = respondent.id).first()
+                print(checkResponse)
+                if checkResponse:
+                    print(f'Response from {respondent} has already been recorded for this form. To edit this response, please do so using the edit responses option.')
+                    continue
                 response = Response(respondent=respondent, form=form_meta, created_by=request.user)
                 response.save()
                 for i in range(len(form_questions)):
@@ -617,7 +635,7 @@ class FormTemplate(LoginRequiredMixin, View):
                     if form_questions[i].question_type == 'Single Selection':
                         option_id = row[form_questions[i].question_text]
                         try:
-                            answer = Answer(response=response, question=form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
+                            answer = Answer(response=response, question=form_questions[i],  option=get_object_or_404(Option, pk=option_id), open_answer=None)
                             answer.save()
                         except(ValueError):
                             text = option_id.strip()
