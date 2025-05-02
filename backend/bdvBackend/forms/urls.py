@@ -26,7 +26,8 @@ urlpatterns = [
     path('organizations/create', views.CreateOrg.as_view(), name='create-org'),
     path('organizations/<int:pk>/update', views.UpdateOrg.as_view(), name='update-org'),
     path('organizations/<int:pk>/delete', views.DeleteOrg.as_view(), name='delete-org'),
-
+    path('organizations/team', views.EmployeesIndexView.as_view(), name='view-employees-index'),
+    path('organizations/team/<int:pk>', views.EmployeeDetailView.as_view(), name='view-employee-detail'),
 
     #allows users to view, create, and edit respondents (demographic data collected about clients)
     path('respondents', views.ViewRespondentsIndex.as_view(), name='view-respondents-index'),

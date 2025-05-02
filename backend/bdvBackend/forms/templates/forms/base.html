@@ -44,7 +44,7 @@
                         <h3 class="sbLinkHeader">Your Account</h3>
                             <div class="sidebarLinks">
                             <img class="sbIcon" src="{% static 'forms/images/account-box-edit-outline.svg' %}"" /> 
-                            <a href="{% url 'forms:profile' %}">Account</a>
+                            <a href="{% url 'forms:view-employee-detail' user.id %}">Account</a>
                             <img class="sbIcon" src="{% static 'forms/images/cog.svg' %}" /> 
                             <a href="{% url 'forms:settings' %}">Settings</a>
                             <img class="sbIcon" src="{% static 'forms/images/logout.svg' %}" /> 

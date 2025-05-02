@@ -18,13 +18,15 @@ class Organization(models.Model):
         return self.organization_name
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True)
+    supervisor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='supervisor')
+    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='manager')
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        default_org = Organization.objects.filter(organization_name='Unassigned')
+        default_org = Organization.objects.filter(organization_name='Unassigned').first()
         UserProfile.objects.create(user=instance, organization=default_org)
 
 @receiver(post_save, sender=User)
@@ -78,7 +80,7 @@ class Form(models.Model):
     start_date = models.DateField('Start Date')
     end_date = models.DateField('End Date')
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT)
-
+    created_by = models.ForeignKey(User, default=User.objects.first().id, on_delete=models.SET_DEFAULT)
     def __str__(self):
         return f'{self.organization}: {self.form_name}'
     

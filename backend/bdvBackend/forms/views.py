@@ -18,7 +18,7 @@ from datetime import datetime
 import csv
 from django.db.models import Q, Count
 
-from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization
+from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization, User, UserProfile
 now = timezone.now()
 
 #views related to forms
@@ -29,10 +29,6 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         num_visits = self.request.session.get('num_visits',0)
         num_visits += 1
-        self.request.session['num_visits'] = num_visits
-        last_login = self.request.session.get('last_login', 0)
-        last_login = now.isoformat()
-        self.request.session['last_login'] = last_login
         return Form.objects.filter(start_date__lte= datetime.today(), end_date__gte = datetime.today()).order_by('organization')
 
     def get_context_data(self, **kwargs):
@@ -78,6 +74,7 @@ class CreateForm(LoginRequiredMixin, View):
             organization = get_object_or_404(Organization, id=request.POST.get('organization')),
             start_date = request.POST.get('start_date'),
             end_date = request.POST.get('end_date'),
+            created_by = self.request.user
             )
         form.save()
         questionValues = request.POST.getlist('question')
@@ -410,8 +407,16 @@ class CreateRespondent(LoginRequiredMixin, generic.CreateView):
     template_name = 'forms/respondents/update-respondent.html'
     fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
-            'district', 'email', 'contact_no'
+            'district', 'email', 'contact_no', 'created_by'
             ]
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        user = self.request.user
+        form.fields['created_by'].queryset = User.objects.filter(id=user.id)
+        form.fields['created_by'].initial = User.objects.filter(id=user.id)
+        return form
+    
     def get_success_url(self):
         return reverse_lazy('forms:view-respondent-detail', kwargs={'pk': self.object.id})
 
@@ -518,11 +523,54 @@ class DeleteOrg(LoginRequiredMixin, generic.DeleteView):
     model=Organization
     success_url = reverse_lazy('forms:view-orgs-index')
 
+class EmployeesIndexView(LoginRequiredMixin, generic.ListView):
+    template_name = 'forms/orgs/view-employees-index.html'
+    context_object_name = 'employees'
+    def get_queryset(self):
+        return User.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        return context
+
+class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
+    model=User
+    template_name='forms/orgs/view-employee-detail.html'
+    context_object_name = 'employee'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        pk=self.kwargs['pk']
+        employee = get_object_or_404(User, id=pk)
+        responses = Response.objects.filter(created_by=employee.id).count()
+        context['responses'] = responses
+        respondents = Respondent.objects.filter(created_by=employee.id).count()
+        context['respondents'] = respondents
+        forms = Form.objects.filter(created_by=employee.id).count()
+        context['forms'] = forms
+        direct_team = UserProfile.objects.filter(supervisor=employee.id).count()
+        underlings = UserProfile.objects.filter(manager=employee.id).count()
+        context['direct_team'] = direct_team
+        context['underlings'] = underlings
+
+        try:
+            employee_user_profile = employee.userprofile
+        except UserProfile.DoesNotExist:
+            employee_user_profile = None
+
+        context['employee_user_profile'] = employee_user_profile
+        return context
+    
+    
 class Profile(LoginRequiredMixin, View):
     def get(self, request):
         user = self.request.user
         userProfile = user.userprofile
-        return render(request, 'forms/profile.html', {'user':user, 'userProfile':userProfile})
+        return render(request, 'forms/orgs/view-employee-detail.html', {'user':user, 'userProfile':userProfile})
 
 class Settings(LoginRequiredMixin, View):
     def get(self, request):
