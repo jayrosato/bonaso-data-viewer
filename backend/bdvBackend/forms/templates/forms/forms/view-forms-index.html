@@ -17,7 +17,7 @@
 
             </tr>
             {% for form in active_forms %}
-                {% if form.organization == user_org or user_org.id == 3 %}
+                {% if form.organization == user_org or user.userprofile.access_level == 'admin' %}
                 <tr>
                     <td><a href="{% url 'forms:view-form-detail' form.id %}">{{form}}</a></td>
                     <td>{{form.organization}}</td>
@@ -29,12 +29,11 @@
                 {% endif %}
             {% endfor %}
         </table>
-        {% if perms.forms.add_form %}
-            <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
-        {% endif %}
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}
-
+    {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
+            <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
+    {% endif %}
 </div>
 {% endblock %}

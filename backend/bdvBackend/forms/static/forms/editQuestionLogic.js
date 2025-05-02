@@ -15,10 +15,11 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
-const div = document.querySelector('.content');
+const div = document.querySelector('.qForm');
 const submitButton = document.getElementById('submit');
 const url = submitButton.getAttribute('submit-url')
 submitButton.onclick = () => submit();
+const warnings = document.getElementById('warnings')
 
 window.onload = loadExisting()
 
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     qTypeSelector.addEventListener('change', function () {
         showOptions();
     });
+    showOptions();
 });
 
 
@@ -54,8 +56,6 @@ function addOption(prefill=''){
     removeOptionButton.onclick = () => div.removeChild(optionDiv);
     optionDiv.appendChild(removeOptionButton);
     div.appendChild(optionDiv);
-
-
 }
 
 function showOptions(){
@@ -82,12 +82,40 @@ function showOptions(){
 };
 
 function submit(){
+    let flag = false
     const qText = document.getElementById('id_question_text').value;
+    if(qText.length > 255){
+        warnings.innerText += ' Question text must be less than 255 characters.'
+        flag = true
+    }
+    if(qText == ''){
+        warnings.innerText += ' Question text cannot be blank.'
+        flag = true
+    }
+
     const qType = document.getElementById('id_question_type').value;
+    if(qType == ''){
+        warnings.innerText += ' Please select a question type.'
+        flag = true
+    }
+
     const optionsInput = document.getElementsByName('option_text');
     const options = []
-    Array.from(optionsInput).forEach((o) => {options.push(o.value)})
-    console.log(qText, qType, options)
+    Array.from(optionsInput).forEach((o) => {
+        if(o.value == ''){
+            warnings.innerText += ' Option cannot be blank'
+            flag = true
+        }
+        else if(o.value.length > 255){
+            warnings.innerText += ' Option must be less than 255 characters.'
+            flag = true
+        }
+        else{options.push(o.value)}
+    
+    })
+    if(flag == true){
+        return
+    }
 
     fetch(url, {
         method: 'POST',

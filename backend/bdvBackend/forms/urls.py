@@ -17,6 +17,7 @@ urlpatterns = [
     path('data', views.Data.as_view(), name='data'),
     path('data/get', views.GetData.as_view(), name='data-get'),
 
+    path('questions', views.ViewQuestions.as_view(), name='view-questions'),
     path('questions/create', views.CreateQuestion.as_view(), name='create-question'),
     path('questions/<int:pk>/update', views.UpdateQuestion.as_view(), name='update-question'),
     path('questions/<int:pk>/delete', views.DeleteQuestion.as_view(), name='delete-question'),
@@ -28,6 +29,7 @@ urlpatterns = [
     path('organizations/<int:pk>/delete', views.DeleteOrg.as_view(), name='delete-org'),
     path('organizations/team', views.EmployeesIndexView.as_view(), name='view-employees-index'),
     path('organizations/team/<int:pk>', views.EmployeeDetailView.as_view(), name='view-employee-detail'),
+    path('organizations/team/addmember', views.CreateUser.as_view(), name='create-user'),
 
     #allows users to view, create, and edit respondents (demographic data collected about clients)
     path('respondents', views.ViewRespondentsIndex.as_view(), name='view-respondents-index'),
@@ -44,7 +46,6 @@ urlpatterns = [
     path('response/<int:pk>/delete', views.DeleteResponse.as_view(), name='delete-response'),
 
     #misc
-    path('profile', views.Profile.as_view(), name='profile'),
     path('settings', views.Settings.as_view(), name='settings'),
 
     #related to getting specific queries

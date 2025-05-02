@@ -14,14 +14,14 @@
             </div>
 
             <div class="actions">
-                {% if perms.forms.change_form %}
+                {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
                 <h3>Form Actions</h3>
                 <a href="{% url 'forms:create-response' form.id %}"><button>New Response</button></a>
                 <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form</button></a>
                 {% endif %}
 
-                {% if perms.forms.delete_form %}
-                <a href="{% url 'forms:delete-form' form.id %}"><button>Delete Form</button></a>
+                {% if user.userprofile.access_level == 'admin' %}
+                    <a href="{% url 'forms:delete-form' form.id %}"><button>Delete Form</button></a>
                 {% endif %}
                 
             </div>
@@ -50,7 +50,7 @@
         {% endif %}
             </div>
 
-        {% if perms.forms.change_form %}
+        {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
             <div class="templates">
                 <h3>Template Management</h3>
                 <div class="templateUpload">

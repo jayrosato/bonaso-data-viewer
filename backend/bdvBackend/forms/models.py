@@ -18,11 +18,23 @@ class Organization(models.Model):
         return self.organization_name
 
 class UserProfile(models.Model):
+    DC = 'data-collector'
+    SUP = 'supervisor'
+    MGR = 'manager'
+    ADM = 'admin'
+    ACCESS_LEVEL_CHOICES = [
+        (DC,'Data Collector'), 
+        (SUP,'Supervisor'), 
+        (MGR,'Manager'),
+        (ADM, 'Administrator')
+        ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True)
     supervisor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='supervisor')
     manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='manager')
+    access_level = models.CharField(max_length=100, choices=ACCESS_LEVEL_CHOICES, default=DC)
 
+'''
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -32,6 +44,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.userprofile.save()
+'''
 
 class Respondent(models.Model):
     F = 'F'

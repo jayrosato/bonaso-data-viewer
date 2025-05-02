@@ -73,7 +73,7 @@ class QuestionForm(forms.ModelForm):
         fields = [
             'question_text', 'question_type'
         ]
-        
+
 class FormsForm(forms.ModelForm):
     class Meta:
         model = Form

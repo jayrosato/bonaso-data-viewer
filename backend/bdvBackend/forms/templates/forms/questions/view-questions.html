@@ -1,0 +1,51 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content">
+    <h1>Viewing All Questions</h1>
+    {% if user.userprofile.access_level == 'admin' %}
+    {% if questions %}
+        <table>
+            <th>Question</th>
+            <th>Type</th>
+            <th>Options</th>
+            <th>Updated At</th>
+            <th>Edit Question</th>
+                {% for question in questions %}
+                <tr>
+                    <td>{{question}}</td>
+                    <td>{{question.question_type}}</td>
+                    {% if question.question_type == 'Single Selection' or question.question_type == 'Multiple Selections' %}
+                    <td>
+                        <ul>
+                        {% for option in options %}
+                            {% if option.question.id == question.id %}
+                                <li>{{option}}</li>
+                            {% endif %}
+                        {% endfor %}
+                        </ul>
+                    </td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                    <td>{{question.updated_at}}</td>
+                    <td><a href="{% url 'forms:update-question' question.id %}"><button>Edit Question</button></a></td>
+                </tr>
+                {% endfor %}
+        </table>
+    {% else %}
+    <p>Nothing here yet!</p>
+    {% endif %}
+    <a href="{% url 'forms:create-question' %}"><button>Create New Question</button></a>
+    {% else %}
+    <p>
+        Sorry, but only site administrators may access questions. The reason for this is to assure
+        consistency in the way that all of our partner organizations report their data. Please do
+        not hesitate to reach out to a BONASO staff member if you feel any additions or changes
+        need to be made to the current set of questions. 
+    </p>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -26,6 +26,10 @@
                     <div class="sidebarLinksCont">
                         <h3 class="sbLinkHeader"> Your Apps</h3>
                         <div class="sidebarLinks">
+                            {% if user.userprofile.access_level == 'admin' %}
+                            <img class="sbIcon" src="{% static 'forms/images/monitor-dashboard.svg' %}" />   
+                            <a href="{% url 'forms:view-questions' %}">Manage Questions/Indicators</a>
+                            {% endif %}
                             <img class="sbIcon" src="{% static 'forms/images/list-box-outline.svg' %}" />   
                             <a href="{% url 'forms:view-forms-index' %}">Forms</a>
                             <img class="sbIcon" src="{% static 'forms/images/account-group-outline.svg' %}" />
@@ -33,6 +37,8 @@
                             {% if perms.forms.view_organization %}
                             <img class="sbIcon" src="{% static 'forms/images/office-building-cog.svg' %}" />   
                             <a href="{% url 'forms:view-orgs-index' %}">Organizations</a>
+                            <img class="sbIcon" src="{% static 'forms/images/office-building-cog.svg' %}" />   
+                            <a href="{% url 'forms:view-employees-index' %}">Team</a>
                             {% endif %}
                             <img class="sbIcon" src="{% static 'forms/images/record-player.svg' %}" />   
                             <a href="{% url 'forms:view-responses-index' %}">Responses</a>

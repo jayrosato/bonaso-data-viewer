@@ -27,8 +27,6 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
     context_object_name = 'active_forms'
     
     def get_queryset(self):
-        num_visits = self.request.session.get('num_visits',0)
-        num_visits += 1
         return Form.objects.filter(start_date__lte= datetime.today(), end_date__gte = datetime.today()).order_by('organization')
 
     def get_context_data(self, **kwargs):
@@ -168,7 +166,21 @@ class DeleteForm(LoginRequiredMixin, generic.DeleteView):
     model=Form
     success_url = reverse_lazy('forms:view-forms-index')
 
+
 #questions are meant to be modular, and as such are edited separately from forms
+class ViewQuestions(LoginRequiredMixin, generic.ListView):
+    template_name = 'forms/questions/view-questions.html'
+    context_object_name = 'questions'
+    
+    def get_queryset(self):
+        return Question.objects.all()
+    
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        options = Option.objects.all()
+        context['options'] = options
+        return context
+
 class CreateQuestion(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'forms/questions/create-question.html', 
@@ -185,7 +197,7 @@ class CreateQuestion(LoginRequiredMixin, View):
                 for i in range(len(options)):
                     option = Option(question = question, option_text=options[i])
                     option.save()
-            return JsonResponse({'redirect': reverse('forms:view-forms-index')})
+            return JsonResponse({'redirect': reverse('forms:view-questions')})
         except:
             print('Ah nuts')
 
@@ -436,7 +448,6 @@ class DeleteRespondent(LoginRequiredMixin, generic.DeleteView):
     model=Respondent
     success_url = reverse_lazy('forms:view-respondents-index')
 
-    #logic for instance where respondent has responses would go here
 
 
 class ViewOrgsIndex(LoginRequiredMixin, generic.ListView):
@@ -564,13 +575,20 @@ class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
 
         context['employee_user_profile'] = employee_user_profile
         return context
+
+class CreateUser(LoginRequiredMixin, generic.CreateView):
+    model = UserProfile
+    fields = '__all__'
+    template_name = 'forms/orgs/create-user.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        return context
     
-    
-class Profile(LoginRequiredMixin, View):
-    def get(self, request):
-        user = self.request.user
-        userProfile = user.userprofile
-        return render(request, 'forms/orgs/view-employee-detail.html', {'user':user, 'userProfile':userProfile})
+    def get_success_url(self):
+        return reverse_lazy('forms:view-employee-detail', kwargs={'pk': self.object.id})
 
 class Settings(LoginRequiredMixin, View):
     def get(self, request):

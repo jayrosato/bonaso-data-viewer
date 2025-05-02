@@ -20,10 +20,10 @@
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}
-
-    {% if perms.forms.add_user %}
-        <a href="{% url 'forms:create-org' %}"><button>Create New Organization</button></a>
+    {% if perms.forms.add_user%}
+        <a href="{% url 'forms:create-user' %}"><button>Add a new team member.</button></a>
     {% endif %}
+
 </div>
 
 {% endblock %}

@@ -2,7 +2,10 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'forms/styles/questionForm.css' %}">
 <div class="content">
+    <div class="qForm">
+    <p id="warnings"></p>
     {% if perms.forms.edit_question %}
             {%csrf_token%}
             {{ form }}
@@ -11,7 +14,8 @@
                     <div class="option_passer" option_text="{{option.option_text}}"></div>
                 {% endfor %}
             {% endif %}
-            <button id="submit" submit-url="{% url 'forms:update-question' question.id %}">Submit</button>
+    </div>
+         <button id="submit" submit-url="{% url 'forms:update-question' question.id %}">Submit</button>
             {% if perms.forms.delete_question %}
                     <a href="{%url 'forms:delete-question' question.id%}">
                         <button>

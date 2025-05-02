@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.change_form%}
+    {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
     {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
         <form action="{% url 'forms:update-form' form_meta.id %}" method="post">
             {%csrf_token%}

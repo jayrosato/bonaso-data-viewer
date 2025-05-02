@@ -7,7 +7,7 @@
 
     <form action="{% url 'forms:create-form' %}" method="post">
 
-    {% if perms.forms.add_form %}
+    {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
             {%csrf_token%}
             <h2>Form Details</h2>
             {{ form }}

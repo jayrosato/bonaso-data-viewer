@@ -114,6 +114,15 @@ button{
 }
 
 
+select {
+    border-radius: 5px;
+    border: 3px solid white;
+    background-color: rgb(18, 87, 46);
+    padding: 2px;
+    color: white;
+    font-weight: bold;
+}
+
 table {
     margin-top: 1rem;
     margin-bottom: 1rem;
