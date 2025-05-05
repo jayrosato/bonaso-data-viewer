@@ -1,7 +1,8 @@
 label{
     display: block;
 }
-.questions >*{
+
+.question{
     border: 1px solid white;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -9,8 +10,8 @@ label{
     padding-right: 30vw;
     display: flex;
     flex-direction: column;
+    margin-bottom: 5vh;
     max-width: 50%;
-    margin-bottom: 1rem;
 }
 .buttons{
     max-width: 25vw;

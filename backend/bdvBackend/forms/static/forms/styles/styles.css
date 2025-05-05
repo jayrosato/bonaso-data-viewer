@@ -103,6 +103,7 @@ a{
     font-weight: bold;
     text-decoration: underline;
 }
+
 button{
     padding: 5px;
     margin: 3px;
@@ -113,6 +114,11 @@ button{
     font-weight: bold;
 }
 
+button:hover {
+    cursor: pointer;
+    color: rgb(21, 103, 54);
+    background-color: white;
+}
 
 select {
     border-radius: 5px;
@@ -121,6 +127,15 @@ select {
     padding: 2px;
     color: white;
     font-weight: bold;
+}
+select:hover {
+    cursor: pointer;
+    color: rgb(21, 103, 54);
+    background-color: white;
+}
+
+textarea {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 table {

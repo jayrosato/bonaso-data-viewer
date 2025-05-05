@@ -40,7 +40,15 @@ function updateForm(){
 
                 for (let k = 0; k < dependency.length; k++) {
                     let item = dependency[k];
-                    if (item && item.checked && item.value == vdValue) {
+                    if(vdValue == 'not blank'){
+                        if(item.checked == true){
+                            matched = true;
+                            break;
+                        }
+                    }
+                    console.log(vdValue)
+                    console.log(item.name)
+                    if (item && item.checked && item.name == vdValue) {
                         matched = true;
                         break; // Found a match, no need to continue
                     }

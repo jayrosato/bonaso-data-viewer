@@ -142,8 +142,6 @@ class Question(models.Model):
 class FormQuestion(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='questions')
-    visible_if_question = models.ForeignKey(Question, null=True, blank=True, on_delete=models.SET_NULL, related_name='question_logic')
-    visible_if_answer = models.TextField(null=True, blank=True)
     index = models.IntegerField()
     def __str__(self):
         return f'Question: {self.question} located in form {self.form}.'
@@ -152,6 +150,42 @@ class FormQuestion(models.Model):
         db_table_comment = 'Table containing a list of questions asked in a particular form.'
         ordering = ['form', 'question']
         #unique_together = ['form', 'question']
+
+#create a 'condition' that limits one question's appearance based on a set of 'rules'
+class FormLogic(models.Model):
+    AND = 'AND'
+    OR = 'OR'
+
+    CO_CHOICES = [
+        (AND, 'AND'),
+        (OR, 'OR'),
+    ]
+
+    SHOW = 'Show'
+    HIDE = 'Hide'
+
+    OM_CHOICES = [
+        (SHOW, 'Show'),
+        (HIDE, 'Hide')
+    ]
+
+    form = models.ForeignKey(Form, on_delete=models.CASCADE) #related form
+    conditional_question = models.ForeignKey(FormQuestion, on_delete=models.CASCADE) #the question that is to appear conditionally
+    on_match = models.CharField(max_length=255, choices=OM_CHOICES, default=None) #what to do if the conditions are met (show the question or hide the question)
+    conditional_operator = models.CharField(max_length=10, null=True, blank=True, choices=CO_CHOICES, default=None) #an operator that the program will use to help fullfill logical conditons (i.e., and/or)
+    limit_options = models.BooleanField(null=True, blank=True) #if applicable, whether the parent question's selected options should limit the conditional question's available options
+    
+    def __str__(self):
+        return f'Logic for {self.conditional_question} in form {self.form}.'
+
+#the 'rules' that trigger a condition. Multiple rules can be linked to one condition
+class FormLogicRule(models.Model):
+    form_logic = models.ForeignKey(FormLogic, on_delete=models.CASCADE) #links rules to a conditon
+    parent_question = models.ForeignKey(FormQuestion, on_delete=models.CASCADE) #the question(s) that will affect the conditional question
+    expected_values = models.JSONField() #the value(s) that the parent question must have to trigger a condition
+    negate_value = models.BooleanField(default=False)
+    def __str__(self):
+        return f'{self.parent_question} with value {self.expected_values}.'
 
 class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

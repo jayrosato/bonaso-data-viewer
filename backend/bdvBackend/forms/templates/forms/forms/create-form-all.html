@@ -4,23 +4,24 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'forms/styles/formEditor.css' %}">
 <div class="content">
-
-    <form action="{% url 'forms:create-form' %}" method="post">
-
-    {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
+    {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
+        <form action="{% url 'forms:create-form' %}" method="post">
             {%csrf_token%}
             <h2>Form Details</h2>
             {{ form }}
             <h2>Form Questions</h2>
             <div class="questions" url="{% url 'forms:create-question' %}">
-                <div id="question-1" class="existing-question">
+                <div id="question-1" class="question">
                     {{ form_question }}
                 </div>
             </div>
             <button id="submit" type="submit">Submit</button>
         </form>
     {% else %}
-    <p>You do not have permission to perform this action.</p>
+    <p>You do not have permission to create a new form. Please contact your supervisor or manager
+        to perform this action.</p>
+    <p>If you believe this is a mistake, please contact a site admin by emailing
+        <i>info@bonaso.org.</i></p>
     {% endif %}
 </div>
 <script src="{% static 'forms/editFormLogic.js' %}"></script>

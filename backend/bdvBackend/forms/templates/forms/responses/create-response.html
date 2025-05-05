@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-{% if perms.forms.add_response %}
+{% if user %}
 {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
 <div class="content">
     <button onclick="openInputWindow()">New Respondent</button>

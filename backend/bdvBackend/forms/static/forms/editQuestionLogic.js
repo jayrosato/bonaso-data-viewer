@@ -21,7 +21,7 @@ const url = submitButton.getAttribute('submit-url')
 submitButton.onclick = () => submit();
 const warnings = document.getElementById('warnings')
 
-window.onload = loadExisting()
+window.onload = showOptions()
 
 function loadExisting(){
     const existingOptions = document.getElementsByClassName('option_passer')
@@ -55,7 +55,8 @@ function addOption(prefill=''){
     removeOptionButton.innerText = 'Remove Option';
     removeOptionButton.onclick = () => div.removeChild(optionDiv);
     optionDiv.appendChild(removeOptionButton);
-    div.appendChild(optionDiv);
+    div.insertBefore(optionDiv, addOptionButton)
+    //div.appendChild(optionDiv);
 }
 
 function showOptions(){
@@ -69,6 +70,7 @@ function showOptions(){
         addOptionButton.innerText = 'Add an Option';
         div.appendChild(addOptionButton);
         };
+        loadExisting()
     }
     else{
         if(document.getElementById('addOptionButton')){

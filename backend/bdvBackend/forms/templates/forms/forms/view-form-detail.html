@@ -14,7 +14,7 @@
             </div>
 
             <div class="actions">
-                {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
+                {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
                 <h3>Form Actions</h3>
                 <a href="{% url 'forms:create-response' form.id %}"><button>New Response</button></a>
                 <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form</button></a>
@@ -27,30 +27,32 @@
             </div>
         </div>
 
-        {% if question_option_pairs %}
+        {% if form_questions %}
             <div class="questions">
                 <h2>Questions</h2>
-                {% for meta, question, option_set in question_option_pairs %}
-                    <div class="question">
-                        <h4>{{meta.index|add:1}}. {{ question.question_text }} <i>({{question.question_type}})</i></h4>
-                        {% if meta.visible_if_question %}
-                        <i>Visible if question: "{{meta.visible_if_question}}" is "{{meta.visible_if_answer}}".</i>
-                        {% endif %}
+                {% for fq in form_questions %}
+                    <h4>{{fq.form_question.index|add:1}}. {{fq.question}} <i>{{fq.question.question_type}}</i></h4>
+                    {% if fq.logic %}
+                        <i>{{fq.logic.on_match}} when:</i>
+                        {% for rule in fq.rules %}
                             <ul>
-                            {% if option_set|length > 0 %}
-                                {% for option in option_set %}
-                                    <li> {{option.option_text}} </li>
-                                {% endfor %}
-                            {% endif %}
+                                <li>"{{rule.parent_question.question}}" is "{{rule.expected_values}}"</li>
                             </ul>
-                    </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% if fq.options|length > 0 %}
+                        {% for option in fq.options%}
+                            <ul>
+                                <li>{{option.option_text}}</li>
+                            </ul>
+                        {% endfor %}
+                    {% endif %}
                 {% endfor %}
+            </div>
         {% else %}
             <p>This form does not have any questions.</p>
         {% endif %}
-            </div>
-
-        {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
+        {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
             <div class="templates">
                 <h3>Template Management</h3>
                 <div class="templateUpload">
@@ -66,6 +68,8 @@
                 <i>Create a CSV template that you can use to collect data for this form.</i>
             </div>
         {% endif %}
+            </div>
+
     {% else %}
         <p>You do not have permission to perform this action.</p>
     {% endif %}

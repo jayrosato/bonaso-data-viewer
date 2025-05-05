@@ -2,8 +2,9 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'forms/styles/formEditor.css' %}">
 <div class="content">
-    {% user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
+    {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
     {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
         <form action="{% url 'forms:update-form' form_meta.id %}" method="post">
             {%csrf_token%}
@@ -12,13 +13,14 @@
             <h2>Form Questions</h2>
             <div class="questions">
                 {% for fq_form in form_question %}
-                    <div id="question-{{ forloop.counter }}" class="existing-question">
+                    <div id="question-{{ forloop.counter }}" class="question" logic="{{fq_form.}}">
                         {{ fq_form }}
                     </div>
                 {% endfor %}
             </div>
             <button id="submit" type="submit" submit-url="{% url 'forms:create-form' %}">Submit</button>
         </form>
+        <div id="form-passer" form="{{form_meta.id}}"></div>
     {% else %}
         <p>You do not have permission to view this page. </p>
     {% endif %}

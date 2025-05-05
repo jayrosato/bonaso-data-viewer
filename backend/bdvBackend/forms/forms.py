@@ -59,12 +59,6 @@ class ResponseForm(forms.Form):
                     options = [a.option for a in answers]
                     self.fields[field_name].initial = options
             
-            if formLogic:
-                conditions = formLogic[i]
-                if(conditions.visible_if_question):
-                    self.fields[field_name].widget.attrs.update({'questionRelation':conditions.visible_if_question})
-                    self.fields[field_name].widget.attrs.update({'valueRelation':conditions.visible_if_answer})
-                    self.fields[field_name].required = False   
             self.fields[field_name].widget.attrs.update({'class':'form_question'})
 
 class QuestionForm(forms.ModelForm):
@@ -90,7 +84,7 @@ class FormQuestionForm(forms.ModelForm):
     class Meta:
         model = FormQuestion
         fields = [
-            'question', 'visible_if_question', 'visible_if_answer'
+            'question'
         ]
 
 class QuestionSelector(forms.ModelForm):

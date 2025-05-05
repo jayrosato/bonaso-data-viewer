@@ -49,6 +49,8 @@ urlpatterns = [
     path('settings', views.Settings.as_view(), name='settings'),
 
     #related to getting specific queries
+    path('data/query/questions/<int:pk>/meta', views.GetQuestionInfo.as_view()),
     path('data/query/questions', views.GetQuestions.as_view()),
     path('data/query/questions/<int:pk>', views.GetQuestionData.as_view(), name='data-get-q'),
+    path('data/query/forms/questions/<int:form>/<int:index>', views.GetFormQuestionByIndex.as_view())
 ]
