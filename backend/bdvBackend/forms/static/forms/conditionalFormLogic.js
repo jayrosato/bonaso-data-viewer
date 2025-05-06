@@ -68,6 +68,7 @@ function updateForm(questions, logic){
             for(let q=0; q<pqs.length; q++){
                 const pq = pqs[q]
                 const ev = evs[q]
+                const vc = valueComp[q]
                 if(pq.nodeName.toLowerCase() == 'div'){
                     const pqInputs = pq.querySelectorAll('input')
                     const values = []
@@ -82,10 +83,10 @@ function updateForm(questions, logic){
                     else if(ev == 'none' && values.length == 0){
                         conditionMet = true
                     }
-                    else if(negate && values.length>0 && !values.includes(ev)){
+                    else if(negate==true && values.length>0 && !values.includes(ev)){
                         conditionMet = true
                     }
-                    else if(!negate && values.includes(ev)){
+                    else if(values.includes(ev)){
                         conditionMet = true
                     }
                     else{
@@ -110,22 +111,6 @@ function updateForm(questions, logic){
                             }
                         })
                     }
-                    if(conditionMet == true){
-                        const inputs = question.querySelectorAll('input')
-                        type = inputs[0].getAttribute('type')
-                        if(type == 'checkbox' || type =='radio'){
-                            inputs.forEach((input, index) => {
-                                if(input.checked){
-                                    if(flags.includes(question.getAttribute('id'))){
-                                        flags.pop(question.getAttribute('id'))
-                                    }
-                                }
-                                if(!flags.includes(question.getAttribute('id'))){
-                                    flags.push(question.getAttribute('id'))
-                                }
-                            })
-                        }
-                    }
                 }
                 else{
                     let value = pq.value
@@ -139,19 +124,20 @@ function updateForm(questions, logic){
                             continue
                         }
                     }
+                    console.log(vc, value, ev)
                     if(negate ==true && value != '' && value != ev){
                         conditionMet = true
                     }
-                    else if(valueComp == 'CONTAINS' && value.includes(ev)){
+                    else if(vc == 'CONTAINS' && value.includes(ev)){
                         conditionMet = true
                     }
-                    else if(valueComp == 'DOES NOT CONTAIN' && !value.includes(ev) && value != ''){
+                    else if(vc == 'DOES NOT CONTAIN' && !value.includes(ev) && value != ''){
                         conditionMet = true
                     }
-                    else if(valueComp == 'GREATER THAN' && value > parseInt(ev)){
+                    else if(vc == 'GREATER THAN' && value > parseInt(ev)){
                         conditionMet = true
                     }
-                    else if(valueComp == 'LESS THAN' && value < parseInt(ev)){
+                    else if(vc == 'LESS THAN' && value < parseInt(ev)){
                         conditionMet = true
                     }
                     else if(value == ev){
@@ -161,19 +147,43 @@ function updateForm(questions, logic){
                         conditionMet = false
                         question.value = ''
                     }
-                    if(conditionMet == true){
-                        if(question.value == ''){
-                            if(!flags.includes(question.getAttribute('id'))){
-                                flags.push(question.getAttribute('id'))
+                }
+                if(conditionMet && question.nodeName.toLowerCase() === 'div') {
+                    const inputs = question.querySelectorAll('input');
+                    const type = inputs[0].getAttribute('type');
+                
+                    if (type === 'checkbox' || type === 'radio') {
+                        let anyChecked = false;
+                        for (let input of inputs) {
+                            if (input.checked) {
+                                anyChecked = true;
+                                break;
                             }
                         }
-                        else{
-                            if(flags.includes(question.getAttribute('id'))){
-                                    flags.pop(question.getAttribute('id'))
+                        const qid = question.getAttribute('id');
+                
+                        if(anyChecked) {
+                            const index = flags.indexOf(qid);
+                            if(index !== -1) {
+                                flags.splice(index, 1)
                             }
+                        } 
+                        else {
+                            if (!flags.includes(qid)) flags.push(qid);
                         }
                     }
                 }
+                else if (conditionMet) {
+                    const qid = question.getAttribute('id');
+                
+                    if (question.value === '') {
+                        if (!flags.includes(qid)) flags.push(qid);
+                    } else {
+                        const index = flags.indexOf(qid);
+                        if (index !== -1) flags.splice(index, 1);
+                    }
+                }
+
                 if(operator == 'AND' && conditionMet == false){
                     label.style.display = 'none'
                     question.style.display = 'none'

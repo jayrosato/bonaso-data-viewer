@@ -86,8 +86,6 @@ class CreateForm(LoginRequiredMixin, View):
             )
         form.save()
         questions = request.POST.getlist('question')
-        print(questions)
-        print(request.POST.getlist('parent_question'))
         for i in range(len(questions)):
             #create FormQuestion
             formQ = FormQuestion(
@@ -151,38 +149,61 @@ class UpdateForm(LoginRequiredMixin, View):
                            'msg':'Double check that all the fields are correctly filled out.' })
 
     def post(self, request, pk):
+        #update the information about the Form objects itself
         form = get_object_or_404(Form, id=pk)
         form.form_name = request.POST.get('form_name')
         form.organization = get_object_or_404(Organization, id=request.POST.get('organization'))
         form.start_date = request.POST.get('start_date')
         form.end_date = request.POST.get('end_date')
-        form.save()
+        form.save() #save changes
 
+        #get a list of all the questions submited as part of the form
         questions = request.POST.getlist('question')
+        #get questions that were previously in the form for comparison/updating
+        existingQuestions = FormQuestion.objects.filter(form=form.id).order_by('index')
 
-        existingQuestions = FormQuestion.objects.filter(form=form.id)
+        #if questions were removed, delete those questions from the database.
+        #this works based on the index position, not by tracking question ids
         if len(existingQuestions) > len(questions):
             for extra in existingQuestions[len(questions):]:
                 extra.delete()
 
+
+        #loop through each of the questions submitted
         for i in range(len(questions)):
-            if i+1 <= len(existingQuestions):
+            print('existing', existingQuestions)
+            print('new', questions)
+            #if the question is within the range of existing questions, update the question
+            if i < len(existingQuestions):
+                print(i, 'updating')
+                #get the existing form question from the database and update it
                 formQ = existingQuestions[i]
+                print(formQ, 'pre-edits')
                 formQ.index = i
                 formQ.question = get_object_or_404(Question, id=questions[i])
                 formQ.save()
+                print(formQ, 'post-edits')
+
+                #check if this question had any logic associated with it
+                #logic is named with the convention of logic[question-index][logic field]
+                #question divs start at 1
                 if request.POST.get(f'logic[question-{i+1}][on_match]'):
+                    #checkboxes return nothing by default, so check for a value here and if it doesn't exist,
+                    #return false
                     if request.POST.get(f'logic[question-{i+1}][limit_options]') == 'on':
                         limitOptions = True
                     else:
                         limitOptions = False
-
+                    
+                    #check if there was form logic associated with this question
                     formLogic = FormLogic.objects.filter(conditional_question=formQ.id).first()
+                    #if so, update it
                     if formLogic:
                         formLogic.conditional_question = formQ
                         formLogic.on_match = request.POST.get(f'logic[question-{i+1}][on_match]')
                         formLogic.conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]')
                         formLogic.limit_options = limitOptions
+                    #if not, create it
                     else:
                         formLogic = FormLogic(
                             form=form,
@@ -192,18 +213,27 @@ class UpdateForm(LoginRequiredMixin, View):
                             limit_options = limitOptions
                             )
                     formLogic.save()
+
+                    #check for existing rules associated with that form question
                     existingRules = FormLogicRule.objects.filter(form_logic=formLogic.id)
                     rules = request.POST.getlist(f'logic[question-{i+1}][parent_question]')
+
+                    #delete any rules that were removed
                     if len(rules) < len(existingRules):
                         for extra in existingRules[len(rules):]:
                             extra.delete()
 
+                    #loop through each rule
                     for k in range(len(rules)):
-                        print(request.POST.getlist(f'logic[question-{i+1}][expected_values]'), request.POST.getlist(f'logic[question-{i+1}][value_comparison]'))
-                        if k+1 <= len(existingRules):
+                        #if the rule is within the range of existing rules, update it
+                        if k < len(existingRules):
                             rule = existingRules[k]
+
+                            #check the parent question associated with this rule and get its model
                             pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
                             parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                            #these values may not appear for all questions, so check if they exist first.
+                            #if not, set them to none/false
                             try:
                                 if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
                                     valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
@@ -218,14 +248,19 @@ class UpdateForm(LoginRequiredMixin, View):
                                     negateValue = False
                             except(IndexError):
                                 negateValue = False
+                            #update the rule
                             rule.parent_question = parentFormQuestion 
                             rule.expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k]
                             rule.value_comparison = valueComp
                             rule.negate_value = negateValue
                             rule.save()
+                        #otherwise, create a new rile
                         else:
+                            #check the question and get its model
                             pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
                             parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                            
+                            #get optional values
                             try:
                                 if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
                                     valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
@@ -240,6 +275,7 @@ class UpdateForm(LoginRequiredMixin, View):
                                     negateValue = False
                             except(IndexError):
                                 negateValue = False
+                            #create the new rule
                             formLogicRule = FormLogicRule(
                                 form_logic = formLogic,
                                 parent_question = parentFormQuestion,
@@ -248,13 +284,18 @@ class UpdateForm(LoginRequiredMixin, View):
                                 negate_value = negateValue,
                             )
                             formLogicRule.save()
+                #this question has no logic
                 else: 
+                    #check if it previously had logic
                     formLogic = FormLogic.objects.filter(conditional_question=formQ.id).first()
+                    #if it did, delete it and all the rules associated with it
                     if formLogic:
                         existingRules = FormLogicRule.objects.filter(form_logic=formLogic.id)
                         for rule in existingRules:
                             rule.delete()
                         formLogic.delete()
+
+            #otherwise, this question is beyond the length of previous questions, so create a new one
             else:
                 formQ = FormQuestion(
                     form=form,
@@ -420,8 +461,6 @@ class ViewResponseDetail(LoginRequiredMixin, generic.DetailView):
                 answers.append(answer)
             else: 
                 answers.append('No response given.')
-        print(form_questions)
-        print(answers)
         context['response'] = response
         context['question_answer_pairs'] = zip(form_questions, answers)
         context['form_meta'] = form
@@ -794,7 +833,6 @@ class GetQuestionData(LoginRequiredMixin, View):
             options_count = Answer.objects.filter(question=question.id).values('open_answer').annotate(count=Count('open_answer')).order_by('-count')
             labels = [item['open_answer'] for item in options_count]
             values = [item['count'] for item in options_count]
-            print('open', options_count)
         data = {
             "labels": labels,
             "datasets": [{
@@ -890,7 +928,6 @@ class FormTemplate(LoginRequiredMixin, View):
                     respondent.contact_no = row['contact_no']
                     respondent.save()
                 checkResponse = Response.objects.filter(form = form_meta.id, respondent = respondent.id).first()
-                print(checkResponse)
                 if checkResponse:
                     print(f'Response from {respondent} has already been recorded for this form. To edit this response, please do so using the edit responses option.')
                     continue

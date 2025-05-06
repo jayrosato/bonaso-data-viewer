@@ -218,6 +218,10 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
     if(existingValueInput){
         logicRule.removeChild(existingValueInput)
     }
+    const existingCompareInput = logicRule.querySelector('#compareInput')
+    if(existingCompareInput){
+        logicRule.removeChild(existingCompareInput)
+    }
     const qID = pqSelect.value
     const response = await fetch(`/forms/data/query/questions/${qID}/meta`)
     const options = await response.json()
@@ -248,6 +252,7 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
     }
     else if(options.question_type == 'Yes/No'){
         const valueInput = document.createElement('select')
+        valueInput.setAttribute('id', 'valueInput')
         valueInput.setAttribute('name', `logic[${ruleId}][expected_values]`)
         
         const yesOption = document.createElement('option')
@@ -268,6 +273,7 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
 
     else if(options.question_type == 'Text'){
         const valueInput = document.createElement('input')
+        valueInput.setAttribute('id', 'valueInput')
         valueInput.setAttribute('name', `logic[${ruleId}][expected_values]`)
         valueInput.setAttribute('type', 'text')
         logicRule.appendChild(valueInput)
@@ -277,7 +283,7 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
         //set up comparison input
         const compareInput = document.createElement('select')
         compareInput.setAttribute('name', `logic[${ruleId}][value_comparison]`)
-
+        compareInput.setAttribute('id', 'compareInput')
         const operatorMatch = document.createElement('option')
         operatorMatch.innerText = 'MATCHES'
         operatorMatch.value = 'MATCHES'
@@ -299,6 +305,7 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
     else if(options.question_type == 'Number'){
         const valueInput = document.createElement('input')
         valueInput.setAttribute('name', `logic[${ruleId}][expected_values]`)
+        valueInput.setAttribute('id', 'valueInput')
         valueInput.setAttribute('type', 'number')
         logicRule.appendChild(valueInput)
         if(existingValue){
@@ -308,7 +315,7 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
         //set up comparison input
         const compareInput = document.createElement('select')
         compareInput.setAttribute('name', `logic[${ruleId}][value_comparison]`)
-
+        compareInput.setAttribute('id', 'compareInput')
         const operatorEqual = document.createElement('option')
         operatorEqual.innerText = 'EQUAL TO'
         operatorEqual.value = 'EQUAL TO'
@@ -351,8 +358,10 @@ function addQuestion(question){
     const questionDiv = question.cloneNode(true);
 
     //if this question had any values populated, set them to blank
-    const questionSelect = questionDiv.querySelector('#id_question')[0]
-    questionSelect.removeAttribute('selected')
+    const questionSelect = questionDiv.querySelector('#id_question')
+    questionSelect.value = ''
+
+    //remove any logic as well
     if(questionDiv.querySelector('.question-logic')){
         const logic = questionDiv.querySelector('.question-logic')
         questionDiv.removeChild(logic)
@@ -382,7 +391,6 @@ function addQuestion(question){
 
     //this is a little annoying, but when cloning the previous questions, we also clone the buttons,
     //which will not work. So remove those now and then replace them with ones that will work.
-
     const oldButtons = questionDiv.querySelector('.buttons');
     oldButtons.remove()
     createButtons(questionDiv)
