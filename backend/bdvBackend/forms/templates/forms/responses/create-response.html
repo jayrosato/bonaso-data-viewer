@@ -12,7 +12,7 @@
             window.open("{% url 'forms:create-respondent' %}", "Input Window", "width=800,height=600");
         }
     </script>
-
+    <div id="form_passer" form="{{form_meta.id}}"></div>
     <div id="messages"></div>
     <form id="response_form" action="{% url 'forms:create-response' form_meta.id %}" method="post">
         {%csrf_token%}

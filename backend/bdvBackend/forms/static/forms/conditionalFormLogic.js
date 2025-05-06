@@ -1,12 +1,24 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     const form = document.getElementById('response_form');
+    const questions = document.querySelectorAll('div.form_question, input.form_question[type="text"]');
+    const formID = document.getElementById('form_passer').getAttribute('form')
+    const formLogic = []
+    async function loadLogic(){
+        await Promise.all(
+        Array.from(questions).map(async(question, index) => {
+            const response = await fetch(`/forms/data/query/forms/questions/${formID}/${index}`)
+            const logic = await response.json()
+            formLogic.push({'index':index, 'logic':logic})
+        })
+        )
+    }
 
     form.addEventListener('change', function () {
-        updateForm();
+        updateForm(questions, formLogic);
         verifyFields();
     });
-
-    updateForm(); // Run once on page load
+    await loadLogic()
+    updateForm(questions, formLogic); // Run once on page load
 });
 
 const submitButton = document.getElementById('submitButton')
@@ -23,97 +35,89 @@ function verifyFields(){
 }
 
 
+
 //django forms load multiple choice options within a div, but not text choices, so we need to account for both
-function updateForm(){
-    const questions = document.querySelectorAll('div.form_question, input.form_question[type="text"], input.form_question[type="number"]');
+
+//uncheck
+//negate
+//limit options
+
+function updateForm(questions, logic){
     for(let i = 0; i < questions.length; i++){
         let question = questions[i];
+        let qLogic = logic.find(obj => obj['index'] === i)
+        qLogic = qLogic['logic']
+        //tracker variable to check if any rule is met
+        let conditionMet = false
+        let nextQuestion = false
 
-        if(question.nodeName.toLowerCase() == 'div'){
-            const questionDependency = question.querySelectorAll('[questionRelation]')[0];
-            if(questionDependency){
-                const qdValue = questionDependency.getAttribute('questionRelation')
-                const vdValue = questionDependency.getAttribute('valueRelation')
-                const label = question.previousElementSibling
-                const dependency = document.getElementsByName(qdValue);
-                let matched = false; // Assume not matched at first
+        if(Object.keys(qLogic).length > 0){
+            const pqs = []
+            const operator = qLogic.conditional_operator
 
-                for (let k = 0; k < dependency.length; k++) {
-                    let item = dependency[k];
-                    if(vdValue == 'not blank'){
-                        if(item.checked == true){
-                            matched = true;
-                            break;
+            const action = qLogic.on_match
+            const limit_options = qLogic.limit_options
+            const pqsIndex = qLogic.rules[0].parent_question_index
+            const evs = qLogic.rules[0].expected_values
+            const negate = qLogic.rules[0].negate_value
+            pqsIndex.forEach((pqIndex) => {
+                pq = questions[pqIndex]
+                pqs.push(pq)
+            })
+
+            for(let q=0; q<pqs.length; q++){
+                const pq = pqs[q]
+                const ev = evs[q]
+                if(pq.nodeName.toLowerCase() == 'div'){
+                    const pqInputs = pq.querySelectorAll('input')
+                    const values = []
+                    pqInputs.forEach((i) => {
+                        if(i.checked == true){
+                            values.push(i.value)
                         }
+                    })
+                    if(values.includes(ev)){
+                        conditionMet = true
                     }
-                    console.log(vdValue)
-                    console.log(item.name)
-                    if (item && item.checked && item.name == vdValue) {
-                        matched = true;
-                        break; // Found a match, no need to continue
+                    else{
+                        conditionMet = false
+                        question.querySelectorAll('input[type=checkbox]').forEach(option => {option.checked = false});
+                        question.querySelectorAll('input[type=radio]').forEach(option => {option.checked = false});
                     }
                 }
-                if (matched) {
-                    question.style.display = '';
-                    label.style.display = '';
-                    const inputs = question.querySelectorAll('input')
-                    for(let i=0; i< inputs.length; i++){
-                        let type = inputs[i].getAttribute('type')
-                        if(type == 'checkbox' || type =='radio'){
-                            if(inputs[i].checked){
-                                flagged = false
-                                msg=''
-                                break
-                            }
-                            flagged = true
-                            msg = label.textContent
-                        }
+
+                else{
+                    let value = pq.value
+                    if(value == ev){
+                        conditionMet = true
                     }
-                } 
-                else {
-                    question.style.display = 'none';
-                    label.style.display = 'none';
+                    else{
+                        conditionMet = false
+                        question.value = ''
+                    }
+                }
+
+                if(operator == 'AND' && conditionMet == false){
+                    question.style.display = 'none'
                     question.querySelectorAll('input[type=checkbox]').forEach(option => {option.checked = false});
                     question.querySelectorAll('input[type=radio]').forEach(option => {option.checked = false});
+                    break
                 }
+                if(operator == 'OR' && conditionMet == true){
+                    question.style.display = ''
+                    break
+                }
+            }
+            if(operator == 'OR' && conditionMet == false){
+                question.style.display = 'none'
+            }
+            if(operator == 'AND' && conditionMet == true){
+                question.style.display = ''
             }
         }
+        //the question has no logic, and should be displayed at all times
         else{
-            let questionDependency = question.getAttribute('questionRelation')
-            let valueDependency = question.getAttribute('valueRelation')
-            if(questionDependency){
-                const id = question.getAttribute('id')
-                const questionLabel = document.querySelector(`label[for="${id}"]`)
-
-                const dependency = document.getElementsByName(questionDependency);
-                let matched = false; // Assume not matched at first
-
-                for (let k = 0; k < dependency.length; k++) {
-                    let item = dependency[k];
-                    if (item && item.checked && item.value == valueDependency) {
-                        matched = true;
-                        break; // Found a match, no need to continue
-                    }
-                }
-                if (matched) {
-                    questionLabel.style.display = '';
-                    question.style.display = '';
-                    if(question.value == ''){
-                        flagged = true
-                        msg = question.getAttribute('name')
-                        break
-                    }
-                    flagged = false
-                    msg=''
-                } 
-                else {
-                    questionLabel.style.display = 'none';
-                    question.style.display = 'none';
-                    question.value = ''
-                }
-                
-            }
-
+            continue
         }
     }
 }

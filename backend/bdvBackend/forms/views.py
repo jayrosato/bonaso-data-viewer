@@ -98,12 +98,17 @@ class CreateForm(LoginRequiredMixin, View):
             formQ.save()
             #check for and create conditions
             if request.POST.get(f'logic[question-{i+1}][on_match]'):
+                if request.POST.get(f'logic[question-{i+1}][on_match]'):
+                    if request.POST.get(f'logic[question-{i+1}][limit_options]') == 'on':
+                        limitOptions = True
+                    else:
+                        limitOptions = False
                 formLogic = FormLogic(
                     form=form,
                     conditional_question = formQ,
                     on_match = request.POST.get(f'logic[question-{i+1}][on_match]'),
                     conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]'),
-                    limit_options = request.POST.get(f'logic[question-{i+1}][limit_options]')
+                    limit_options = limitOptions
                 )
                 formLogic.save()
                 for k in range(len(request.POST.getlist(f'logic[question-{i+1}][parent_question]'))):
@@ -159,20 +164,25 @@ class UpdateForm(LoginRequiredMixin, View):
                 formQ.question = get_object_or_404(Question, id=questions[i])
                 formQ.save()
                 if request.POST.get(f'logic[question-{i+1}][on_match]'):
+                    if request.POST.get(f'logic[question-{i+1}][limit_options]') == 'on':
+                        limitOptions = True
+                    else:
+                        limitOptions = False
+
                     formLogic = FormLogic.objects.filter(conditional_question=formQ.id).first()
                     if formLogic:
                         formLogic.conditional_question = formQ
                         formLogic.on_match = request.POST.get(f'logic[question-{i+1}][on_match]')
                         formLogic.conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]')
-                        formLogic.limit_options = request.POST.get(f'logic[question-{i+1}][limit_options]')
+                        formLogic.limit_options = limitOptions
                     else:
                         formLogic = FormLogic(
                             form=form,
                             conditional_question = formQ,
                             on_match = request.POST.get(f'logic[question-{i+1}][on_match]'),
                             conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]'),
-                            limit_options = request.POST.get(f'logic[question-{i+1}][limit_options]')
-                        )
+                            limit_options = limitOptions
+                            )
                     formLogic.save()
                     existingRules = FormLogicRule.objects.filter(form_logic=formLogic.id)
                     rules = request.POST.getlist(f'logic[question-{i+1}][parent_question]')
@@ -225,9 +235,13 @@ class UpdateForm(LoginRequiredMixin, View):
                     form=form,
                     index = i,
                     question = get_object_or_404(Question, id=questions[i]),
-                    visible_if_question = None,
-                    visible_if_answer = None
                 )
+                if request.POST.get(f'logic[question-{i+1}][on_match]'):
+                    if request.POST.get(f'logic[question-{i+1}][limit_options]') == 'on':
+                        limitOptions = True
+                    else:
+                        limitOptions = False
+
                 formQ.save()
                 if request.POST.get(f'logic[question-{i+1}][on_match]'):
                     formLogic = FormLogic(
@@ -235,9 +249,9 @@ class UpdateForm(LoginRequiredMixin, View):
                     conditional_question = formQ,
                     on_match = request.POST.get(f'logic[question-{i+1}][on_match]'),
                     conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]'),
-                    limit_options = request.POST.get(f'logic[question-{i+1}][limit_options]')
-                )
-                formLogic.save()
+                    limit_options = limitOptions
+                    )
+                    formLogic.save()
                 for k in range(len(request.POST.getlist(f'logic[question-{i+1}][parent_question]'))):
                     pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
                     parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
@@ -386,7 +400,7 @@ class NewResponse(LoginRequiredMixin, View):
         self.form_questions = [fq.question for fq in self.form_structure]
         user_org = self.request.user.userprofile.organization
         return render(request, 'forms/responses/create-response.html', 
-                    { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure),
+                    { 'form': ResponseForm(formQs=self.form_questions),
                      'user_org':user_org,
                     'form_meta': self.form_meta,})
 
@@ -770,6 +784,7 @@ class GetFormQuestionByIndex(LoginRequiredMixin, View):
                 'limit_options': formLogic.limit_options,
                 'rules':[{
                     'parent_question':[rule.parent_question.question.id for rule in formLogicRules],
+                    'parent_question_index':[rule.parent_question.index for rule in formLogicRules],
                     'expected_values':[rule.expected_values for rule in formLogicRules],
                     'negate_value':[rule.negate_value for rule in formLogicRules]
                 }]

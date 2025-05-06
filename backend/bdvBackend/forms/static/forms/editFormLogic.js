@@ -28,6 +28,8 @@ const url = questionsList.getAttribute('url')
 //so add those buttons to each element that already exists (as indicated by it possessing the existing question class)
 const questions = document.getElementsByClassName('question')
 
+const msg = document.getElementById('msg')
+
 function createButtons(q){
     const buttons = document.createElement('div')
     buttons.setAttribute('class', 'buttons')
@@ -342,7 +344,7 @@ function addQuestion(question){
 //also protects against a user removing all questions, since that would mess up the crappy cloning system we came up with
 function removeQuestion(question){
     if(questionsList.children.length == 1){
-        console.log('A form must contain at least one question');
+        msg.innerText = 'A form must have at least one question.'
         return;
     };
    questionsList.removeChild(question);

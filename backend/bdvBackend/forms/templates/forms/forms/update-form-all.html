@@ -11,6 +11,7 @@
             <h2>Form Details</h2>
             {{ form.as_p }}
             <h2>Form Questions</h2>
+            <p id="msg"></p>
             <div class="questions">
                 {% for fq_form in form_question %}
                     <div id="question-{{ forloop.counter }}" class="question" logic="{{fq_form.}}">

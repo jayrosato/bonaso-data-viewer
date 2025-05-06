@@ -16,7 +16,7 @@ class RespondentForm(ModelForm):
             ] 
 
 class ResponseForm(forms.Form):
-    def __init__(self, *args, formQs, formLogic, response=None, **kwargs):
+    def __init__(self, *args, formQs, response=None, **kwargs):
         super().__init__(*args, **kwargs)
         CHOICES = [
         ('Yes', 'Yes'),
@@ -36,7 +36,8 @@ class ResponseForm(forms.Form):
                 if response:
                     self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
             if formQs[i].question_type == 'Number':
-                self.fields[field_name] = forms.NumberInput()
+                self.fields[field_name] = forms.CharField(max_length=100)
+                self.fields[field_name].widget.attrs.update({'number':'yes'})
                 if response:
                     self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
             if formQs[i].question_type == 'Yes/No':
@@ -58,7 +59,7 @@ class ResponseForm(forms.Form):
                     answers = Answer.objects.filter(response=self.response.id, question=formQs[i].id)
                     options = [a.option for a in answers]
                     self.fields[field_name].initial = options
-            
+
             self.fields[field_name].widget.attrs.update({'class':'form_question'})
 
 class QuestionForm(forms.ModelForm):
