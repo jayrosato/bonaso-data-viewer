@@ -36,7 +36,7 @@
                         <i>{{fq.logic.on_match}} when:</i>
                         {% for rule in fq.rules %}
                             <ul>
-                                <li>"{{rule.parent_question.question}}" is "{{rule.expected_values}}"</li>
+                                <li>"{{rule.parent_question.question}}" is {{rule.value_comparison}} "{{rule.expected_values}}"</li>
                             </ul>
                         {% endfor %}
                     {% endif %}

@@ -22,12 +22,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 const submitButton = document.getElementById('submitButton')
-let flagged = false
+let flags = []
 let msg = ''
 function verifyFields(){
-    if(flagged == true){
+    if(flags.length > 0){
         submitButton.setAttribute('type', 'button')
-        submitButton.onclick = () => document.getElementById('messages').innerText = `Please enter a response for question ${msg}`
+        let errorMsg = flags.join()
+        submitButton.onclick = () => document.getElementById('messages').innerText = `Question(s) ${errorMsg} must be completed`
     }
     else{
         submitButton.setAttribute('type', 'submit')
@@ -38,18 +39,16 @@ function verifyFields(){
 
 //django forms load multiple choice options within a div, but not text choices, so we need to account for both
 
-//uncheck
 //negate
-//limit options
 
 function updateForm(questions, logic){
     for(let i = 0; i < questions.length; i++){
         let question = questions[i];
+        const label = question.previousElementSibling
         let qLogic = logic.find(obj => obj['index'] === i)
         qLogic = qLogic['logic']
         //tracker variable to check if any rule is met
         let conditionMet = false
-        let nextQuestion = false
 
         if(Object.keys(qLogic).length > 0){
             const pqs = []
@@ -60,6 +59,7 @@ function updateForm(questions, logic){
             const pqsIndex = qLogic.rules[0].parent_question_index
             const evs = qLogic.rules[0].expected_values
             const negate = qLogic.rules[0].negate_value
+            const valueComp = qLogic.rules[0].value_comparison
             pqsIndex.forEach((pqIndex) => {
                 pq = questions[pqIndex]
                 pqs.push(pq)
@@ -76,7 +76,16 @@ function updateForm(questions, logic){
                             values.push(i.value)
                         }
                     })
-                    if(values.includes(ev)){
+                    if(ev == 'any' && values.length >1){
+                        conditionMet = true
+                    }
+                    else if(ev == 'none' && values.length == 0){
+                        conditionMet = true
+                    }
+                    else if(negate && values.length>0 && !values.includes(ev)){
+                        conditionMet = true
+                    }
+                    else if(!negate && values.includes(ev)){
                         conditionMet = true
                     }
                     else{
@@ -84,35 +93,108 @@ function updateForm(questions, logic){
                         question.querySelectorAll('input[type=checkbox]').forEach(option => {option.checked = false});
                         question.querySelectorAll('input[type=radio]').forEach(option => {option.checked = false});
                     }
+                    if(limit_options){
+                        let checkedValues = []
+                        pqInputs.forEach((i) => {
+                            if(i.checked == true){
+                                checkedValues.push(i.parentElement.innerText.trim().toLowerCase())
+                            }
+                        })
+                        question.querySelectorAll('input').forEach((q) =>{
+                            if(!checkedValues.includes(q.parentElement.innerText.trim().toLowerCase())){
+                                q.checked = false
+                                q.parentElement.style.display = 'none'
+                            }
+                            else{
+                                q.parentElement.style.display = ''
+                            }
+                        })
+                    }
+                    if(conditionMet == true){
+                        const inputs = question.querySelectorAll('input')
+                        type = inputs[0].getAttribute('type')
+                        if(type == 'checkbox' || type =='radio'){
+                            inputs.forEach((input, index) => {
+                                if(input.checked){
+                                    if(flags.includes(question.getAttribute('id'))){
+                                        flags.pop(question.getAttribute('id'))
+                                    }
+                                }
+                                if(!flags.includes(question.getAttribute('id'))){
+                                    flags.push(question.getAttribute('id'))
+                                }
+                            })
+                        }
+                    }
                 }
-
                 else{
                     let value = pq.value
-                    if(value == ev){
+                    let isNumber = pq.getAttribute('number')
+                    if(isNumber == 'yes'){
+                        value = parseInt(value)
+                        if(isNaN(value)){
+                            flags.push(question.getAttribute('id'))
+                            console.log('warning, not a number')
+                            conditionMet = false
+                            continue
+                        }
+                    }
+                    if(negate ==true && value != '' && value != ev){
+                        conditionMet = true
+                    }
+                    else if(valueComp == 'CONTAINS' && value.includes(ev)){
+                        conditionMet = true
+                    }
+                    else if(valueComp == 'DOES NOT CONTAIN' && !value.includes(ev) && value != ''){
+                        conditionMet = true
+                    }
+                    else if(valueComp == 'GREATER THAN' && value > parseInt(ev)){
+                        conditionMet = true
+                    }
+                    else if(valueComp == 'LESS THAN' && value < parseInt(ev)){
+                        conditionMet = true
+                    }
+                    else if(value == ev){
                         conditionMet = true
                     }
                     else{
                         conditionMet = false
                         question.value = ''
                     }
+                    if(conditionMet == true){
+                        if(question.value == ''){
+                            if(!flags.includes(question.getAttribute('id'))){
+                                flags.push(question.getAttribute('id'))
+                            }
+                        }
+                        else{
+                            if(flags.includes(question.getAttribute('id'))){
+                                    flags.pop(question.getAttribute('id'))
+                            }
+                        }
+                    }
                 }
-
                 if(operator == 'AND' && conditionMet == false){
+                    label.style.display = 'none'
                     question.style.display = 'none'
                     question.querySelectorAll('input[type=checkbox]').forEach(option => {option.checked = false});
                     question.querySelectorAll('input[type=radio]').forEach(option => {option.checked = false});
                     break
                 }
                 if(operator == 'OR' && conditionMet == true){
+                    label.style.display = ''
                     question.style.display = ''
                     break
                 }
             }
-            if(operator == 'OR' && conditionMet == false){
-                question.style.display = 'none'
-            }
-            if(operator == 'AND' && conditionMet == true){
+            if(conditionMet == true){
+                label.style.display = ''
                 question.style.display = ''
+                conditionMet = true
+            }
+            else if(conditionMet == false){
+                label.style.display = 'none'
+                question.style.display = 'none'
             }
         }
         //the question has no logic, and should be displayed at all times

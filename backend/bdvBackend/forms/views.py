@@ -114,6 +114,13 @@ class CreateForm(LoginRequiredMixin, View):
                 for k in range(len(request.POST.getlist(f'logic[question-{i+1}][parent_question]'))):
                     pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
                     parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                    try:
+                        if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
+                            valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
+                        else:
+                            valueComp = None
+                    except(IndexError):
+                        valueComp = None
                     try:    
                         if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
                             negateValue = True
@@ -125,6 +132,7 @@ class CreateForm(LoginRequiredMixin, View):
                         form_logic = formLogic,
                         parent_question = parentFormQuestion,
                         expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k],
+                        value_comparison = valueComp,
                         negate_value = negateValue,
                     )
                     formLogicRule.save()
@@ -191,10 +199,18 @@ class UpdateForm(LoginRequiredMixin, View):
                             extra.delete()
 
                     for k in range(len(rules)):
+                        print(request.POST.getlist(f'logic[question-{i+1}][expected_values]'), request.POST.getlist(f'logic[question-{i+1}][value_comparison]'))
                         if k+1 <= len(existingRules):
                             rule = existingRules[k]
                             pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
                             parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                            try:
+                                if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
+                                    valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
+                                else:
+                                    valueComp = None
+                            except(IndexError):
+                                valueComp = None
                             try:    
                                 if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
                                     negateValue = True
@@ -202,13 +218,21 @@ class UpdateForm(LoginRequiredMixin, View):
                                     negateValue = False
                             except(IndexError):
                                 negateValue = False
-                            rule.parent_question = parentFormQuestion
+                            rule.parent_question = parentFormQuestion 
                             rule.expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k]
+                            rule.value_comparison = valueComp
                             rule.negate_value = negateValue
                             rule.save()
                         else:
                             pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
                             parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                            try:
+                                if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
+                                    valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
+                                else:
+                                    valueComp = None
+                            except(IndexError):
+                                valueComp = None
                             try:    
                                 if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
                                     negateValue = True
@@ -220,6 +244,7 @@ class UpdateForm(LoginRequiredMixin, View):
                                 form_logic = formLogic,
                                 parent_question = parentFormQuestion,
                                 expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k],
+                                value_comparison = valueComp,
                                 negate_value = negateValue,
                             )
                             formLogicRule.save()
@@ -255,6 +280,14 @@ class UpdateForm(LoginRequiredMixin, View):
                 for k in range(len(request.POST.getlist(f'logic[question-{i+1}][parent_question]'))):
                     pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
                     parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                    try:
+                        if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
+                            valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
+                        else:
+                            valueComp = None
+                    except(IndexError):
+                        valueComp = None
+
                     try:    
                         if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
                             negateValue = True
@@ -266,6 +299,7 @@ class UpdateForm(LoginRequiredMixin, View):
                         form_logic = formLogic,
                         parent_question = parentFormQuestion,
                         expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k],
+                        value_comparison = valueComp,
                         negate_value = negateValue,
                     )
                     formLogicRule.save()
@@ -786,6 +820,7 @@ class GetFormQuestionByIndex(LoginRequiredMixin, View):
                     'parent_question':[rule.parent_question.question.id for rule in formLogicRules],
                     'parent_question_index':[rule.parent_question.index for rule in formLogicRules],
                     'expected_values':[rule.expected_values for rule in formLogicRules],
+                    'value_comparison':[rule.value_comparison for rule in formLogicRules],
                     'negate_value':[rule.negate_value for rule in formLogicRules]
                 }]
             }

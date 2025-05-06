@@ -7,6 +7,7 @@
 {% if perms.forms.change_response or response.user.id == user.id %}
 {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
 <div class="content">
+    <div id="form_passer" form="{{form_meta.id}}"></div>
     <div id="messages"></div>
     <form id="response_form" action="{% url 'forms:update-response' response.id %}" method="post">
         {%csrf_token%}

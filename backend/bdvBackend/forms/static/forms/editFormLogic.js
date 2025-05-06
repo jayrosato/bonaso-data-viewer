@@ -106,16 +106,20 @@ async function addQuestionLogic(q, existing=null){
     operatorLabel.innerText = 'Operator (if dependent on multiple questions)'
     logicDiv.appendChild(operatorLabel)
     const operator = document.createElement('select')
+
     operator.setAttribute('name', `logic[${ruleId}][operator]`)
     const operatorAnd = document.createElement('option')
     operatorAnd.innerText = 'AND'
     operatorAnd.value = 'AND'
     operator.appendChild(operatorAnd)
+
     const operatorOr = document.createElement('option')
     operatorOr.innerText = 'OR'
     operatorOr.value = 'OR'
     operator.appendChild(operatorOr)
+
     logicDiv.appendChild(operator)
+
     if(existing){
         operator.value = existing.conditional_operator
     }
@@ -226,11 +230,21 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
             poOption.value = option
             poOption.text = options.option_text[index]
             valueInput.appendChild(poOption)
-            logicRule.appendChild(valueInput)
-           if(existingValue){
-                valueInput.value = existingValue
-           }
         })
+        const anyOption = document.createElement('option')
+        anyOption.value = 'any'
+        anyOption.text = 'Anything Selected'
+        valueInput.appendChild(anyOption)
+
+        const noneOption = document.createElement('option')
+        noneOption.value = 'none'
+        noneOption.text = 'Nothing Selected'
+        valueInput.appendChild(noneOption)
+
+        logicRule.appendChild(valueInput)
+        if(existingValue){
+            valueInput.value = existingValue
+        }
     }
     else if(options.question_type == 'Yes/No'){
         const valueInput = document.createElement('select')
@@ -260,6 +274,26 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
         if(existingValue){
             valueInput.value = existingValue
         }
+        //set up comparison input
+        const compareInput = document.createElement('select')
+        compareInput.setAttribute('name', `logic[${ruleId}][value_comparison]`)
+
+        const operatorMatch = document.createElement('option')
+        operatorMatch.innerText = 'MATCHES'
+        operatorMatch.value = 'MATCHES'
+        compareInput.appendChild(operatorMatch)
+
+        const operatorCont = document.createElement('option')
+        operatorCont.innerText = 'CONTAINS'
+        operatorCont.value = 'CONTAINS'
+        compareInput.appendChild(operatorCont)
+
+        const operatorDNC = document.createElement('option')
+        operatorDNC.innerText = 'DOES NOT CONTAIN'
+        operatorDNC.value = 'DOES NOT CONTAIN'
+        compareInput.appendChild(operatorDNC)
+
+        logicRule.appendChild(compareInput)
     }
 
     else if(options.question_type == 'Number'){
@@ -270,18 +304,40 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
         if(existingValue){
             valueInput.value = existingValue
         }
+
+        //set up comparison input
+        const compareInput = document.createElement('select')
+        compareInput.setAttribute('name', `logic[${ruleId}][value_comparison]`)
+
+        const operatorEqual = document.createElement('option')
+        operatorEqual.innerText = 'EQUAL TO'
+        operatorEqual.value = 'EQUAL TO'
+        compareInput.appendChild(operatorEqual)
+
+        const operatorGT = document.createElement('option')
+        operatorGT.innerText = 'GREATER THAN'
+        operatorGT.value = 'GREATER THAN'
+        compareInput.appendChild(operatorGT)
+    
+        const operatorLT = document.createElement('option')
+        operatorLT.innerText = 'LESS THAN'
+        operatorLT.value = 'LESS THAN'
+        compareInput.appendChild(operatorLT)
+
+        logicRule.appendChild(compareInput)
     }
 }
 
 async function checkLogic(q){
     const qIndex = parseInt(q.getAttribute('id').split('-')[1])-1
-    const formID = document.getElementById('form-passer').getAttribute('form')
-    const response = await fetch(`/forms/data/query/forms/questions/${formID}/${qIndex}`)
-    const logic = await response.json()
-    if(Object.keys(logic).length > 0){
-        addQuestionLogic(q, logic)
+    if(document.getElementById('form-passer')){
+        const formID = document.getElementById('form-passer').getAttribute('form')
+        const response = await fetch(`/forms/data/query/forms/questions/${formID}/${qIndex}`)
+        const logic = await response.json()
+        if(Object.keys(logic).length > 0){
+            addQuestionLogic(q, logic)
+        }
     }
-    
 }
 Array.from(questions).forEach((q) => {
     createButtons(q);
@@ -295,17 +351,11 @@ function addQuestion(question){
     const questionDiv = question.cloneNode(true);
 
     //if this question had any values populated, set them to blank
-    const emptyQ = questionDiv.querySelectorAll('option[value=""]');
-    const selectedQ = questionDiv.querySelectorAll('option[selected=""]');
-    for(let i=0; i<emptyQ.length; i++){
-        if(emptyQ[i] != selectedQ[i]){
-            selectedQ[i].removeAttribute('selected');
-            emptyQ[i].setAttribute('selected', "");
-        };
-    };
-    const textArea = questionDiv.querySelectorAll('textarea');
-    for(let i=0; i<textArea.length; i++){
-        textArea[i].value = '';
+    const questionSelect = questionDiv.querySelector('#id_question')[0]
+    questionSelect.removeAttribute('selected')
+    if(questionDiv.querySelector('.question-logic')){
+        const logic = questionDiv.querySelector('.question-logic')
+        questionDiv.removeChild(logic)
     }
     
     questionsList.insertBefore(questionDiv, question);
