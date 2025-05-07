@@ -96,7 +96,7 @@ async function addQuestionLogic(q, existing=null){
     const onMatchHide = document.createElement('option')
     onMatchHide.innerText = 'Hide'
     onMatchHide.value = 'Hide'
-    onMatch.appendChild(onMatchHide)
+    //onMatch.appendChild(onMatchHide)
     logicDiv.appendChild(onMatch)
     if(existing){
         onMatch.value = existing.on_match
@@ -128,7 +128,7 @@ async function addQuestionLogic(q, existing=null){
     limitOptionsDiv.setAttribute('class', 'limit-options')
     logicDiv.appendChild(limitOptionsDiv)
     const limitOptionsLabel = document.createElement('label')
-    limitOptionsLabel.innerText = 'Show options depending on parent Question?'
+    limitOptionsLabel.innerText = 'Limit Options based on Question'
     const limitOptions = document.createElement('input')
     limitOptions.setAttribute('name', `logic[${ruleId}][limit_options]`)
     limitOptions.setAttribute('type', 'checkbox')
@@ -157,8 +157,23 @@ function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=n
     const ruleId = q.getAttribute('index')
 
     const logicRule = document.createElement('div')
-    logicRule.setAttribute('class', 'logicRule')
+    logicRule.setAttribute('class', 'logic-rule')
     logicDiv.insertBefore(logicRule, addRuleButton)
+
+    const ruleHeader = document.createElement('h4')
+    ruleHeader.innerText = 'Rule:'
+    logicRule.appendChild(ruleHeader)
+
+    const removeRuleButton = document.createElement('button')
+    removeRuleButton.setAttribute('type', 'button')
+    removeRuleButton.innerText='Remove Rule'
+    removeRuleButton.onclick = () => logicDiv.removeChild(logicRule)
+    logicRule.appendChild(removeRuleButton)
+
+    const questionHeader = document.createElement('p')
+    questionHeader.innerText = 'When Question:'
+    logicRule.appendChild(questionHeader)
+
     const pqSelect = document.createElement('select')
     pqSelect.setAttribute('name', `logic[${ruleId}][parent_question]`)
     const parentQs = document.querySelectorAll('.question')
@@ -198,12 +213,6 @@ function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=n
         }
     }
 
-    const removeRuleButton = document.createElement('button')
-    removeRuleButton.setAttribute('type', 'button')
-    removeRuleButton.innerText='Remove Rule'
-    removeRuleButton.onclick = () => logicDiv.removeChild(logicRule)
-    logicRule.appendChild(removeRuleButton)
-    console.log(existing)
     if(existing){
         existingValue = existing.rules[0].expected_values[existingIndex]
         setQLogicOptions(pqSelect, logicRule, ruleId, existingValue)

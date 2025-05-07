@@ -13,7 +13,7 @@ from django.views.decorators.csrf import requires_csrf_token
 import json
 import calendar
 
-from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector, TargetForm
+from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector, TargetForm, RespondentForm
 from datetime import datetime
 
 import csv
@@ -436,41 +436,42 @@ class UpdateResponse(LoginRequiredMixin, View):
         self.form = ResponseForm(request.POST, formQs=self.form_questions, response=self.response)
 
 
-        if self.form.is_valid():
-            self.response.updated_at = timezone.now()
-            self.response.save()
+        #if self.form.is_valid():
+        self.response.updated_at = timezone.now()
+        self.response.save()
 
-            for i in range(len(self.form_questions)):
-                if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
-                    openResponse = request.POST.get(self.form_questions[i].question_text)
-                    answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
-                    answer.open_answer = openResponse
+        for i in range(len(self.form_questions)):
+            if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
+                openResponse = request.POST.get(self.form_questions[i].question_text)
+                answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+                answer.open_answer = openResponse
+                answer.save()
+            if self.form_questions[i].question_type == 'Yes/No':
+                yesNo = request.POST.get(self.form_questions[i].question_text)
+                answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+                answer.open_answer = yesNo
+                answer.save()
+            if self.form_questions[i].question_type == 'Single Selection':
+                option_id = request.POST.get(self.form_questions[i].question_text)
+                answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+                answer.option = get_object_or_404(Option, pk=option_id)
+                answer.save()
+            if self.form_questions[i].question_type == 'Multiple Selections':
+                selected_options = request.POST.getlist(self.form_questions[i].question_text)
+                previous_answers =  Answer.objects.filter(response = self.response, question=self.form_questions[i])
+                for answer in previous_answers:
+                    answer.delete()
+                for o in range(len(selected_options)):
+                    answer = Answer(response=self.response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                     answer.save()
-                if self.form_questions[i].question_type == 'Yes/No':
-                    yesNo = request.POST.get(self.form_questions[i].question_text)
-                    answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
-                    answer.open_answer = yesNo
-                    answer.save()
-                if self.form_questions[i].question_type == 'Single Selection':
-                    option_id = request.POST.get(self.form_questions[i].question_text)
-                    answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
-                    answer.option = get_object_or_404(Option, pk=option_id)
-                    answer.save()
-                if self.form_questions[i].question_type == 'Multiple Selections':
-                    selected_options = request.POST.getlist(self.form_questions[i].question_text)
-                    previous_answers =  Answer.objects.filter(response = self.response, question=self.form_questions[i])
-                    for answer in previous_answers:
-                        answer.delete()
-                    for o in range(len(selected_options)):
-                        answer = Answer(response=self.response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
-                        answer.save()
-            return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': self.response.id}))
+        return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': self.response.id}))
+        '''
         else:
             return render(request, 'forms/responses/update-response.html', 
                           { 'form': ResponseForm(request.POST, formQs=self.form_questions, response=self.response), 
                            'form_meta':self.form_meta, 'response': self.response,
                            'msg':'Double check that all the fields are correctly filled out.' })
-
+        '''
 class DeleteResponse(LoginRequiredMixin, generic.DeleteView):
     model=Response
     def get_success_url(self):
@@ -501,17 +502,12 @@ class ViewRespondentDetail(LoginRequiredMixin, generic.DetailView):
 class CreateRespondent(LoginRequiredMixin, generic.CreateView):
     model = Respondent
     template_name = 'forms/respondents/update-respondent.html'
-    fields = [
-            'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
-            'district', 'email', 'contact_no', 'created_by'
-            ]
+    form_class = RespondentForm
     
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        user = self.request.user
-        form.fields['created_by'].queryset = User.objects.filter(id=user.id)
-        form.fields['created_by'].initial = User.objects.filter(id=user.id)
-        return form
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
     
     def get_success_url(self):
         return reverse_lazy('forms:view-respondent-detail', kwargs={'pk': self.object.id})
@@ -520,10 +516,13 @@ class CreateRespondent(LoginRequiredMixin, generic.CreateView):
 class UpdateRespondent(LoginRequiredMixin, generic.UpdateView):
     model=Respondent
     template_name = 'forms/respondents/update-respondent.html'
-    fields = [
-            'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
-            'district', 'email', 'contact_no'
-            ]
+    form_class = RespondentForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+    
     def get_success_url(self):
         return reverse_lazy('forms:view-respondent-detail', kwargs={'pk': self.object.id})
    

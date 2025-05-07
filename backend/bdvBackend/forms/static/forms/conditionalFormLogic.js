@@ -25,10 +25,18 @@ const submitButton = document.getElementById('submitButton')
 let flags = []
 let msg = ''
 function verifyFields(){
+    const numbers = document.querySelectorAll('[number="yes"]')
+    console.log(numbers)
+    numbers.forEach((n) => {
+        if(isNaN(parseInt(n.value)) && n.value != ''){
+            flags.push(n.getAttribute('name'))
+        }
+    })
+
     if(flags.length > 0){
         submitButton.setAttribute('type', 'button')
         let errorMsg = flags.join()
-        submitButton.onclick = () => document.getElementById('messages').innerText = `Question(s) ${errorMsg} must be completed`
+        submitButton.onclick = () => document.getElementById('messages').innerText += `Question(s) ${errorMsg} must be completed`
     }
     else{
         submitButton.setAttribute('type', 'submit')

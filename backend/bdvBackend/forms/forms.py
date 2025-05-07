@@ -2,7 +2,10 @@ from django import forms
 from django.forms import ModelForm
 from django.forms import inlineformset_factory
 from django.db.models import Q
-from .models import Respondent, Question, Option, FormQuestion, Organization, Form, Answer, Target
+from .models import Respondent, Question, Option, FormQuestion, Organization, Form, Answer, Target, User
+
+class DateInput(forms.DateInput):
+    input_type = 'date'
 
 class SelectRespondentForm(forms.Form):
     respondent = forms.ModelChoiceField(queryset=Respondent.objects.all(),label='Respondent')
@@ -12,8 +15,17 @@ class RespondentForm(ModelForm):
         model=Respondent
         fields = [
             'id_no', 'fname', 'lname', 'dob', 'sex', 'citizenship', 'ward', 'village', 
-            'district', 'email', 'contact_no'
-            ] 
+            'district', 'email', 'contact_no', 'created_by'
+            ]
+        widgets = {
+            'dob': DateInput()
+        }
+        
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['created_by'].queryset = User.objects.filter(id=user.id)
+        self.fields['created_by'].initial = User.objects.filter(id=user.id)
 
 class ResponseForm(forms.Form):
     def __init__(self, *args, formQs, response=None, **kwargs):
@@ -87,6 +99,9 @@ class FormsForm(forms.ModelForm):
         fields = [
             'form_name', 'organization', 'start_date', 'end_date'
         ]
+        widgets = {
+            'start_date': DateInput(), 'end_date':DateInput(),
+        }
     def __init__(self, *args, organization, **kwargs):
         super().__init__(*args, **kwargs)
         if organization.id != 3:

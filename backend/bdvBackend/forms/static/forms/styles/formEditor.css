@@ -2,6 +2,10 @@ label{
     display: block;
 }
 
+form{
+    display: flex;
+    flex-direction: column;
+}
 .question{
     border: 1px solid white;
     padding-top: 10px;
@@ -14,16 +18,36 @@ label{
     max-width: 50%;
 }
 .buttons{
-    max-width: 25vw;
-    position: relative;
-    bottom: 12vh;
-    left: 37vw;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     margin-top: 1rem;
     gap: 3px;
 }
 
-textarea{
-    max-height: 1.5rem;
+.question-logic{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.question-logic >* {
+    margin-top: 1vh;
+}
+
+.logic-rule {
+    width: 50vw;
+    border: 1px solid white;
+    padding: 1vh;
+    margin: 2vh;
+}
+.logic-rule >* {
+    margin-bottom: 2vh;
+}
+.limit-options, .negate{
+    display: flex;
+    flex-direction: row;
+    
+}
+.limit-options >*, .negate >*{
+    margin-left: 2vw;
+    
 }

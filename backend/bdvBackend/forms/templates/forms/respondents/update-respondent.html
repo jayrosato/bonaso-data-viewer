@@ -3,6 +3,11 @@
 {% block content %}
 <div class="content">
     {% if perms.forms.change_respondent %}
+        {% if respondent.id %}
+            <h1>Editing {{respondent}}</h1>
+        {% else %}
+            <h1>Create New respondent</h1>
+        {% endif %}
         <form action="" method="post">
             {%csrf_token%}
             {{ form }}
