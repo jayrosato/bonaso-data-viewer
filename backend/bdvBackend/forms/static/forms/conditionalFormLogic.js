@@ -42,6 +42,7 @@ function verifyFields(){
 //negate
 
 function updateForm(questions, logic){
+    flags = []
     for(let i = 0; i < questions.length; i++){
         let question = questions[i];
         const label = question.previousElementSibling
@@ -53,7 +54,6 @@ function updateForm(questions, logic){
         if(Object.keys(qLogic).length > 0){
             const pqs = []
             const operator = qLogic.conditional_operator
-
             const action = qLogic.on_match
             const limit_options = qLogic.limit_options
             const pqsIndex = qLogic.rules[0].parent_question_index
@@ -64,11 +64,11 @@ function updateForm(questions, logic){
                 pq = questions[pqIndex]
                 pqs.push(pq)
             })
-
             for(let q=0; q<pqs.length; q++){
                 const pq = pqs[q]
                 const ev = evs[q]
                 const vc = valueComp[q]
+                const nv = negate[q]
                 if(pq.nodeName.toLowerCase() == 'div'){
                     const pqInputs = pq.querySelectorAll('input')
                     const values = []
@@ -77,16 +77,16 @@ function updateForm(questions, logic){
                             values.push(i.value)
                         }
                     })
-                    if(ev == 'any' && values.length >1){
+                    if(ev == 'any' && values.length > 0){
                         conditionMet = true
                     }
                     else if(ev == 'none' && values.length == 0){
                         conditionMet = true
                     }
-                    else if(negate==true && values.length>0 && !values.includes(ev)){
+                    else if(nv==true && values.length>0 && !values.includes(ev)){
                         conditionMet = true
                     }
-                    else if(values.includes(ev)){
+                    else if(values.includes(ev) && nv==false){
                         conditionMet = true
                     }
                     else{
@@ -124,8 +124,7 @@ function updateForm(questions, logic){
                             continue
                         }
                     }
-                    console.log(vc, value, ev)
-                    if(negate ==true && value != '' && value != ev){
+                    if(nv ==true && value != '' && value != ev){
                         conditionMet = true
                     }
                     else if(vc == 'CONTAINS' && value.includes(ev)){
@@ -140,7 +139,7 @@ function updateForm(questions, logic){
                     else if(vc == 'LESS THAN' && value < parseInt(ev)){
                         conditionMet = true
                     }
-                    else if(value == ev){
+                    else if(value == ev && nv ==false){
                         conditionMet = true
                     }
                     else{
@@ -175,12 +174,17 @@ function updateForm(questions, logic){
                 }
                 else if (conditionMet) {
                     const qid = question.getAttribute('id');
-                
-                    if (question.value === '') {
-                        if (!flags.includes(qid)) flags.push(qid);
-                    } else {
+                    console.log(flags)
+                    if (question.value == '') {
+                        if (!flags.includes(qid)){
+                            flags.push(qid);
+                        }
+                    } 
+                    else {
                         const index = flags.indexOf(qid);
-                        if (index !== -1) flags.splice(index, 1);
+                        if(index !== -1){
+                            flags.splice(index, 1)
+                        };
                     }
                 }
 
@@ -212,4 +216,9 @@ function updateForm(questions, logic){
             continue
         }
     }
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        if (element.offsetParent === null) { // hidden element
+            element.removeAttribute('required');
+        }
+    });
 }

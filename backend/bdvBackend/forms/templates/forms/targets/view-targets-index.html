@@ -1,0 +1,39 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content">
+    <h1>All Respondents</h1>
+    {% if targets %}
+    <table>
+        <th>Question</th>
+        <th>Target</th>
+        <th>Actual</th>
+        <th>Organization</th>
+        <th>Start</th>
+        <th>End</th>
+        {% if user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'admin' %}
+        {% if form.organization == user_org or user.userprofile.access_level == 'admin' %}
+            {% for target in targets %}
+            <tr>
+                <td><a href="{% url 'forms:view-target-detail' target.id %}" >{{target.question}}</a></td>
+                <td>{{target.target_amount}}</td>
+                <td>{{target.get_actual}}</td>
+                <td>{{target.organization}}</td>
+                <td>{{target.target_start}}</td>
+                <td>{{target.target_end}}</td>
+            </tr>
+            {% endfor %}
+        {% endif %}
+        {% endif %}
+    </table>
+    {% else %}
+    <p>Nothing here yet!</p>
+    {% endif %}
+
+    {% if user.userprofile.access_level == 'admin' %}
+        <a href="{% url 'forms:create-target' %}"><button>Create a New Target</button></a>
+    {% endif %}
+</div>
+
+{% endblock %}

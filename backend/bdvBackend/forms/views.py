@@ -11,14 +11,15 @@ from django.views import generic, View
 from django.http import JsonResponse
 from django.views.decorators.csrf import requires_csrf_token
 import json
+import calendar
 
-from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector
+from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector, TargetForm
 from datetime import datetime
 
 import csv
 from django.db.models import Q, Count
 
-from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization, User, UserProfile, FormLogic, FormLogicRule
+from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization, User, UserProfile, FormLogic, FormLogicRule, Target
 now = timezone.now()
 
 #views related to forms
@@ -95,32 +96,32 @@ class CreateForm(LoginRequiredMixin, View):
             )
             formQ.save()
             #check for and create conditions
-            if request.POST.get(f'logic[question-{i+1}][on_match]'):
-                if request.POST.get(f'logic[question-{i+1}][on_match]'):
-                    if request.POST.get(f'logic[question-{i+1}][limit_options]') == 'on':
+            if request.POST.get(f'logic[{i}][on_match]'):
+                if request.POST.get(f'logic[{i}][on_match]'):
+                    if request.POST.get(f'logic[{i}][limit_options]') == 'on':
                         limitOptions = True
                     else:
                         limitOptions = False
                 formLogic = FormLogic(
                     form=form,
                     conditional_question = formQ,
-                    on_match = request.POST.get(f'logic[question-{i+1}][on_match]'),
-                    conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]'),
+                    on_match = request.POST.get(f'logic[{i}][on_match]'),
+                    conditional_operator = request.POST.get(f'logic[{i}][operator]'),
                     limit_options = limitOptions
                 )
                 formLogic.save()
-                for k in range(len(request.POST.getlist(f'logic[question-{i+1}][parent_question]'))):
-                    pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
+                for k in range(len(request.POST.getlist(f'logic[{i}][parent_question]'))):
+                    pqId = request.POST.getlist(f'logic[{i}][parent_question]')[k]
                     parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
                     try:
                         if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
-                            valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
+                            valueComp = valueComp = request.POST.getlist(f'logic[{i}][value_comparison]')[k]
                         else:
                             valueComp = None
                     except(IndexError):
                         valueComp = None
                     try:    
-                        if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
+                        if request.POST.getlist(f'logic[{i}][negate_value]')[k]:
                             negateValue = True
                         else:
                             negateValue = False
@@ -129,7 +130,7 @@ class CreateForm(LoginRequiredMixin, View):
                     formLogicRule = FormLogicRule(
                         form_logic = formLogic,
                         parent_question = parentFormQuestion,
-                        expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k],
+                        expected_values = request.POST.getlist(f'logic[{i}][expected_values]')[k],
                         value_comparison = valueComp,
                         negate_value = negateValue,
                     )
@@ -158,192 +159,89 @@ class UpdateForm(LoginRequiredMixin, View):
         form.save() #save changes
 
         #get a list of all the questions submited as part of the form
+        fqIDs = request.POST.getlist('fqID')
+        fqIDs = [int(fqID) for fqID in fqIDs]
         questions = request.POST.getlist('question')
+
         #get questions that were previously in the form for comparison/updating
         existingQuestions = FormQuestion.objects.filter(form=form.id).order_by('index')
-
+        
         #if questions were removed, delete those questions from the database.
         #this works based on the index position, not by tracking question ids
-        if len(existingQuestions) > len(questions):
-            for extra in existingQuestions[len(questions):]:
-                extra.delete()
-
+        for question in existingQuestions:
+            if question.id not in fqIDs:
+                question.delete()
+        existingFQIDs = [question.id for question in existingQuestions]
 
         #loop through each of the questions submitted
         for i in range(len(questions)):
-            print('existing', existingQuestions)
-            print('new', questions)
+            question = questions[i]
+            fqID = fqIDs[i]
             #if the question is within the range of existing questions, update the question
-            if i < len(existingQuestions):
-                print(i, 'updating')
-                #get the existing form question from the database and update it
-                formQ = existingQuestions[i]
-                print(formQ, 'pre-edits')
-                formQ.index = i
-                formQ.question = get_object_or_404(Question, id=questions[i])
-                formQ.save()
-                print(formQ, 'post-edits')
+            if fqID in existingFQIDs:
+                formQ = get_object_or_404(FormQuestion, id=fqID)
+            else: 
+                formQ = FormQuestion(form=form)   
+            formQ.index = i
+            formQ.question = get_object_or_404(Question, id=question)
+            formQ.save()
 
-                #check if this question had any logic associated with it
-                #logic is named with the convention of logic[question-index][logic field]
-                #question divs start at 1
-                if request.POST.get(f'logic[question-{i+1}][on_match]'):
-                    #checkboxes return nothing by default, so check for a value here and if it doesn't exist,
-                    #return false
-                    if request.POST.get(f'logic[question-{i+1}][limit_options]') == 'on':
-                        limitOptions = True
-                    else:
-                        limitOptions = False
-                    
-                    #check if there was form logic associated with this question
-                    formLogic = FormLogic.objects.filter(conditional_question=formQ.id).first()
-                    #if so, update it
-                    if formLogic:
-                        formLogic.conditional_question = formQ
-                        formLogic.on_match = request.POST.get(f'logic[question-{i+1}][on_match]')
-                        formLogic.conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]')
-                        formLogic.limit_options = limitOptions
-                    #if not, create it
-                    else:
-                        formLogic = FormLogic(
-                            form=form,
-                            conditional_question = formQ,
-                            on_match = request.POST.get(f'logic[question-{i+1}][on_match]'),
-                            conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]'),
-                            limit_options = limitOptions
-                            )
-                    formLogic.save()
+            #remove any previously associated logic with this question
+            existingLogic = FormLogic.objects.filter(conditional_question = formQ.id)
+            if existingLogic.exists():
+                existingLogic.delete()
+            #check if this question had any logic associated with it (per the update)
+            #logic is named with the convention of logic[question-index][logic field]
+            #question divs start at 1
+            if request.POST.get(f'logic[{i}][on_match]'):
+                #checkboxes return nothing by default, so check for a value here and if it doesn't exist,
+                #return false
+                if request.POST.get(f'logic[{i}][limit_options]') == 'on':
+                    limitOptions = True
+                else:
+                    limitOptions = False
+                formLogic = FormLogic(form=form, 
+                                conditional_question = formQ,
+                                on_match = request.POST.get(f'logic[{i}][on_match]'),
+                                conditional_operator = request.POST.get(f'logic[{i}][operator]'),
+                                limit_options = limitOptions
+                                )
+                formLogic.save()
 
-                    #check for existing rules associated with that form question
-                    existingRules = FormLogicRule.objects.filter(form_logic=formLogic.id)
-                    rules = request.POST.getlist(f'logic[question-{i+1}][parent_question]')
-
-                    #delete any rules that were removed
-                    if len(rules) < len(existingRules):
-                        for extra in existingRules[len(rules):]:
-                            extra.delete()
-
-                    #loop through each rule
-                    for k in range(len(rules)):
-                        #if the rule is within the range of existing rules, update it
-                        if k < len(existingRules):
-                            rule = existingRules[k]
-
-                            #check the parent question associated with this rule and get its model
-                            pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
-                            parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
-                            #these values may not appear for all questions, so check if they exist first.
-                            #if not, set them to none/false
-                            try:
-                                if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
-                                    valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
-                                else:
-                                    valueComp = None
-                            except(IndexError):
-                                valueComp = None
-                            try:    
-                                if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
-                                    negateValue = True
-                                else:
-                                    negateValue = False
-                            except(IndexError):
-                                negateValue = False
-                            #update the rule
-                            rule.parent_question = parentFormQuestion 
-                            rule.expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k]
-                            rule.value_comparison = valueComp
-                            rule.negate_value = negateValue
-                            rule.save()
-                        #otherwise, create a new rile
-                        else:
-                            #check the question and get its model
-                            pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
-                            parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
-                            
-                            #get optional values
-                            try:
-                                if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
-                                    valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
-                                else:
-                                    valueComp = None
-                            except(IndexError):
-                                valueComp = None
-                            try:    
-                                if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
-                                    negateValue = True
-                                else:
-                                    negateValue = False
-                            except(IndexError):
-                                negateValue = False
-                            #create the new rule
-                            formLogicRule = FormLogicRule(
-                                form_logic = formLogic,
-                                parent_question = parentFormQuestion,
-                                expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k],
-                                value_comparison = valueComp,
-                                negate_value = negateValue,
-                            )
-                            formLogicRule.save()
-                #this question has no logic
-                else: 
-                    #check if it previously had logic
-                    formLogic = FormLogic.objects.filter(conditional_question=formQ.id).first()
-                    #if it did, delete it and all the rules associated with it
-                    if formLogic:
-                        existingRules = FormLogicRule.objects.filter(form_logic=formLogic.id)
-                        for rule in existingRules:
-                            rule.delete()
-                        formLogic.delete()
-
-            #otherwise, this question is beyond the length of previous questions, so create a new one
-            else:
-                formQ = FormQuestion(
-                    form=form,
-                    index = i,
-                    question = get_object_or_404(Question, id=questions[i]),
-                )
-                if request.POST.get(f'logic[question-{i+1}][on_match]'):
-                    if request.POST.get(f'logic[question-{i+1}][limit_options]') == 'on':
-                        limitOptions = True
-                    else:
-                        limitOptions = False
-
-                formQ.save()
-                if request.POST.get(f'logic[question-{i+1}][on_match]'):
-                    formLogic = FormLogic(
-                    form=form,
-                    conditional_question = formQ,
-                    on_match = request.POST.get(f'logic[question-{i+1}][on_match]'),
-                    conditional_operator = request.POST.get(f'logic[question-{i+1}][operator]'),
-                    limit_options = limitOptions
-                    )
-                    formLogic.save()
-                for k in range(len(request.POST.getlist(f'logic[question-{i+1}][parent_question]'))):
-                    pqId = request.POST.getlist(f'logic[question-{i+1}][parent_question]')[k]
+                rules = request.POST.getlist(f'logic[{i}][parent_question]')
+                #make sure that the question had rules, if not, skip this part
+                if not rules:
+                    continue
+                #loop through each rule
+                for k in range(len(rules)):
+                    #check the parent question associated with this rule and get its model
+                    pqId = request.POST.getlist(f'logic[{i}][parent_question]')[k]
                     parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                    #these values may not appear for all questions, so check if they exist first.
+                    #if not, set them to none/false
                     try:
-                        if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
-                            valueComp = valueComp = request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]
+                        if request.POST.getlist(f'logic[{i}][value_comparison]')[k]:
+                            valueComp = request.POST.getlist(f'logic[{i}][value_comparison]')[k]
                         else:
                             valueComp = None
                     except(IndexError):
                         valueComp = None
-
                     try:    
-                        if request.POST.getlist(f'logic[question-{i+1}][negate_value]')[k]:
+                        if request.POST.getlist(f'logic[{i}][negate_value]')[k]:
                             negateValue = True
                         else:
                             negateValue = False
                     except(IndexError):
                         negateValue = False
-                    formLogicRule = FormLogicRule(
-                        form_logic = formLogic,
-                        parent_question = parentFormQuestion,
-                        expected_values = request.POST.getlist(f'logic[question-{i+1}][expected_values]')[k],
-                        value_comparison = valueComp,
-                        negate_value = negateValue,
-                    )
-                    formLogicRule.save()
+                    #create the rule
+                    rule = FormLogicRule(
+                            form_logic = formLogic,
+                            parent_question = parentFormQuestion, 
+                            expected_values = request.POST.getlist(f'logic[{i}][expected_values]')[k],
+                            value_comparison = valueComp,
+                            negate_value = negateValue,
+                        )
+                    rule.save()
         return HttpResponseRedirect(reverse('forms:view-form-detail', kwargs={'pk': form.id}))
     
 class DeleteForm(LoginRequiredMixin, generic.DeleteView):
@@ -481,36 +379,40 @@ class NewResponse(LoginRequiredMixin, View):
         self.form_meta = get_object_or_404(Form, id=pk)
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
-        self.form = ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure)
+        self.form = ResponseForm(request.POST, formQs=self.form_questions)
 
-        if self.form.is_valid():
-            respondent_id = request.POST.get('Respondent')
-            response = Response(form=self.form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id), created_by=request.user)
-            response.save()
-            for i in range(len(self.form_questions)):
-                if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
-                    openResponse = request.POST.get(self.form_questions[i].question_text)
-                    answer = Answer(response=response, question=self.form_questions[i], open_answer=openResponse, option=None)
+        #if self.form.is_valid():
+        respondent_id = request.POST.get('Respondent')
+        response = Response(form=self.form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id), created_by=request.user)
+        
+        response.save()
+        for i in range(len(self.form_questions)):
+            if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
+                openResponse = request.POST.get(self.form_questions[i].question_text)
+                answer = Answer(response=response, question=self.form_questions[i], open_answer=openResponse, option=None)
+                answer.save()
+            if self.form_questions[i].question_type == 'Yes/No':
+                yesNo = request.POST.get(self.form_questions[i].question_text)
+                answer = Answer(response=response, question=self.form_questions[i], open_answer=yesNo)
+                answer.save()
+            if self.form_questions[i].question_type == 'Single Selection':
+                option_id = request.POST.get(self.form_questions[i].question_text)
+                answer = Answer(response=response, question=self.form_questions[i], option=get_object_or_404(Option, pk=option_id), open_answer=None)
+                answer.save()
+            if self.form_questions[i].question_type == 'Multiple Selections':
+                selected_options = request.POST.getlist(self.form_questions[i].question_text)
+                for o in range(len(selected_options)):
+                    answer = Answer(response=response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                     answer.save()
-                if self.form_questions[i].question_type == 'Yes/No':
-                    yesNo = request.POST.get(self.form_questions[i].question_text)
-                    answer = Answer(response=response, question=self.form_questions[i], open_answer=yesNo)
-                    answer.save()
-                if self.form_questions[i].question_type == 'Single Selection':
-                    option_id = request.POST.get(self.form_questions[i].question_text)
-                    answer = Answer(response=response, question=self.form_questions[i], option=get_object_or_404(Option, pk=option_id), open_answer=None)
-                    answer.save()
-                if self.form_questions[i].question_type == 'Multiple Selections':
-                    selected_options = request.POST.getlist(self.form_questions[i].question_text)
-                    for o in range(len(selected_options)):
-                        answer = Answer(response=response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
-                        answer.save()
-            return HttpResponseRedirect(reverse("forms:view-forms-index"))
+        return HttpResponseRedirect(reverse("forms:view-forms-index"))
+        '''
         else:
+            print(self.form.errors.items())
             return render(request, 'forms/responses/create-response.html', 
-                          { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure), 
+                          { 'form': ResponseForm(request.POST, formQs=self.form_questions), 
                            'form_meta':self.form_meta, 
                            'msg':'Double check that all the fields are correctly filled out.' })
+        '''
 
 class UpdateResponse(LoginRequiredMixin, View):
     def get(self, request, pk):
@@ -520,7 +422,7 @@ class UpdateResponse(LoginRequiredMixin, View):
         self.form_questions = [fq.question for fq in self.form_structure]
         user_org = self.request.user.userprofile.organization
         return render(request, 'forms/responses/update-response.html', 
-                    { 'form': ResponseForm(formQs=self.form_questions, formLogic=self.form_structure, response=self.response),
+                    { 'form': ResponseForm(formQs=self.form_questions, response=self.response),
                      'user':self.request.user, 'user_org':user_org,
                     'form_meta': self.form_meta,
                     'response': self.response})
@@ -531,7 +433,7 @@ class UpdateResponse(LoginRequiredMixin, View):
         self.form_meta = Form.objects.filter(id=self.response.form.id).first()
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
-        self.form = ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure, response=self.response)
+        self.form = ResponseForm(request.POST, formQs=self.form_questions, response=self.response)
 
 
         if self.form.is_valid():
@@ -565,7 +467,7 @@ class UpdateResponse(LoginRequiredMixin, View):
             return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': self.response.id}))
         else:
             return render(request, 'forms/responses/update-response.html', 
-                          { 'form': ResponseForm(request.POST, formQs=self.form_questions, formLogic=self.form_structure, response=self.response), 
+                          { 'form': ResponseForm(request.POST, formQs=self.form_questions, response=self.response), 
                            'form_meta':self.form_meta, 'response': self.response,
                            'msg':'Double check that all the fields are correctly filled out.' })
 
@@ -716,6 +618,51 @@ class DeleteOrg(LoginRequiredMixin, generic.DeleteView):
     model=Organization
     success_url = reverse_lazy('forms:view-orgs-index')
 
+class ViewTargetsIndex(LoginRequiredMixin, generic.ListView):
+    template_name = 'forms/targets/view-targets-index.html'
+    context_object_name = 'targets'
+
+    def get_queryset(self):
+        return Target.objects.filter(target_start__lte= datetime.today(), target_end__gte = datetime.today()).order_by('organization')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        return context
+    
+class ViewTargetDetail(LoginRequiredMixin, generic.DetailView):
+    template_name = 'forms/targets/view-target-detail.html'
+    context_object_name = 'target'
+
+    def get_queryset(self):
+        return Target.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        return context
+
+class CreateTarget(LoginRequiredMixin, generic.CreateView):
+    model=Target
+    template_name = 'forms/targets/update-target.html'
+    form_class = TargetForm
+    def get_success_url(self):  
+        return reverse_lazy('forms:view-target-detail', kwargs={'pk': self.object.id})
+
+class UpdateTarget(LoginRequiredMixin, generic.UpdateView):
+    model=Target
+    template_name = 'forms/targets/update-target.html'
+    form_class = TargetForm
+    def get_success_url(self):
+        return reverse_lazy('forms:view-target-detail', kwargs={'pk': self.object.id})
+
+class DeleteTarget(LoginRequiredMixin, generic.DeleteView):
+    model=Target
+    success_url = reverse_lazy('forms:view-targets-index')
+
 class EmployeesIndexView(LoginRequiredMixin, generic.ListView):
     template_name = 'forms/orgs/view-employees-index.html'
     context_object_name = 'employees'
@@ -843,7 +790,8 @@ class GetQuestionData(LoginRequiredMixin, View):
             },]
 
         }
-        return JsonResponse(data)  
+        return JsonResponse(data) 
+     
 class GetFormQuestionByIndex(LoginRequiredMixin, View):
     def get(self, request, form, index):
         formQuestion = FormQuestion.objects.filter(form=form, index=index).first()
@@ -851,6 +799,7 @@ class GetFormQuestionByIndex(LoginRequiredMixin, View):
         if formLogic:
             formLogicRules = FormLogicRule.objects.filter(form_logic=formLogic.id)
             data = {
+                'question': formQuestion.question.question_text,
                 'on_match':formLogic.on_match,
                 'conditional_operator':formLogic.conditional_operator,
                 'limit_options': formLogic.limit_options,
@@ -866,6 +815,20 @@ class GetFormQuestionByIndex(LoginRequiredMixin, View):
             data = {}
         return JsonResponse(data)
 
+class GetTargetDetails(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        target = Target.objects.filter(id=pk).first()
+        data = {
+            "labels": ['Target', 'Actual'],
+            "datasets": [{
+                "label": f'{calendar.month_name[target.target_end.month]}, {target.target_end.year}',
+                "data": [target.target_amount, target.get_actual()],
+                'backgroundColor': "#FFFFFF",
+                'scaleFontColor': '#FFFFFF',
+                },
+            ]
+        }
+        return JsonResponse(data)
 
 class Data(LoginRequiredMixin, View):        
     def get(self, request):

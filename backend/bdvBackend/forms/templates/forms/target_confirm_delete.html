@@ -1,0 +1,18 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+{% block content %}
+
+{% if user.userprofile.access_level == 'admin' %}
+<div class="content">
+    <form method="post">{% csrf_token %}
+        <p>
+            Are you sure you want to delete "{{ object }}"? 
+        </p>
+        {{ form }}
+        <input type="submit" value="Confirm">
+    </form>
+</div>
+{% else %}
+<p>You do not have permission to perform this action. If you think this is a mistake, please contact your supervisor.</p>
+{% endif %}
+{% endblock %}

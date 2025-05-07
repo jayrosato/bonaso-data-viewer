@@ -31,6 +31,12 @@ urlpatterns = [
     path('organizations/team/<int:pk>', views.EmployeeDetailView.as_view(), name='view-employee-detail'),
     path('organizations/team/addmember', views.CreateUser.as_view(), name='create-user'),
 
+    path('organizations/targets', views.ViewTargetsIndex.as_view(), name='view-targets-index'),
+    path('organizations/targets/<int:pk>', views.ViewTargetDetail.as_view(), name='view-target-detail'),
+    path('organizations/targets/create', views.CreateTarget.as_view(), name='create-target'),
+    path('organizations/targets/<int:pk>/update', views.UpdateTarget.as_view(), name='update-target'),
+    path('organizaitons/targets/<int:pk>/delete', views.DeleteTarget.as_view(), name='delete-target'),
+
     #allows users to view, create, and edit respondents (demographic data collected about clients)
     path('respondents', views.ViewRespondentsIndex.as_view(), name='view-respondents-index'),
     path('respondents/create', views.CreateRespondent.as_view(), name='create-respondent'),
@@ -52,5 +58,7 @@ urlpatterns = [
     path('data/query/questions/<int:pk>/meta', views.GetQuestionInfo.as_view()),
     path('data/query/questions', views.GetQuestions.as_view()),
     path('data/query/questions/<int:pk>', views.GetQuestionData.as_view(), name='data-get-q'),
-    path('data/query/forms/questions/<int:form>/<int:index>', views.GetFormQuestionByIndex.as_view())
+    path('data/query/forms/questions/<int:form>/<int:index>', views.GetFormQuestionByIndex.as_view()),
+
+    path('data/query/targets/<int:pk>', views.GetTargetDetails.as_view()),
 ]

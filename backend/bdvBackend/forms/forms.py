@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ModelForm
 from django.forms import inlineformset_factory
 from django.db.models import Q
-from .models import Respondent, Question, Option, FormQuestion, Organization, Form, Answer
+from .models import Respondent, Question, Option, FormQuestion, Organization, Form, Answer, Target
 
 class SelectRespondentForm(forms.Form):
     respondent = forms.ModelChoiceField(queryset=Respondent.objects.all(),label='Respondent')
@@ -34,16 +34,25 @@ class ResponseForm(forms.Form):
             if formQs[i].question_type == 'Text':
                 self.fields[field_name] = forms.CharField(max_length=100000)
                 if response:
-                    self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
+                    try:
+                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
+                    except:
+                        continue
             if formQs[i].question_type == 'Number':
                 self.fields[field_name] = forms.CharField(max_length=100)
                 self.fields[field_name].widget.attrs.update({'number':'yes'})
                 if response:
-                    self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
+                    try:
+                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
+                    except:
+                        continue
             if formQs[i].question_type == 'Yes/No':
                 self.fields[field_name] = forms.ChoiceField(choices=CHOICES, widget=forms.RadioSelect)
                 if response:
-                    self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
+                    try:
+                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
+                    except:
+                        continue
 
             if formQs[i].question_type == 'Single Selection':
                 self.fields[field_name] = forms.ModelChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.RadioSelect)
@@ -56,9 +65,12 @@ class ResponseForm(forms.Form):
             if formQs[i].question_type == 'Multiple Selections':
                 self.fields[field_name] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.CheckboxSelectMultiple)
                 if response:
-                    answers = Answer.objects.filter(response=self.response.id, question=formQs[i].id)
-                    options = [a.option for a in answers]
-                    self.fields[field_name].initial = options
+                    try:
+                        answers = Answer.objects.filter(response=self.response.id, question=formQs[i].id)
+                        options = [a.option for a in answers]
+                        self.fields[field_name].initial = options
+                    except: 
+                        continue
 
             self.fields[field_name].widget.attrs.update({'class':'form_question'})
 
@@ -87,8 +99,25 @@ class FormQuestionForm(forms.ModelForm):
         fields = [
             'question'
         ]
+    widgets = {
+            'id': forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['fqID'] = forms.IntegerField(widget=forms.HiddenInput(), initial=self.instance.pk)
 
 class QuestionSelector(forms.ModelForm):
     class Meta:
         model = Option
         fields = ['question']
+
+class TargetForm(forms.ModelForm):
+    class Meta: 
+        model=Target
+        fields = [
+            'question', 'organization', 'target_amount', 'target_start', 'target_end', 'match_option'
+            ]
+
+

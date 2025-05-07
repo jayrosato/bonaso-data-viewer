@@ -3,7 +3,6 @@
 
 {% block content %}
 
-
 {% if perms.forms.change_response or response.user.id == user.id %}
 {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
 <div class="content">

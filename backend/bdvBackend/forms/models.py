@@ -246,3 +246,25 @@ class Answer(models.Model):
     class Meta:
         db_table_comment = 'Table containing the actual answers to questions a respondent gave.'
         ordering = ['response', 'question', 'option']
+
+class Target(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    target_amount = models.IntegerField()
+    target_start = models.DateField('Target Period Start')
+    target_end = models.DateField('Target Period End')
+    match_option = models.ForeignKey(Option, blank=True, null=True, default = None, on_delete=models.CASCADE)
+    def __str__(self):
+        return f'Target for {self.organization} for {self.question} for period {self.target_start} to {self.target_end}.'
+
+    def get_actual(self):
+        responses =  Response.objects.filter(form__organization__id = self.organization.id, response_date__lte= self.target_end, response_date__gte = self.target_start)
+        answers = Answer.objects.filter(response__id__in=responses, question=self.question)
+        if self.question.question_type == 'Yes/No':
+            answers = Answer.objects.filter(response__id__in=responses, question=self.question, open_answer='Yes')
+        elif self.question.question_type == 'Single Select' or self.question.question_type == 'Multiple Selections':
+            if self.match_option:
+                answers = Answer.objects.filter(response__id__in=responses, question=self.question, option=self.match_option)
+            else:
+                answers = Answer.objects.filter(response__id__in=responses, question=self.question)
+        return answers.values('response').distinct().count()

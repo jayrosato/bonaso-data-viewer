@@ -1,0 +1,22 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+{% block content %}
+<div class="content">
+    {% if user.userprofile.access_level == 'admin' %}
+        <form action="" method="post">
+            {%csrf_token%}
+            {{ form }}
+            <input type="submit" value="Submit">
+        </form>
+        {% if target.id %}
+        <a href="{%url 'forms:delete-target' target.id%}">
+            <button>
+                Delete Target
+            </button>
+        </a>
+        {% endif %}
+    {% else %}
+            <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
+    {% endif %}
+</div>
+{% endblock %}

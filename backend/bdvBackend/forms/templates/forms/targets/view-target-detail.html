@@ -1,0 +1,26 @@
+{% extends 'forms/base.html' %}
+{% load static %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+<div class="content">
+    {% if user_org == target.organization.id or user.userprofile.access_level == 'admin' %}
+        <h2>Question: {{target.question}}</h2>
+        <p>Organization: {{target.organization}}</p>
+        <p>Starts: {{target.target_start}}</p>
+        <p>Ends: {{target.target_end}}</p>
+
+        <div id="target" target="{{target.id}}"></div>
+        <div class="chartCont">
+            <canvas id="targetChart"></canvas>
+        </div>
+        
+        {% if user.userprofile.access_level == 'admin' %}
+            <a href="{% url 'forms:update-target' target.id %}"><button>Edit Target</button></a>
+        {% endif %}
+
+    {% else %}
+            <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
+    {% endif %}
+<script src="{% static 'forms/detailTargetChart.js' %}"></script>
+</div>
+{% endblock %}

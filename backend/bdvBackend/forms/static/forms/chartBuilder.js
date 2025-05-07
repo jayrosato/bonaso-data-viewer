@@ -1,7 +1,9 @@
 const ctx = document.getElementById('chart').getContext('2d');
+const targetPasser = document.getElementById('target')
+const targetId = targetPasser.getAttribute('target')
 try{
     Chart.defaults.color = "#ffffff";
-    fetch('/forms/data/get')
+    fetch(`/forms/data/query/target/${targetId}`)
         .then(response => response.json())
         .then(data => {
             new Chart(ctx, {

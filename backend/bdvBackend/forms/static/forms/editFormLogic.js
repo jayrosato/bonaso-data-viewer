@@ -68,7 +68,7 @@ function createButtons(q){
 }
 
 async function addQuestionLogic(q, existing=null){
-    const ruleId = q.getAttribute('id')
+    const ruleId = q.getAttribute('index')
     const cqId = q.getAttribute('id')
     const logicDiv = document.createElement('div')
     logicDiv.setAttribute('class', 'question-logic')
@@ -154,7 +154,7 @@ async function addQuestionLogic(q, existing=null){
 
 function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=null){
     //create the question selector for a new rule
-    const ruleId = q.getAttribute('id')
+    const ruleId = q.getAttribute('index')
 
     const logicRule = document.createElement('div')
     logicRule.setAttribute('class', 'logicRule')
@@ -166,7 +166,7 @@ function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=n
     pqNull.text = '-----'
     pqSelect.appendChild(pqNull)
     parentQs.forEach((pq) => {
-        if(parseInt(q.getAttribute('id').split('-')[1]) > parseInt(pq.getAttribute('id').split('-')[1])){
+        if(parseInt(q.getAttribute('index')) > parseInt(pq.getAttribute('index'))){
             const selector = pq.querySelector('select')
             const questionId = selector.value
             const questionText = selector.options[selector.selectedIndex].text
@@ -336,7 +336,7 @@ async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null)
 }
 
 async function checkLogic(q){
-    const qIndex = parseInt(q.getAttribute('id').split('-')[1])-1
+    const qIndex = parseInt(q.getAttribute('index'))
     if(document.getElementById('form-passer')){
         const formID = document.getElementById('form-passer').getAttribute('form')
         const response = await fetch(`/forms/data/query/forms/questions/${formID}/${qIndex}`)
@@ -377,11 +377,11 @@ function addQuestion(question){
     qLogicSelect.onchange = () => questionLogic(questionDiv)
     */
 
-    //for the purpose of reorganzing quesitons, each question is marked with an id of 'question-id'
+    //for the purpose of reorganzing quesitons
     //reset the index here
     const allQuestions =questionsList.children;
     for(let i=0; i<allQuestions.length; i++){
-       allQuestions[i].setAttribute('id', `question-${i+1}`);
+       allQuestions[i].setAttribute('index', `${i}`);
     };
 
     //set the class to be a new question. This is'nt important, but it just helps when inspecting the document
@@ -408,41 +408,67 @@ function removeQuestion(question){
    questionsList.removeChild(question);
     const allQuestions =questionsList.children;
     for(let i=0; i< allQuestions.length; i++){
-       allQuestions[i].setAttribute('id', `question-${i+1}`);
+       allQuestions[i].setAttribute('index', `${i}`);
+       reorderLogic(allQuestions[i], i)
     };
+    
 }
 
 //function that places a question above another one in the questionquestionsList. Also switches its id
 function shiftQUp(question){
-    let index = question.getAttribute('id');
-    index = index.split('-');
-    index = index[1];
+    let index = question.getAttribute('index');
     index = parseInt(index);
-    if(index==1){
+    if(index==0){
         console.log('max uppage');
         return;
     }
-    const target = document.getElementById(`question-${index-1}`);
+    const target = document.querySelector(`[index="${index-1}"]`);
     questionsList.insertBefore(question, target);
-    target.setAttribute('id', 'question-');
-    question.setAttribute('id', `question-${index-1}`);
-    target.setAttribute('id', `question-${index}`);
+    target.setAttribute('index', index);
+    question.setAttribute('index', index-1);
+    index = parseInt(question.getAttribute('index'))
+    reorderLogic(question, index)
+    reorderLogic(target, index+1)
 }
 
 //function that places a question beneath another one in the questionquestionsList. Also switches id.
 function shiftQDown(question){
-    let index = question.getAttribute('id');
-    index = index.split('-');
-    index = index[1];
+    let index = question.getAttribute('index');
     index = parseInt(index);
 
     if(index== questionsList.children.length){
         console.log('max downage');
         return;
     }
-    const target = document.getElementById(`question-${index+1}`);
+    const target = document.querySelector(`[index="${index+1}"]`);
+    console.log(target)
     questionsList.insertBefore(target, question);
-    target.setAttribute('id', 'question-');
-    question.setAttribute('id', `question-${index+1}`);
-    target.setAttribute('id', `question-${index}`);
+    question.setAttribute('index', index+1);
+    target.setAttribute('index', index);
+    index = parseInt(question.getAttribute('index'))
+    reorderLogic(question, index)
+    reorderLogic(target, index-1)
+}
+function reorderLogic(question, index){
+    const logic = question.querySelector('.question-logic')
+    if(logic){
+        const selects = logic.querySelectorAll('select')
+        selects.forEach((select) => {
+            let name = select.getAttribute('name')
+            const regex = /logic\[\d+\]/
+            const replace = name.match(regex)[0];
+            const value = `logic[${index}]`
+            newName = name.replace(replace, value)
+            select.setAttribute('name', newName)
+        })
+        const inputs = logic.querySelectorAll('input')
+        inputs.forEach((input) => {
+            let name = input.getAttribute('name')
+            const regex = /logic\[\d+\]/
+            const replace = name.match(regex)[0];
+            const value = `logic[${index}]`
+            newName = name.replace(replace, value)
+            input.setAttribute('name', newName)
+        })
+    }
 }

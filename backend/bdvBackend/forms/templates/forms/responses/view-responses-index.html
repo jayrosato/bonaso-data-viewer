@@ -7,7 +7,7 @@
     {% if responses %}
     <ul>
         {% for response in responses %}
-            {% if user.id == response.created_by.id %}
+            {% if user.id == response.created_by.id or user.userprofile.access_level == 'admin' %}
                 <li><a href="{% url 'forms:view-response-detail' response.id %}">{{response}}</a></li>
             {% endif %}
         {% endfor %}
