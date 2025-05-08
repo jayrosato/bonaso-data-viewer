@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     search.addEventListener('change', () => searchRecords())
     createFilters()
 });
-
+let check = [] //{row:int, col:int, bool:t/f}
 function createFilters(){
     let table = document.querySelector('.sortable-table');
     const headers = table.querySelectorAll('th')
@@ -14,10 +14,13 @@ function createFilters(){
             const filter = document.createElement('select')
             h.appendChild(filter)
             const tableBody = table.tBodies[0]
+            const rowsArray = Array.from(tableBody.rows)
+            rowsArray.forEach((row, rowIndex) => {
+                check.push({'row':rowIndex, 'col':index, 'show':true})
+            })
             const values = []
             if(checkFilter == 'value'){
-                const rowsArray = Array.from(tableBody.rows)
-                rowsArray.forEach((row) => {
+                rowsArray.forEach((row, rowIndex) => {
                     let value = row.cells[index].textContent
                     if(!values.includes(value))
                     values.push(value)
@@ -49,23 +52,32 @@ function createFilters(){
         
     })
 }
-
+//row-column --> is valid??
+//filter --> col[true/false]
+//final checker --> col[true/false], vis[show/hide]
+//work on better cross applying these, probably rather than directly hiding/showing, set a checker variable and then test for conditions 
 function applyFilter(col, filter, type){
     const filterValue = filter.value
     let table = document.querySelector('.sortable-table');
     const headers = table.querySelectorAll('th')
     const tableBody = table.tBodies[0]
     const rowsArray = Array.from(tableBody.rows)
-    if(type=='number' || type == 'date'){
+    if(filterValue == ''){
+        rowsArray.forEach((row, index) => {
+            const toClear = check.filter(cell => (cell.row == index && cell.col == col))
+            toClear.forEach((cell) => cell.show = true)
+        })
         let inputs = headers[col].querySelectorAll('input')
         if(inputs){
             inputs.forEach((input) => {headers[col].removeChild(input)})
         }
-        if(filterValue == ''){
-            rowsArray.forEach((row) => {
-                row.style.display = ''
-            })
-            return
+        checkRows()
+        return
+    }
+    if(type=='number' || type == 'date'){
+        let inputs = headers[col].querySelectorAll('input')
+        if(inputs){
+            inputs.forEach((input) => {headers[col].removeChild(input)})
         }
         const num = document.createElement('input')
         type == 'number' ? num.setAttribute('type', 'number') : num.setAttribute('type', 'date')
@@ -80,64 +92,52 @@ function applyFilter(col, filter, type){
         else{num.onchange = () => checkRange(type, col, filterValue, num)}
     }
     else if(type='value'){
-        rowsArray.forEach((row) => {
-            if(row.style.display == 'none'){
-                row.style.display = 'none'
-            }
-            else{
+        rowsArray.forEach((row, index) => {
             let value = row.cells[col].textContent
-            if(filterValue == ''){
-                row.style.display = ''
-            }
-            else if(type == 'value' && value == filterValue){
-                row.style.display = ''
+            if(type == 'value' && value == filterValue){
+                const toClear = check.filter(cell => (cell.row == index && cell.col == col))
+                toClear.forEach((cell) => cell.show = true)
             }
             else{
-                row.style.display = 'none'
-            }
+                const toClear = check.filter(cell => (cell.row == index && cell.col == col))
+                toClear.forEach((cell) => cell.show = false)
             }
         });
     }
+    checkRows()
 }
 
 function checkRange(type, col, operator, input1, input2=null){
     let num = input1.value
+    if(num == ''){
+        const toClear = check.filter(cell => (cell.row == index && cell.col == col))
+        toClear.forEach((cell) => cell.show = true)
+        return
+    }
     let table = document.querySelector('.sortable-table');
     const headers = table.querySelectorAll('th')
     const tableBody = table.tBodies[0]
     const rowsArray = Array.from(tableBody.rows)
-    rowsArray.forEach((row) => {
-        if(row.style.display == 'none'){
-            row.style.display = 'none'
-        }
-        else{
+    rowsArray.forEach((row, index) => {
+        let display = false
         let value = row.cells[col].textContent
         if(type=='number'){
             num = parseFloat(num)
             value = parseFloat(value)
-            if(num == ''){
-                row.style.display = ''
-            }
-            else if(operator == 'EQUAL TO' && value == num){
-                row.style.display = ''
+            if(operator == 'EQUAL TO' && value == num){
+                display = true
             }
             else if(operator == 'GREATER THAN' && value > num){
-                row.style.display = ''
+                display = true
             }
             else if(operator == 'LESS THAN' && value < num){
-                row.style.display = ''
+                display = true
             }
             else if(operator == 'BETWEEN'){
                 let num2 = parseFloat(input2.value)
                 if(value >= num && value <= num2){
-                    row.style.display = ''
+                    display = true
                 }
-                else{
-                    row.style.display = 'none'
-                }
-            }
-            else{
-                row.style.display = 'none'
             }
         }
         else{
@@ -145,33 +145,46 @@ function checkRange(type, col, operator, input1, input2=null){
             value = new Date(value)
             num.setHours(0,0,0,0)
             value.setHours(0,0,0,0)
-            if(num == ''){
-                row.style.display = ''
-            }
-            else if(operator == 'EQUAL TO' && value.getTime() == num.getTime()){
-                row.style.display = ''
+            if(operator == 'EQUAL TO' && value.getTime() == num.getTime()){
+                display = true
             }
             else if(operator == 'GREATER THAN' && value.getTime() > num.getTime()){
-                row.style.display = ''
+                display = true
             }
             else if(operator == 'LESS THAN' && +value < +num){
-                row.style.display = ''
+                display = true
             }
             else if(operator == 'BETWEEN'){
                 let num2 = input2.value
                 num2 = new Date(num2)
                 num2.setHours(0,0,0,0)
                 if(value >= +num && value <= +num2){
-                    row.style.display = ''
+                    display = true
                 }
-                else{
-                    row.style.display = 'none'
-                }
-            }
-            else{
-                row.style.display = 'none'
             }
         }
+        const toShow = check.filter(cell => (cell.row == index && cell.col == col))
+        toShow.forEach((cell) => cell.show = display)
+    });
+    checkRows()
+}
+
+function checkRows(){
+    let table = document.querySelector('.sortable-table');
+    const headers = table.querySelectorAll('th')
+    const tableBody = table.tBodies[0]
+    const rowsArray = Array.from(tableBody.rows)
+    rowsArray.forEach((row, index) => {
+        let checkCells = check.filter(cell => (cell.row == index))
+        let show = true
+        checkCells.forEach((cell) => {
+            if(cell.show == false){show = false}
+        })
+        if(show == false){
+            row.style.display = 'none'
+        }
+        else if(show == true){
+            row.style.display = ''
         }
     });
 }
@@ -190,8 +203,7 @@ function searchRecords(){
         else{
             row.style.display = 'none'
         }
-    });
-    
+    });  
 }
 
 function addClickable(){
