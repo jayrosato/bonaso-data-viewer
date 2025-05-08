@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="content">
+    {% if perms.forms.change_organization %}
+        {% if update == True %}
+            {% if user_org.id == organization.id or user_org.id == organization.parent_organization.id or user_org.id == 3 %}
+                <form action="" method="post">
+                    {%csrf_token%}
+                    {{ form }}
+                    <input type="submit" value="Submit">
+                </form>
+                {% if perms.forms.delete_organization %}
+                    {% if organization.id %}
+                        <a href="{%url 'organizations:delete-org' organization.id%}">
+                            <button>
+                                Delete Organization
+                            </button>
+                        </a>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <p>You do not have permission to edit this organization.</p>
+            {% endif %}
+        {% else %}
+            <form action="" method="post">
+                {%csrf_token%}
+                {{ form }}
+            <input type="submit" value="Submit">
+        </form>
+        {% endif %}
+    {% else %}
+            <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
+    {% endif %}
+</div>
+{% endblock %}

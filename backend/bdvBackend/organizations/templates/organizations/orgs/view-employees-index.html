@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content">
+    <h1>Your Team</h1>
+    {% if employees %}
+    <table>
+        <th>User</th>
+        <th>User Organization</th>
+        {% for employee in employees %}
+            {% if employee.userprofile.organization.id == user_org.id or employee.userprofile.organization.id == user_org.id or user_org.id == 3 %}
+                <tr>
+                    <td><a href="{% url 'organizations:view-employee-detail' employee.id %}">{{employee}}</a></td>
+                    <td>{{employee.userprofile.organization}}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Nothing here yet!</p>
+    {% endif %}
+    {% if perms.forms.add_user%}
+        <a href="{% url 'organizations:create-user' %}"><button>Add a new team member.</button></a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

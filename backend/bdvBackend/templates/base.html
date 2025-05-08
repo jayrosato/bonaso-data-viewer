@@ -1,0 +1,86 @@
+{% load static %}
+
+{% if user.is_authenticated %}
+<html lang="en">
+    <head>
+        <link rel="icon" type="image/x-icon" href="{% static 'forms/images/boansoWhite.png' %}">
+        <link rel="stylesheet" href="{% static 'forms/styles/styles.css' %}">
+        {% block title %}
+            <title>Bonaso Data Portal</title>
+        {% endblock %}
+    </head>
+
+    <body>
+        {% block header %}
+            <div class="header">
+                <a href="{% url 'home:home' %}"> <img class="headerLogo" src="{% static 'forms/images/boansoWhite.png' %}" /></a> 
+                <div class="headerText">
+                    <a href="{% url 'home:home' %}"><h1>BONASO Data Portal</h1></a>
+                </div>
+            </div>
+        {% endblock %}
+        <div class="middle">
+            {% block sidebar %}
+                <div class="sidebar">
+                    <h2>Welcome, {{ user.username }}</h2>
+                    <div class="sidebarLinksCont">
+                        <h3 class="sbLinkHeader"> Data </h3>
+                        <div class="sidebarLinks">
+                            {% if user.userprofile.access_level == 'admin' %}
+                            <img class="sbIcon" src="{% static 'images/head-question.svg' %}" />   
+                            <a href="{% url 'forms:view-questions' %}">Manage Questions/Indicators</a>
+                            {% endif %}
+                            {% if user.userprofile.access_level == 'admin' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'manager' %}
+                            <img class="sbIcon" src="{% static 'images/bullseye-arrow.svg' %}" />   
+                            <a href="{% url 'organizations:view-targets-index' %}">Targets</a>
+                            {% endif %}
+                            <img class="sbIcon" src="{% static 'images/list-box-outline.svg' %}" />   
+                            <a href="{% url 'forms:view-forms-index' %}">Forms</a>
+                            <img class="sbIcon" src="{% static 'images/account-group-outline.svg' %}" />
+                            <a href="{% url 'forms:view-respondents-index' %}">Respondents</a>
+                            <img class="sbIcon" src="{% static 'images/record-player.svg' %}" />   
+                            <a href="{% url 'forms:view-responses-index' %}">Responses</a>
+                            <img class="sbIcon" src="{% static 'images/monitor-dashboard.svg' %}" />   
+                            <a href="{% url 'forms:dashboard' %}">Dashboard</a>
+                        </div>
+                        {% if user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'admin' %}
+                        <h3 class="sbLinkHeader"> Organizations </h3>
+                        <div class="sidebarLinks">
+                            <img class="sbIcon" src="{% static 'images/office-building-cog.svg' %}" />   
+                            <a href="{% url 'organizations:view-orgs-index' %}">Organizations</a>
+                            <img class="sbIcon" src="{% static 'images/account-supervisor-circle-outline.svg' %}" />   
+                            <a href="{% url 'organizations:view-employees-index' %}">Team</a>
+                        </div>
+                        {% endif %}
+
+                        <h3 class="sbLinkHeader">Your Account</h3>
+                            <div class="sidebarLinks">
+                            <img class="sbIcon" src="{% static 'images/account-box-edit-outline.svg' %}"" /> 
+                            <a href="{% url 'accounts:view-profile' user.id %}">Account</a>
+                            <img class="sbIcon" src="{% static 'images/cog.svg' %}" /> 
+                            <a href="{% url 'accounts:settings' %}">Settings</a>
+                            <img class="sbIcon" src="{% static 'images/logout.svg' %}" /> 
+                            <form id="logout-form" method="post" action="{% url 'logout' %}?next=/accounts/login/">
+                                {% csrf_token %}
+                                <button type="submit" class="logout">Logout</button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            {% endblock %}
+
+            {% block content %}
+            <div class="content">
+                <!-- Page view template loads here-->
+            </div>
+            {% endblock %}
+        </div>
+        {% block footer %}
+            <div class="footer">
+                <p>footer would be here</p>
+            </div>
+        {% endblock %}
+    </body>
+</html>
+{% endif %}

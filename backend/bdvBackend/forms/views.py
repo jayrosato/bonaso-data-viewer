@@ -1,25 +1,24 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib import messages
-
-from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-import datetime
 from django.views import generic, View
 from django.http import JsonResponse
 from django.views.decorators.csrf import requires_csrf_token
-import json
-import calendar
-
-from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector, TargetForm, RespondentForm
-from datetime import datetime
-
-import csv
 from django.db.models import Q, Count
 
-from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, Organization, User, UserProfile, FormLogic, FormLogicRule, Target
+from datetime import datetime
+import json
+import calendar
+import csv
+
+from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector, RespondentForm
+from.models import Respondent, Form, FormQuestion, Question, Option, Response, Answer, FormLogic, FormLogicRule
+from django.contrib.auth import get_user_model
+User = get_user_model()
+from accounts.models import UserProfile
+
 now = timezone.now()
 
 #views related to forms
@@ -78,6 +77,7 @@ class CreateForm(LoginRequiredMixin, View):
                            'msg':'Double check that all the fields are correctly filled out.' })
 
     def post(self, request):
+        from organizations.models import Organization
         form = Form(
             form_name = request.POST.get('form_name'),
             organization = get_object_or_404(Organization, id=request.POST.get('organization')),
@@ -150,6 +150,7 @@ class UpdateForm(LoginRequiredMixin, View):
                            'msg':'Double check that all the fields are correctly filled out.' })
 
     def post(self, request, pk):
+        from organizations.models import Organization
         #update the information about the Form objects itself
         form = get_object_or_404(Form, id=pk)
         form.form_name = request.POST.get('form_name')
@@ -354,9 +355,9 @@ class ViewResponseDetail(LoginRequiredMixin, generic.DetailView):
         form_questions = [fq.question for fq in formQs]
         answers = []
         for i in range(len(form_questions)):  
-            answer = Answer.objects.filter(response=response, question=form_questions[i]).first()
+            answer = Answer.objects.filter(response=response, question=form_questions[i])
             if answer:
-                answers.append(answer)
+                answers.append([answer for answer in answer])
             else: 
                 answers.append('No response given.')
         context['response'] = response
@@ -531,199 +532,6 @@ class DeleteRespondent(LoginRequiredMixin, generic.DeleteView):
     model=Respondent
     success_url = reverse_lazy('forms:view-respondents-index')
 
-
-
-class ViewOrgsIndex(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/orgs/view-orgs-index.html'
-    context_object_name = 'organizations'
-    def get_queryset(self):
-        return Organization.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        return context
-
-class ViewOrgDetail(LoginRequiredMixin, generic.DetailView):
-    model=Organization
-    template_name='forms/orgs/view-org-detail.html'
-    context_object_name = 'organization'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        pk = self.kwargs['pk']
-        child_orgs = Organization.objects.filter(parent_organization = pk)
-        context['user_org'] = user_org
-        context['child_orgs'] = child_orgs
-        return context
-
-class CreateOrg(LoginRequiredMixin, generic.CreateView):
-    model=Organization
-    template_name = 'forms/orgs/update-org.html'
-    fields = [
-            'organization_name', 'parent_organization'
-            ]
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        user_org = self.request.user.userprofile.organization
-        if user_org.id != 3:
-            if user_org.parent_organization:
-                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org.parent_organization.id)
-            else:
-                form.fields['parent_organization'].queryset = Organization.objects.filter(Q(id=user_org.id) | Q(id=user_org.parent_organization))
-        return form
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        context['update'] = False
-        return context
-    
-    def get_success_url(self):
-        return reverse_lazy('forms:view-org-detail', kwargs={'pk': self.object.id})
-
-class UpdateOrg(LoginRequiredMixin, generic.UpdateView):
-    model=Organization
-    template_name = 'forms/orgs/update-org.html'
-    fields = [
-            'organization_name', 'parent_organization'
-            ]
-    
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        user_org = self.request.user.userprofile.organization
-        if user_org.id != 3:
-            if user_org.parent_organization:
-                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org.parent_organization.id)
-            else:
-                form.fields['parent_organization'].queryset = Organization.objects.filter(Q(id=user_org.id) | Q(id=user_org.parent_organization))
-        return form
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        context['update'] = True
-        return context
-    
-    def get_success_url(self):
-        return reverse_lazy('forms:view-org-detail', kwargs={'pk': self.object.id})
-    
-class DeleteOrg(LoginRequiredMixin, generic.DeleteView):
-    model=Organization
-    success_url = reverse_lazy('forms:view-orgs-index')
-
-class ViewTargetsIndex(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/targets/view-targets-index.html'
-    context_object_name = 'targets'
-
-    def get_queryset(self):
-        return Target.objects.filter(target_start__lte= datetime.today(), target_end__gte = datetime.today()).order_by('organization')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        return context
-    
-class ViewTargetDetail(LoginRequiredMixin, generic.DetailView):
-    template_name = 'forms/targets/view-target-detail.html'
-    context_object_name = 'target'
-
-    def get_queryset(self):
-        return Target.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        return context
-
-class CreateTarget(LoginRequiredMixin, generic.CreateView):
-    model=Target
-    template_name = 'forms/targets/update-target.html'
-    form_class = TargetForm
-    def get_success_url(self):  
-        return reverse_lazy('forms:view-target-detail', kwargs={'pk': self.object.id})
-
-class UpdateTarget(LoginRequiredMixin, generic.UpdateView):
-    model=Target
-    template_name = 'forms/targets/update-target.html'
-    form_class = TargetForm
-    def get_success_url(self):
-        return reverse_lazy('forms:view-target-detail', kwargs={'pk': self.object.id})
-
-class DeleteTarget(LoginRequiredMixin, generic.DeleteView):
-    model=Target
-    success_url = reverse_lazy('forms:view-targets-index')
-
-class EmployeesIndexView(LoginRequiredMixin, generic.ListView):
-    template_name = 'forms/orgs/view-employees-index.html'
-    context_object_name = 'employees'
-    def get_queryset(self):
-        return User.objects.all()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        return context
-
-class EmployeeDetailView(LoginRequiredMixin, generic.DetailView):
-    model=User
-    template_name='forms/orgs/view-employee-detail.html'
-    context_object_name = 'employee'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        pk=self.kwargs['pk']
-        employee = get_object_or_404(User, id=pk)
-        responses = Response.objects.filter(created_by=employee.id).count()
-        context['responses'] = responses
-        respondents = Respondent.objects.filter(created_by=employee.id).count()
-        context['respondents'] = respondents
-        forms = Form.objects.filter(created_by=employee.id).count()
-        context['forms'] = forms
-        direct_team = UserProfile.objects.filter(supervisor=employee.id).count()
-        underlings = UserProfile.objects.filter(manager=employee.id).count()
-        context['direct_team'] = direct_team
-        context['underlings'] = underlings
-
-        try:
-            employee_user_profile = employee.userprofile
-        except UserProfile.DoesNotExist:
-            employee_user_profile = None
-
-        context['employee_user_profile'] = employee_user_profile
-        return context
-
-class CreateUser(LoginRequiredMixin, generic.CreateView):
-    model = UserProfile
-    fields = '__all__'
-    template_name = 'forms/orgs/create-user.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user_org = self.request.user.userprofile.organization
-        context['user_org'] = user_org
-        return context
-    
-    def get_success_url(self):
-        return reverse_lazy('forms:view-employee-detail', kwargs={'pk': self.object.id})
-
-class Settings(LoginRequiredMixin, View):
-    def get(self, request):
-        user = self.request.user
-        userProfile = user.userprofile
-        return render(request, 'forms/settings.html', {'user':user, 'userProfile':userProfile})
-
 class Dashboard(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'forms/dashboard-creator.html')
@@ -813,26 +621,6 @@ class GetFormQuestionByIndex(LoginRequiredMixin, View):
         else:
             data = {}
         return JsonResponse(data)
-
-class GetTargetDetails(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        target = Target.objects.filter(id=pk).first()
-        data = {
-            "labels": ['Target', 'Actual'],
-            "datasets": [{
-                "label": f'{calendar.month_name[target.target_end.month]}, {target.target_end.year}',
-                "data": [target.target_amount, target.get_actual()],
-                'backgroundColor': "#FFFFFF",
-                'scaleFontColor': '#FFFFFF',
-                },
-            ]
-        }
-        return JsonResponse(data)
-
-class Data(LoginRequiredMixin, View):        
-    def get(self, request):
-        return render(request, 'forms/data.html', 
-        {'form':QuestionSelector()})
     
 class FormTemplate(LoginRequiredMixin, View):
     def get(self, request, pk):

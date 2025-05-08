@@ -1,4 +1,4 @@
-{% extends 'forms/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
@@ -16,7 +16,7 @@
     </form>
     
 </div>
-<script src="{% static 'forms/conditionalFormLogic.js' %}"></script>
+<script src="{% static 'forms/js/conditionalFormLogic.js' %}"></script>
 {% else %}
 <p>You do not have permission to perform this action. If you think this is a mistake, please contact your supervisor.</p>
 {% endif %}

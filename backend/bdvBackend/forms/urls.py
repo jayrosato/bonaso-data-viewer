@@ -11,31 +11,13 @@ urlpatterns = [
     path('<int:pk>/delete', views.DeleteForm.as_view(), name='delete-form'),
     path('<int:pk>/template', views.FormTemplate.as_view(), name='form-template'),
     
-
-
     path('dashboard', views.Dashboard.as_view(), name='dashboard'),
-    path('data', views.Data.as_view(), name='data'),
     path('data/get', views.GetData.as_view(), name='data-get'),
 
     path('questions', views.ViewQuestions.as_view(), name='view-questions'),
     path('questions/create', views.CreateQuestion.as_view(), name='create-question'),
     path('questions/<int:pk>/update', views.UpdateQuestion.as_view(), name='update-question'),
     path('questions/<int:pk>/delete', views.DeleteQuestion.as_view(), name='delete-question'),
-
-    path('organizations', views.ViewOrgsIndex.as_view(), name='view-orgs-index'),
-    path('organizations/<int:pk>', views.ViewOrgDetail.as_view(), name='view-org-detail'),
-    path('organizations/create', views.CreateOrg.as_view(), name='create-org'),
-    path('organizations/<int:pk>/update', views.UpdateOrg.as_view(), name='update-org'),
-    path('organizations/<int:pk>/delete', views.DeleteOrg.as_view(), name='delete-org'),
-    path('organizations/team', views.EmployeesIndexView.as_view(), name='view-employees-index'),
-    path('organizations/team/<int:pk>', views.EmployeeDetailView.as_view(), name='view-employee-detail'),
-    path('organizations/team/addmember', views.CreateUser.as_view(), name='create-user'),
-
-    path('organizations/targets', views.ViewTargetsIndex.as_view(), name='view-targets-index'),
-    path('organizations/targets/<int:pk>', views.ViewTargetDetail.as_view(), name='view-target-detail'),
-    path('organizations/targets/create', views.CreateTarget.as_view(), name='create-target'),
-    path('organizations/targets/<int:pk>/update', views.UpdateTarget.as_view(), name='update-target'),
-    path('organizaitons/targets/<int:pk>/delete', views.DeleteTarget.as_view(), name='delete-target'),
 
     #allows users to view, create, and edit respondents (demographic data collected about clients)
     path('respondents', views.ViewRespondentsIndex.as_view(), name='view-respondents-index'),
@@ -51,14 +33,9 @@ urlpatterns = [
     path('response/<int:pk>/update', views.UpdateResponse.as_view(), name='update-response'),
     path('response/<int:pk>/delete', views.DeleteResponse.as_view(), name='delete-response'),
 
-    #misc
-    path('settings', views.Settings.as_view(), name='settings'),
-
     #related to getting specific queries
     path('data/query/questions/<int:pk>/meta', views.GetQuestionInfo.as_view()),
     path('data/query/questions', views.GetQuestions.as_view()),
     path('data/query/questions/<int:pk>', views.GetQuestionData.as_view(), name='data-get-q'),
     path('data/query/forms/questions/<int:form>/<int:index>', views.GetFormQuestionByIndex.as_view()),
-
-    path('data/query/targets/<int:pk>', views.GetTargetDetails.as_view()),
 ]

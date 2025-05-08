@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ModelForm
 from django.forms import inlineformset_factory
 from django.db.models import Q
-from .models import Respondent, Question, Option, FormQuestion, Organization, Form, Answer, Target, User
+from .models import Respondent, Question, Option, FormQuestion, Form, Answer, User
 
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -104,6 +104,7 @@ class FormsForm(forms.ModelForm):
         }
     def __init__(self, *args, organization, **kwargs):
         super().__init__(*args, **kwargs)
+        from organizations.models import Organization
         if organization.id != 3:
             self.fields['organization'].queryset = Organization.objects.filter(Q(id=organization.id) | Q(parent_organization=organization.id))
             self.fields['organization'].initial = organization.id
@@ -127,12 +128,5 @@ class QuestionSelector(forms.ModelForm):
     class Meta:
         model = Option
         fields = ['question']
-
-class TargetForm(forms.ModelForm):
-    class Meta: 
-        model=Target
-        fields = [
-            'question', 'organization', 'target_amount', 'target_start', 'target_end', 'match_option'
-            ]
 
 

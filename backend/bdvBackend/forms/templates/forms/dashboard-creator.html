@@ -1,4 +1,4 @@
-{% extends 'forms/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
@@ -6,11 +6,12 @@
 <link rel="stylesheet" href="{% static 'forms/styles/dashboard.css' %}">
 
 <div class="content">
+    <h1>Dashboard Tool</h1>
     <button id="addChartButton">Add Chart</button>
     <div class="dashboard">
 
     </div>
 
 </div>
-<script src="{% static 'forms/dashboardCreator.js' %}"></script>
+<script src="{% static 'forms/js/dashboardCreator.js' %}"></script>
 {% endblock %}

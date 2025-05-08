@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content">
+    <h1>Your Organizations</h1>
+    {% if organizations %}
+    <table>
+        <th>Organizaiton Name</th>
+        <th>Parent Organization</th>
+        {% for organization in organizations %}
+            {% if user_org.id == organization.id or user_org.id == organization.parent_organization.id or user_org.id == 3 %}
+                <tr>
+                    <td><a href="{% url 'organizations:view-org-detail' organization.id %}">{{organization}}</a></td>
+                    <td>{{organization.parent_organization}}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Nothing here yet!</p>
+    {% endif %}
+
+    {% if perms.forms.add_organization %}
+        <a href="{% url 'organizations:create-org' %}"><button>Create New Organization</button></a>
+    {% endif %}
+</div>
+
+{% endblock %}

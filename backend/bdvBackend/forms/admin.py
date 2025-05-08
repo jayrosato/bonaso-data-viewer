@@ -1,26 +1,7 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
 from django import forms
 
-from .models import Organization, Respondent, Form, FormQuestion, Question, Option, UserProfile
-
-class OrganizationAdmin(admin.ModelAdmin):
-    fieldsets = [('Basic Information', {'fields': ['organization_name']})]
-
-class UserProfileInline(admin.StackedInline):
-    model = UserProfile
-    fk_name='user'
-    can_delete = False
-    verbose_name_plural = 'Profile'
-
-# Define a new User admin
-class UserAdmin(BaseUserAdmin):
-    inlines = (UserProfileInline,)
-
-# Re-register UserAdmin
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
+from forms.models import Respondent, Form, FormQuestion, Question, Option
 
 class RespondentAdmin(admin.ModelAdmin):
     fieldsets = [
@@ -59,19 +40,6 @@ class QuestionAdmin(admin.ModelAdmin):
         )
 
 
-'''
-class QuestionAdmin(admin.ModelAdmin):
-    fieldsets = [
-        ('Basic Information', {'fields': ['question_text']}),
-        ('Question Information', {'fields': ['question_type'], 'classes':['collapse']}),
-    ]
-    inlines = [OptionInline]
-    list_display=['question_text', 'created_date', 'options']
-    list_filter = ['created_date']
-    search_fields=['question_text']
-'''
-
-admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Respondent, RespondentAdmin)
 admin.site.register(Form, FormAdmin)
 admin.site.register(Question, QuestionAdmin)
