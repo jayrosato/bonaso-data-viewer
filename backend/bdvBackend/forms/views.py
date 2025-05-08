@@ -6,11 +6,10 @@ from django.utils import timezone
 from django.views import generic, View
 from django.http import JsonResponse
 from django.views.decorators.csrf import requires_csrf_token
-from django.db.models import Q, Count
+from django.db.models import Count
 
 from datetime import datetime
 import json
-import calendar
 import csv
 
 from .forms import ResponseForm, QuestionForm, FormsForm, FormQuestionForm, QuestionSelector, RespondentForm
@@ -68,7 +67,6 @@ class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
         context['form_questions'] = form_questions
         return context
 
-#new form stuff
 class CreateForm(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'forms/forms/create-form-all.html', 

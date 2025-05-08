@@ -3,8 +3,8 @@
 {% if user.is_authenticated %}
 <html lang="en">
     <head>
-        <link rel="icon" type="image/x-icon" href="{% static 'forms/images/boansoWhite.png' %}">
-        <link rel="stylesheet" href="{% static 'forms/styles/styles.css' %}">
+        <link rel="icon" type="image/x-icon" href="{% static 'images/boansoWhite.png' %}">
+        <link rel="stylesheet" href="{% static 'styles.css' %}">
         {% block title %}
             <title>Bonaso Data Portal</title>
         {% endblock %}
@@ -13,7 +13,7 @@
     <body>
         {% block header %}
             <div class="header">
-                <a href="{% url 'home:home' %}"> <img class="headerLogo" src="{% static 'forms/images/boansoWhite.png' %}" /></a> 
+                <a href="{% url 'home:home' %}"> <img class="headerLogo" src="{% static 'images/boansoWhite.png' %}" /></a> 
                 <div class="headerText">
                     <a href="{% url 'home:home' %}"><h1>BONASO Data Portal</h1></a>
                 </div>
