@@ -5,15 +5,22 @@
 <div class="content">
     <h1>All Respondents</h1>
     {% if respondents %}
-    <table>
-        <th>Respondent</th>
-        <th>Responses</th>
-        <th>Sex</th>
-        <th>Age</th>
-        <th>Created By</th>
-        <th>Created At</th>
-        <th>Updated At</th>
+    <div class="navigate">
+        <label for="search-records">Search</label>
+        <input type="text" name="search-records" class="search-records">
+    </div>
+    <table class="sortable-table">
+        <thead>
+            <th>Respondent</th>
+            <th sort="number">Responses</th>
+            <th>Sex</th>
+            <th sort="number">Age</th>
+            <th>Created By</th>
+            <th sort="date">Created At</th>
+            <th sort="date">Updated At</th>
+        </thead>
         {% if perms.forms.view_respondent %}
+            <tbody>
             {% for respondent in respondents %}
             <tr>
                 <td><a href="{% url 'forms:view-respondent-detail' respondent.id %}">{{respondent}}</a></td>
@@ -25,6 +32,7 @@
                 <td>{{respondent.updated_at}}</td>
             </tr>
             {% endfor %}
+            </tbody>
         {% endif %}
     </table>
     {% else %}
@@ -34,6 +42,7 @@
     {% if perms.forms.add_respondent %}
         <a href="{% url 'forms:create-respondent' %}"><button>Create New Respondent</button></a>
     {% endif %}
+    <script src="{% static 'js/sort-tables.js' %}"></script>
 </div>
 
 {% endblock %}
