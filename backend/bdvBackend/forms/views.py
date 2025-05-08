@@ -27,7 +27,7 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
     context_object_name = 'active_forms'
     
     def get_queryset(self):
-        return Form.objects.filter(start_date__lte= datetime.today(), end_date__gte = datetime.today()).order_by('organization')
+        return Form.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

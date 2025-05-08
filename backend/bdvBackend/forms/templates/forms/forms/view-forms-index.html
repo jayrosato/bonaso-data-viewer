@@ -6,16 +6,19 @@
 <div class="content">
     <h1>Active Forms</h1>
     {% if active_forms %}
-        <table>
-            <tr>
-                <th>Form</th>
-                <th>Organization</th>
-                <th>Responses</th>
-                <th>Started</th>
-                <th>Ends</th>
-                <th>Edit</th>
+        <table class="sortable-table">
+            <thead>
+                <tr>
+                    <th>Form</th>
+                    <th>Organization</th>
+                    <th>Responses</th>
+                    <th>Started</th>
+                    <th>Ends</th>
+                    <th>Edit</th>
 
-            </tr>
+                </tr>
+            </thead>
+            <tbody>
             {% for form in active_forms %}
                 {% if form.organization == user_org or user.userprofile.access_level == 'admin' %}
                 <tr>
@@ -28,6 +31,7 @@
                 </tr>
                 {% endif %}
             {% endfor %}
+            </tbody>
         </table>
     {% else %}
     <p>Nothing here yet!</p>
@@ -35,5 +39,6 @@
     {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
             <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
     {% endif %}
+    <script src="{% static 'js/sort-tables.js' %}"></script>
 </div>
 {% endblock %}
