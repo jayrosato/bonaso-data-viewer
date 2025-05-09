@@ -135,14 +135,18 @@ function updateForm(questions, logic){
                         question.querySelectorAll('input[type=radio]').forEach(option => {option.checked = false});
                     }
                     if(limit_options){
+                        let selectAll = false
                         let checkedValues = []
                         pqInputs.forEach((i) => {
                             if(i.checked == true){
+                                if(i.getAttribute('data-special') == 'All'){
+                                    selectAll = true
+                                }
                                 checkedValues.push(i.parentElement.innerText.trim().toLowerCase())
                             }
                         })
                         question.querySelectorAll('input').forEach((q) =>{
-                            if(!checkedValues.includes(q.parentElement.innerText.trim().toLowerCase()) && q.getAttribute('data-special') != 'None of the above'){
+                            if(!checkedValues.includes(q.parentElement.innerText.trim().toLowerCase()) && q.getAttribute('data-special') != 'None of the above' && !selectAll){
                                 q.checked = false
                                 q.parentElement.style.display = 'none'
                             }

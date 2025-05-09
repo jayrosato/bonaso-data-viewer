@@ -414,6 +414,13 @@ class NewResponse(LoginRequiredMixin, View):
                     option=get_object_or_404(Option, pk=selected_options[o])
                     if option.special == 'None of the above':
                         continue
+                    elif option.special == 'All':
+                        options = Option.objects.filter(question = self.form_questions[i])
+                        for option in options:
+                            if not option.special:
+                                answer = Answer(response=response, question=self.form_questions[i],  option=option, open_answer=None)
+                                answer.save()
+                        continue
                     answer = Answer(response=response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                     answer.save()
         return HttpResponseRedirect(reverse("forms:view-forms-index"))
@@ -476,6 +483,13 @@ class UpdateResponse(LoginRequiredMixin, View):
                 for o in range(len(selected_options)):
                     option=get_object_or_404(Option, pk=selected_options[o])
                     if option.special == 'None of the above':
+                        continue
+                    elif option.special == 'All':
+                        options = Option.objects.filter(question = self.form_questions[i])
+                        for option in options:
+                            if not option.special:
+                                answer = Answer(response=self.response, question=self.form_questions[i],  option=option, open_answer=None)
+                                answer.save()
                         continue
                     answer = Answer(response=self.response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                     answer.save()

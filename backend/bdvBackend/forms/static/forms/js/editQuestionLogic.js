@@ -51,8 +51,8 @@ function addOption(existingText='', existingSpecial=''){
     const optionSpecialInput = document.createElement('select')
     optionSpecialInput.setAttribute('name', 'special')
     optionSpecialInput.setAttribute('search', 'no')
-    const specialShow = ['-----', 'None of the above'] //should probably add an all here
-    const special = ['', 'None of the above']
+    const specialShow = ['-----', 'None of the above', 'All'] //should probably add an all here
+    const special = ['', 'None of the above', 'All']
     special.forEach((val, index) => {
         const option = document.createElement('option')
         option.setAttribute('value', val)
