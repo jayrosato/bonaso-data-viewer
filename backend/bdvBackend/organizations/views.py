@@ -102,7 +102,7 @@ class ViewTargetsIndex(LoginRequiredMixin, generic.ListView):
     context_object_name = 'targets'
 
     def get_queryset(self):
-        return Target.objects.filter(target_start__lte= datetime.today(), target_end__gte = datetime.today()).order_by('organization')
+        return Target.objects.all().order_by('organization')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -124,13 +124,45 @@ class ViewTargetDetail(LoginRequiredMixin, generic.DetailView):
         context['user_org'] = user_org
         return context
 
-class CreateTarget(LoginRequiredMixin, generic.CreateView):
-    model=Target
-    template_name = 'organizations/targets/update-target.html'
-    form_class = TargetForm
-    def get_success_url(self):  
-        return reverse_lazy('organizations:view-target-detail', kwargs={'pk': self.object.id})
+class CreateTarget(LoginRequiredMixin, View):
+    def get(self, request):
+        form = TargetForm()
+        return render(request, 'organizations/targets/create-target.html', {'form':form})
+    
+    def post(self, request, *args, **kwargs):
+        from forms.models import Question, Option
+        questions = request.POST.getlist('question')
+        organizations = request.POST.getlist('organization')
+        amounts = request.POST.getlist('target_amount')
+        asPQs = request.POST.getlist('as_percentage')
+        pqPercent = request.POST.getlist('percentage_of_question')
+        start = request.POST.getlist('target_start')
+        end = request.POST.getlist('target_end')
+        options = request.POST.getlist('match_option')
 
+        for i in range(len(questions)):
+            amountVal = int(amounts[i]) if amounts[i] else None
+            pqVal = int(asPQs[i]) if asPQs[i] else None
+            pqQuestion = get_object_or_404(Question, id=pqPercent[i]) if pqPercent[i] else None
+            option = get_object_or_404(Option, id=options[i]) if options[i] else None
+        
+            startDT = datetime.strptime(start[i], "%Y-%m-%d")
+            endDT = datetime.strptime(end[i], "%Y-%m-%d")
+
+            target = Target(    
+                question=get_object_or_404(Question, id=questions[i]), 
+                organization= get_object_or_404(Organization, id=organizations[i]),
+                target_amount = amountVal,
+                target_start = timezone.make_aware(startDT),
+                target_end = timezone.make_aware(endDT),
+                match_option = option,
+                as_percentage = pqVal,
+                percentage_of_question = pqQuestion,
+                )
+            target.save()
+            print(target)
+        return HttpResponseRedirect(reverse('organizations:view-targets-index'))
+    
 class UpdateTarget(LoginRequiredMixin, generic.UpdateView):
     model=Target
     template_name = 'organizations/targets/update-target.html'
@@ -200,6 +232,7 @@ class CreateUser(LoginRequiredMixin, generic.CreateView):
         return reverse_lazy('organiations:view-employee-detail', kwargs={'pk': self.object.id})
     
 
+#views related to getting data
 class GetTargetDetails(LoginRequiredMixin, View):
     def get(self, request, pk):
         target = Target.objects.filter(id=pk).first()

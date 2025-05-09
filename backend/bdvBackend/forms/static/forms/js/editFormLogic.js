@@ -196,7 +196,7 @@ function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=n
     if(existing){
         pqSelect.value = existing.rules[0].parent_question[existingIndex]
     }
-
+    addSearch()
     const negateDiv = document.createElement('div')
     negateDiv.setAttribute('class', 'negate')
     logicRule.appendChild(negateDiv)
@@ -356,6 +356,7 @@ async function checkLogic(q){
     }
 }
 Array.from(questions).forEach((q) => {
+    console.log(q)
     createButtons(q);
     checkLogic(q)
 })
@@ -369,6 +370,12 @@ function addQuestion(question){
     //if this question had any values populated, set them to blank
     const questionSelect = questionDiv.querySelector('#id_question')
     questionSelect.value = ''
+    //also, if a search bar was present, remove it
+    const searchBar = questionDiv.querySelector('.select-search')
+    if(searchBar){
+        questionDiv.removeChild(searchBar)
+    }
+    
 
     //remove any logic as well
     if(questionDiv.querySelector('.question-logic')){
@@ -378,13 +385,6 @@ function addQuestion(question){
     
     questionsList.insertBefore(questionDiv, question);
     question.after(questionDiv);
-
-    /*
-    //add checker for showing display if value here
-    const qLogicSelect = questionDiv.querySelector('#id_visible_if_question')
-    questionLogic(questionDiv)
-    qLogicSelect.onchange = () => questionLogic(questionDiv)
-    */
 
     //for the purpose of reorganzing quesitons
     //reset the index here
@@ -403,6 +403,7 @@ function addQuestion(question){
     const oldButtons = questionDiv.querySelector('.buttons');
     oldButtons.remove()
     createButtons(questionDiv)
+    addSearch() //add search ability, make sure select-search is included in the base
     
 }
 

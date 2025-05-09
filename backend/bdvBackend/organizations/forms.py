@@ -11,7 +11,8 @@ class TargetForm(forms.ModelForm):
     class Meta: 
         model=Target
         fields = [
-            'question', 'organization', 'target_amount', 'target_start', 'target_end', 'match_option'
+            'question', 'organization', 'target_amount', 'percentage_of_question', 'as_percentage',
+            'target_start', 'target_end', 'match_option',
             ]
         widgets = {
             'target_start': DateInput(), 'target_end':DateInput()

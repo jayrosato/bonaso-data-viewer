@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'organizations/create-targets.css' %}">
+<div class="content">
+    {% if user.userprofile.access_level == 'admin' %}
+        <h1>Create New Targets</h1>
+        <form action="" method="post">
+        <table>
+            <thead>
+                <th>Question</th>
+                <th>Organization</th>
+                <th>Amount</th>
+                <th>As Percentage OF</th>
+                <th>Percent</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Match Option?</th>
+            </thead>
+            <tbody>
+                {%csrf_token%}
+                <tr>
+                    {% for field in form %}
+                        <td>{{field}}</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+        <div class="controls">
+            <input type="submit" value="Submit">
+            <button type ="button" id="add-row">Add Row</button>
+        </div>
+        </form>
+    {% else %}
+            <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
+    {% endif %}
+</div>
+<script src="{% static 'organizations/js/add-target-row.js' %}"></script>
+<script src="{% static 'organizations/js/target-limit-option.js' %}"></script>
+<script src="{% static 'organizations/js/validate-targets.js' %}"></script>
+{% endblock %}

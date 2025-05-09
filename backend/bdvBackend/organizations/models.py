@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import Count
 
@@ -24,14 +24,32 @@ class Organization(models.Model):
         return self.organization_name
 
 class Target(models.Model):
-    question = models.ForeignKey('forms.Question', on_delete=models.CASCADE)
+    question = models.ForeignKey('forms.Question', on_delete=models.CASCADE, related_name='target_question')
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, default=Organization.get_default_pk)
-    target_amount = models.IntegerField()
+    target_amount = models.IntegerField(blank=True, null=True)
     target_start = models.DateField('Target Period Start')
     target_end = models.DateField('Target Period End')
     match_option = models.ForeignKey('forms.Option', blank=True, null=True, default = None, on_delete=models.CASCADE)
+    percentage_of_question = models.ForeignKey('forms.Question', on_delete=models.CASCADE, related_name='percent_of_question', blank=True, null=True)
+    as_percentage = models.IntegerField(blank=True, null=True)
     def __str__(self):
         return f'Target for {self.organization} for {self.question} for period {self.target_start} to {self.target_end}.'
+
+    def clean(self):
+        super().clean()
+        if not (self.target_amount or self.percentage_of_question):
+            raise ValidationError({
+                'target_amount': "Either Target Amount or Percentage of Question must be filled.",
+                'percentage_of_question': "Either Target Amount or Percentage of Question must be filled.",
+            })
+        if(self.percentage_of_question and not self.as_percentage):
+            self.as_percentage = 100
+
+    def save(self, *args, **kwargs):
+        if self.percentage_of_question and not self.as_percentage:
+            self.as_percentage = 100
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def get_actual(self):
         from forms.models import Response, Answer

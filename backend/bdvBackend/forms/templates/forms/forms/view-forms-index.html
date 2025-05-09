@@ -14,7 +14,7 @@
         <table class="sortable-table">
             <thead>
                 <tr>
-                    <th sort="text">Form </th>
+                    <th sort="text" filter="value">Form </th>
                     <th sort="text" filter="value">Organization</th>
                     <th sort="number" filter="number">Responses</th>
                     <th sort="date" filter="date">Started</th>
@@ -43,6 +43,5 @@
     {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
             <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
     {% endif %}
-    <script src="{% static 'js/sort-tables.js' %}"></script>
 </div>
 {% endblock %}

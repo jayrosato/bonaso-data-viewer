@@ -94,6 +94,7 @@ body{
     border-radius: 10px;
     background-color: rgb(21, 103, 54);
     color: white;
+    overflow: scroll;
 
 }
 

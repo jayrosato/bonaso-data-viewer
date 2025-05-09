@@ -1,12 +1,14 @@
 document.addEventListener('DOMContentLoaded', async function () {
     addClickable()
     const search = document.querySelector('.search-records')
-    search.addEventListener('change', () => searchRecords())
     createFilters()
 });
 let check = [] //{row:int, col:int, bool:t/f}
 function createFilters(){
     let table = document.querySelector('.sortable-table');
+    if(!table){
+        return
+    }
     const headers = table.querySelectorAll('th')
     headers.forEach((h, index) =>{
         const checkFilter = h.getAttribute('filter')

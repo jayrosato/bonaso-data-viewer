@@ -3,11 +3,7 @@
 {% block content %}
 <div class="content">
     {% if user.userprofile.access_level == 'admin' %}
-        {% if target.id %}
-            <h1>Editing {{target}}</h1>
-        {% else %}
-            <h1>Create New Target</h1>
-        {% endif %}
+        <h1>Editing {{target}}</h1>
         <form action="" method="post">
             {%csrf_token%}
             {{ form }}
