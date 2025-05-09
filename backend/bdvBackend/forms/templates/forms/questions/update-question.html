@@ -11,7 +11,7 @@
             {{ form }}
             {% if options %}
                 {% for option in options %}
-                    <div class="option_passer" option_text="{{option.option_text}}"></div>
+                    <div class="option_passer" option_text="{{option.option_text}}" special="{{option.special}}"></div>
                 {% endfor %}
             {% endif %}
     </div>
@@ -24,7 +24,7 @@
                     </a>
             {% endif %}
     {% endif %}
-    <script src="{% static 'forms/editQuestionLogic.js' %}"></script>
+    <script src="{% static 'forms/js/editQuestionLogic.js' %}"></script>
 </div>
 
 {% endblock %}

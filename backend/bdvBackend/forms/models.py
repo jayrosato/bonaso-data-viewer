@@ -167,8 +167,16 @@ class FormLogicRule(models.Model):
         return f'{self.parent_question} with value {self.expected_values}.'
 
 class Option(models.Model):
+    NONE = 'None of the above'
+    ALL = 'All'
+    
+    SPEC_CHOICES = [
+        (NONE, 'None of the above'),
+        (ALL, 'All'),
+    ]
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     option_text = models.TextField()
+    special = models.CharField(max_length=255, choices=SPEC_CHOICES, blank=True, null=True, default=None)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.option_text

@@ -276,7 +276,12 @@ class CreateQuestion(LoginRequiredMixin, View):
             options = data.get('options')
             if len(options) > 0:
                 for i in range(len(options)):
-                    option = Option(question = question, option_text=options[i])
+                    special = options[i]['special']
+                    if special == '':
+                        os = None
+                    else:
+                        os = options[i]['special']
+                    option = Option(question = question, option_text=options[i]['text'], special=os)
                     option.save()
             return JsonResponse({'redirect': reverse('forms:view-questions')})
         except:
@@ -291,8 +296,6 @@ class UpdateQuestion(LoginRequiredMixin, View):
                            'msg':'Double check that all the fields are correctly filled out.',
                             'question':question })
 
-    #options are currently assuming same load order
-    #should probably add some validation logic here (at least for length/remove blanks)
     def post(self, request, pk):
         try:
             data = json.loads(request.body)
@@ -301,19 +304,25 @@ class UpdateQuestion(LoginRequiredMixin, View):
             question.question_type = data.get('question_type')
             question.save()
             options = data.get('options')
+            print(options)
             existingOptions = Option.objects.filter(question=question.id)
             if len(existingOptions) > len(options):
                 for extra in existingOptions[len(options):]:
                     extra.delete()
-
             if len(options) > 0:
                 for i in range(len(options)):
+                    special = options[i]['special']
+                    if special == '':
+                        os = None
+                    else:
+                        os = options[i]['special']
                     if i+1 <= len(existingOptions):
                         option = existingOptions[i]
-                        option.option_text = options[i]
+                        option.option_text = options[i]['text']
+                        option.special = os
                         option.save()
                     else:
-                        option = Option(question = question, option_text=options[i])
+                        option = Option(question = question, option_text=options[i]['text'], special=os)
                         option.save()
             return JsonResponse({'redirect': reverse('forms:view-questions')})
         except:
@@ -400,7 +409,11 @@ class NewResponse(LoginRequiredMixin, View):
                 answer.save()
             if self.form_questions[i].question_type == 'Multiple Selections':
                 selected_options = request.POST.getlist(self.form_questions[i].question_text)
+                #check if the options selected is none, and if so record nothing
                 for o in range(len(selected_options)):
+                    option=get_object_or_404(Option, pk=selected_options[o])
+                    if option.special == 'None of the above':
+                        continue
                     answer = Answer(response=response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                     answer.save()
         return HttpResponseRedirect(reverse("forms:view-forms-index"))
@@ -461,6 +474,9 @@ class UpdateResponse(LoginRequiredMixin, View):
                 for answer in previous_answers:
                     answer.delete()
                 for o in range(len(selected_options)):
+                    option=get_object_or_404(Option, pk=selected_options[o])
+                    if option.special == 'None of the above':
+                        continue
                     answer = Answer(response=self.response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                     answer.save()
         return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': self.response.id}))

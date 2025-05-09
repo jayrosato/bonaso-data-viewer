@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function addSearch(){
     const selects = document.querySelectorAll('select')
     selects.forEach((select) => {
+        if(select.getAttribute('search') == 'no'){
+            return
+        }
         let selectParent = select.parentElement
         let selectLoc = selectParent.nodeName.toLocaleLowerCase();
         if(selectLoc == 'th'){

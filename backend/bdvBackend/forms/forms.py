@@ -2,6 +2,8 @@ from django import forms
 from django.forms import ModelForm
 from django.forms import inlineformset_factory
 from django.db.models import Q
+from django.forms.widgets import CheckboxSelectMultiple
+
 from .models import Respondent, Question, Option, FormQuestion, Form, Answer, User
 
 class DateInput(forms.DateInput):
@@ -27,6 +29,15 @@ class RespondentForm(ModelForm):
         self.fields['created_by'].queryset = User.objects.filter(id=user.id)
         self.fields['created_by'].initial = User.objects.filter(id=user.id)
 
+class DynamicCheckboxes(CheckboxSelectMultiple):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+
+        if hasattr(value, 'instance') and hasattr(value.instance, 'special'):
+            special_value = value.instance.special
+            option['attrs']['data-special'] = special_value
+        return option
+    
 class ResponseForm(forms.Form):
     def __init__(self, *args, formQs, response=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,7 +86,7 @@ class ResponseForm(forms.Form):
                         continue
            
             if formQs[i].question_type == 'Multiple Selections':
-                self.fields[field_name] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.CheckboxSelectMultiple)
+                self.fields[field_name] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=DynamicCheckboxes)
                 if response:
                     try:
                         answers = Answer.objects.filter(response=self.response.id, question=formQs[i].id)

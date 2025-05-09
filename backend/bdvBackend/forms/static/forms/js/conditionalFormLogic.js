@@ -12,7 +12,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         })
         )
     }
-
+    function loadSpecialOptions(){
+        const msInputs = document.querySelectorAll('[data-special]')
+        msInputs.forEach((input) => {
+            input.onclick = () => manageSpecialOptions(input)
+        })
+        
+    }
+    loadSpecialOptions()
     form.addEventListener('change', function () {
         updateForm(questions, formLogic);
         verifyFields();
@@ -26,7 +33,6 @@ let flags = []
 let msg = ''
 function verifyFields(){
     const numbers = document.querySelectorAll('[number="yes"]')
-    console.log(numbers)
     numbers.forEach((n) => {
         if(isNaN(parseInt(n.value)) && n.value != ''){
             flags.push(n.getAttribute('name'))
@@ -43,7 +49,26 @@ function verifyFields(){
     }
 }
 
-
+function manageSpecialOptions(input){
+    const question = input.parentElement.parentElement.parentElement
+    const options = question.querySelectorAll('[data-special]')
+    const special = input.getAttribute('data-special')
+    if(special == 'None of the above' || special == 'All'){
+        options.forEach((option) => {
+            if(option != input){
+                option.checked = false
+            }
+        })
+    }
+    else{
+        options.forEach((option) => {
+            let spec = option.getAttribute('data-special')
+            if(spec == 'None of the above' || spec == 'All'){
+                option.checked = false
+            }
+        })
+    }
+}   
 
 //django forms load multiple choice options within a div, but not text choices, so we need to account for both
 
@@ -79,12 +104,19 @@ function updateForm(questions, logic){
                 const nv = negate[q]
                 if(pq.nodeName.toLowerCase() == 'div'){
                     const pqInputs = pq.querySelectorAll('input')
-                    const values = []
+                    let values = []
                     pqInputs.forEach((i) => {
                         if(i.checked == true){
+                            if(i.getAttribute('data-special') == 'None of the above'){
+                                values.push('nullify array')
+                            }
                             values.push(i.value)
                         }
                     })
+                    console.log(values)
+                    if(values.includes('nullify array')){
+                        values = []
+                    }
                     if(ev == 'any' && values.length > 0){
                         conditionMet = true
                     }
@@ -110,7 +142,7 @@ function updateForm(questions, logic){
                             }
                         })
                         question.querySelectorAll('input').forEach((q) =>{
-                            if(!checkedValues.includes(q.parentElement.innerText.trim().toLowerCase())){
+                            if(!checkedValues.includes(q.parentElement.innerText.trim().toLowerCase()) && q.getAttribute('data-special') != 'None of the above'){
                                 q.checked = false
                                 q.parentElement.style.display = 'none'
                             }

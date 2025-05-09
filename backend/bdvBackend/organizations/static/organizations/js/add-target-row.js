@@ -12,6 +12,9 @@ function addRow(){
     const selects = newRow.querySelectorAll('select')
     selects.forEach(select => {
         select.value = ''
+        if(select.getAttribute('id') == 'id_organization'){
+            select.value = '1'
+        }
     });
     const inputs = newRow.querySelectorAll('input')
     inputs.forEach(input => {

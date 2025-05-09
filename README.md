@@ -9,10 +9,10 @@ Planned Future Imporvements:
         File uploading for forms is a bit janky right now. There needs to be some more validation (checking logic, proper inputs, etc.) and there should also be a way for responses to be updated via files. Also, users need more information about when a field/respondent runs into an error so they can correct on their end. 
     
     Better UI for filtering:
-        This site is theoretically supposed to manage quite a few people, so at some point, the numberor forms/questions/responses/options is going to get out of hand. There needs to be some kind of filtering/search funcitonality for a lot of the select options, and probably also something like filters and page navigators for using indexes. 
+        Search bars for selects are functional, but not very ui friendly, and 100% need to be worked on. Also, some of the filters for tables need to be redone slightly.
 
     Better data validity checks/error handling:
-        There is some basic funcitonality here already, but still quite a few ways a user could accidently create an error. Also, the few validity checks that exist have poor messaging. 
+        Data validity is basically funcitonal, but there needs to be better messaging. Also, we need to determine a way to record an absence of data (i.e., none).
 
 
 Important Notes:

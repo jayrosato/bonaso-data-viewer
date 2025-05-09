@@ -21,35 +21,50 @@ const url = submitButton.getAttribute('submit-url')
 submitButton.onclick = () => submit();
 const warnings = document.getElementById('warnings')
 
-window.onload = showOptions()
-
-function loadExisting(){
-    const existingOptions = document.getElementsByClassName('option_passer')
-    Array.from(existingOptions).forEach((o) =>{
-        let option = o.getAttribute('option_text')
-        addOption(option)
-    })
-}
-
-
 document.addEventListener('DOMContentLoaded', function () {
     const qTypeSelector = document.getElementById('id_question_type');
-
     qTypeSelector.addEventListener('change', function () {
         showOptions();
     });
     showOptions();
 });
 
+//pre pop special stuff here!
+function loadExisting(){
+    const existingOptions = document.getElementsByClassName('option_passer')
+    Array.from(existingOptions).forEach((o) =>{
+        let option = o.getAttribute('option_text')
+        let existingSpecial = o.getAttribute('special')
+        addOption(option, existingSpecial)
+    })
+}
 
-function addOption(prefill=''){
+function addOption(existingText='', existingSpecial=''){
     const optionDiv = document.createElement('div');
     optionDiv.setAttribute('class', 'option');
     const optionTextInput = document.createElement('input');
     optionTextInput.setAttribute('name', 'option_text');
     optionTextInput.setAttribute('type', 'text');
-    optionTextInput.value = prefill
+    optionTextInput.value = existingText
     optionDiv.appendChild(optionTextInput);
+
+    const optionSpecialInput = document.createElement('select')
+    optionSpecialInput.setAttribute('name', 'special')
+    optionSpecialInput.setAttribute('search', 'no')
+    const specialShow = ['-----', 'None of the above'] //should probably add an all here
+    const special = ['', 'None of the above']
+    special.forEach((val, index) => {
+        const option = document.createElement('option')
+        option.setAttribute('value', val)
+        option.innerText = specialShow[index]
+        optionSpecialInput.appendChild(option)
+    })
+    optionDiv.appendChild(optionSpecialInput)
+    Array.from(optionSpecialInput.options).forEach(option => {
+        if (option.value === existingSpecial) {
+            option.selected = true;
+        }
+    });
 
     const removeOptionButton = document.createElement('button');
     removeOptionButton.innerText = 'Remove Option';
@@ -64,11 +79,11 @@ function showOptions(){
     const qType = qTypeSelector.value;
     if(qType == 'Single Selection' || qType == 'Multiple Selections'){
         if(!document.getElementById('addOptionButton')){
-        const addOptionButton = document.createElement('button');
-        addOptionButton.setAttribute('id', 'addOptionButton') ;
-        addOptionButton.onclick = () => addOption();
-        addOptionButton.innerText = 'Add an Option';
-        div.appendChild(addOptionButton);
+            const addOptionButton = document.createElement('button');
+            addOptionButton.setAttribute('id', 'addOptionButton') ;
+            addOptionButton.onclick = () => addOption();
+            addOptionButton.innerText = 'Add an Option';
+            div.appendChild(addOptionButton);
         };
         loadExisting()
     }
@@ -102,8 +117,9 @@ function submit(){
     }
 
     const optionsInput = document.getElementsByName('option_text');
+    const optionsSpecial = document.getElementsByName('special');
     const options = []
-    Array.from(optionsInput).forEach((o) => {
+    Array.from(optionsInput).forEach((o, index) => {
         if(o.value == ''){
             warnings.innerText += ' Option cannot be blank'
             flag = true
@@ -112,7 +128,7 @@ function submit(){
             warnings.innerText += ' Option must be less than 255 characters.'
             flag = true
         }
-        else{options.push(o.value)}
+        else{options.push({'text':o.value, 'special':optionsSpecial[index].value})}
     
     })
     if(flag == true){
