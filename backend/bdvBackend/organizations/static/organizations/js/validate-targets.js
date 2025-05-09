@@ -25,9 +25,19 @@ function validateTargets(){
     const submit = document.getElementById('submit')
     let messages = ''
     const table = document.querySelector('tbody')
-    const amounts = table.querySelectorAll('#id_target_amount')
-    const pqSelects = table.querySelectorAll('#id_percentage_of_question')
-    const pqInputs = table.querySelectorAll('#id_as_percentage')
+    let amounts = null
+    let pqSelects = null
+    let pqInputs = null
+    if(table){
+        amounts = table.querySelectorAll('#id_target_amount')
+        pqSelects = table.querySelectorAll('#id_percentage_of_question')
+        pqInputs = table.querySelectorAll('#id_as_percentage')
+    }
+    else{
+        amounts = document.querySelectorAll('#id_target_amount')
+        pqSelects = document.querySelectorAll('#id_percentage_of_question')
+        pqInputs = document.querySelectorAll('#id_as_percentage') 
+    }
     amounts.forEach((amount, index) => {
         const amountValue = amount.value
         const pqSelectValue = pqSelects[index].value
