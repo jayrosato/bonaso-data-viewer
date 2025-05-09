@@ -62,4 +62,20 @@ class Target(models.Model):
                 answers = Answer.objects.filter(response__id__in=responses, question=self.question, option=self.match_option)
             else:
                 answers = Answer.objects.filter(response__id__in=responses, question=self.question)
-        return answers.values('response').distinct().count()
+        if self.target_amount:
+            return answers.values('response').distinct().count()
+        else:
+            target_count = answers.values('response').distinct().count()
+            if self.percentage_of_question.question_type == 'Yes/No':
+                ref_answers = Answer.objects.filter(response__id__in=responses, question=self.percentage_of_question, open_answer='Yes')
+            elif self.percentage_of_question.question_type == 'Single Select' or self.question.question_type == 'Multiple Selections':
+                if self.match_option:
+                    ref_answers = Answer.objects.filter(response__id__in=responses, question=self.percentage_of_question, option=self.match_option)
+                else:
+                    ref_answers = Answer.objects.filter(response__id__in=responses, question=self.percentage_of_question)
+            ref_count = ref_answers.values('response').distinct().count()
+            if ref_count > 0:
+                percentage = f'{(target_count/ref_count)*100}%'
+                return percentage
+            else:
+                return 0

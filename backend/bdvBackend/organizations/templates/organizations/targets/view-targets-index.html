@@ -12,7 +12,6 @@
                 <th sort="text" filter="value">Question</th>
                 <th sort="number" filter="number">Target</th>
                 <th sort="number" filter="number">Actual</th>
-                <th> As %</th>
                 <th sort="text" filter="value">Organization</th>
                 <th sort="date" filter="date">Start</th>
                 <th sort="date" filter="date">End</th>
@@ -24,9 +23,12 @@
             {% for target in targets %}
             <tr>
                 <td><a href="{% url 'organizations:view-target-detail' target.id %}" >{{target.question}}</a></td>
-                <td>{{target.target_amount}}</td>
+                {% if target.target_amount%}
+                    <td>{{target.target_amount}}</td>
+                {% else %}
+                    <td>{{target.as_percentage}}% of {{target.percentage_of_question}}</td>
+                {% endif %}
                 <td>{{target.get_actual}}</td>
-                <td>{{target.percentage_of_question}} of{{target.as_percentage}}</td>
                 <td>{{target.organization}}</td>
                 <td>{{target.target_start}}</td>
                 <td>{{target.target_end}}</td>
