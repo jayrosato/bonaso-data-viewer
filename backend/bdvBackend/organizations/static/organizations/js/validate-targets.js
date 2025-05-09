@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', async function () {
+    const form = document.querySelector('#target-form')
+    form.addEventListener('change', function () {validateTargets()})
     const numberInputs = document.querySelectorAll('#id_target_amount')
     const pqSelects = document.querySelectorAll('#id_percentage_of_question')
     const pqInputs = document.querySelectorAll('#id_as_percentage')
@@ -10,6 +12,48 @@ document.addEventListener('DOMContentLoaded', async function () {
         input.onchange = () => checkInputs(numberInputs[index], pqSelects[index], pqInputs[index])
 })
 });
+
+function showWarning(messages){
+    const messageBox = document.querySelector('#messages')
+    messageBox.innerText = messages
+
+}
+
+function validateTargets(){
+    console.log('validating')
+    let flagged = false
+    const submit = document.getElementById('submit')
+    let messages = ''
+    const table = document.querySelector('tbody')
+    const amounts = table.querySelectorAll('#id_target_amount')
+    const pqSelects = table.querySelectorAll('#id_percentage_of_question')
+    const pqInputs = table.querySelectorAll('#id_as_percentage')
+    amounts.forEach((amount, index) => {
+        const amountValue = amount.value
+        const pqSelectValue = pqSelects[index].value
+        const pqInputsValue = pqInputs[index].value
+        console.log(amountValue, pqSelectValue)
+        if(amountValue == '' && pqSelectValue == ''){
+            messages += `\nWarning! Target in row ${index+1} must have either a target amount or a percentage of a question.`
+            flagged = true
+        }
+        else if(pqInputsValue == '' && pqSelectValue != ''){
+            messages += `\nWarning! Target in row ${index+1} must have percent.`
+            flagged = true
+        }
+        else if(pqInputsValue < 0 || pqInputsValue > 100){
+            messages += `\nWarning! Percent in row ${index+1} must be between 1 and 100%.`
+            flagged = true
+        }
+    })
+    if(flagged){
+        submit.setAttribute('type', 'button')
+        submit.onclick = () => showWarning(messages)
+    }
+    else if(!flagged){
+        submit.setAttribute('type', 'submit')
+    }
+}
 
 function checkInputs(amount, pqSelect, pqInput){
     if(amount.value != ''){
@@ -25,6 +69,9 @@ function checkInputs(amount, pqSelect, pqInput){
     if(pqSelect.value != ''){
         amount.style.display = 'none'
         amount.value = ''
+        if(pqInput.value == ''){
+            pqInput.value = 100
+        }
     }
     if(pqSelect.value == ''){
         amount.style.display = ''

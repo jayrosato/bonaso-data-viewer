@@ -8,12 +8,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 async function updateOptions(question, optionSelect){
     const qID = question.value
-    console.log(qID)
     if(qID){
         const response = await fetch(`/forms/data/query/questions/${qID}/meta`)
         const optionsInfo = await response.json()
         const options = optionSelect.querySelectorAll('option')
-        console.log(optionsInfo.option_ids)
         if(optionsInfo.question_type == 'Single Select' || optionsInfo.question_type == 'Multiple Selections'){
             options.forEach((option) => {
                 if(optionsInfo.option_ids.includes(parseInt(option.value))){
