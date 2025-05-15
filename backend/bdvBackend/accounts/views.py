@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic, View
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login, authenticate
+import json
 
 User = get_user_model()
 from accounts.models import UserProfile
@@ -43,3 +44,33 @@ class Profile(LoginRequiredMixin, generic.DetailView):
 
         context['employee_user_profile'] = employee_user_profile
         return context
+
+
+#for verifying mobile logins
+'''
+attempt = {
+    'username':username,
+    'password': raw_password
+}
+'''
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MobileLoginRequest(View):
+    def post(self, request):
+        attempt = json.loads(request.body)
+        username = attempt['username']
+        password = attempt['password']
+        user=authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            response = {
+                'status':'success',
+                'session_id':'12345'
+            }
+        else:
+            response = {
+                'status':'Incorrect username or password.'
+            }
+        return JsonResponse(response)
