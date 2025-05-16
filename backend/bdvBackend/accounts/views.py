@@ -47,21 +47,22 @@ class Profile(LoginRequiredMixin, generic.DetailView):
 
 
 #for verifying mobile logins
-'''
-attempt = {
-    'username':username,
-    'password': raw_password
-}
-'''
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from rest_framework.response import Response as APIResponse
+from rest_framework import status, permissions
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-@method_decorator(csrf_exempt, name='dispatch')
-class MobileLoginRequest(View):
+from .serializers import MyTokenObtainPairSerializer
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+    
+class MobileLoginRequest(APIView):
     def post(self, request):
         attempt = json.loads(request.body)
-        username = attempt['username']
-        password = attempt['password']
+        print(attempt)
+        username = attempt['data']['username']
+        password = attempt['data']['password']
         user=authenticate(username=username, password=password)
         if user:
             login(request, user)
@@ -73,4 +74,5 @@ class MobileLoginRequest(View):
             response = {
                 'status':'Incorrect username or password.'
             }
-        return JsonResponse(response)
+
+        return APIResponse(response)
