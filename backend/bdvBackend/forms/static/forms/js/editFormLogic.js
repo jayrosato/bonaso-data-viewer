@@ -41,12 +41,22 @@ function createButtons(q){
     addQuestionButton.onclick = () => addQuestion(q);
     buttons.appendChild(addQuestionButton);
 
+
     const addQuestionLogicButton = document.createElement('button');
     addQuestionLogicButton.innerText = 'Add Question Logic'
     addQuestionLogicButton.setAttribute('class', 'addQlButton')
     addQuestionLogicButton.type = ('button');
-    addQuestionLogicButton.onclick = () => addQuestionLogic(q);
-    buttons.appendChild(addQuestionLogicButton)
+    let index = q.getAttribute('index');
+    index = parseInt(index);
+    if(index == 0){
+        addQuestionLogicButton.onclick = () => msg.innerText = 'The first question of a form must always be shown, and therefore cannot have logic.'
+        addQuestionLogicButton.style.backgroundColor = 'grey'
+    }
+    else{
+        addQuestionLogicButton.onclick = () => addQuestionLogic(q);
+        buttons.appendChild(addQuestionLogicButton)
+    }
+    buttons.append(addQuestionLogicButton)
 
     const shiftQUpButton = document.createElement('button');
     shiftQUpButton.innerText = 'Move Question Up';
@@ -83,7 +93,8 @@ async function addQuestionLogic(q, existing=null){
     }
     qlButton.innerText = 'Remove Question Logic'
 
-    //create element allowing user to choose what happens when conditions are met
+    //create element allowing user to choose what happens when conditions are met (debating to keep this feature)
+    /*
     const onMatchLabel = document.createElement('label')
     onMatchLabel.innerText = 'Show or hide on match?'
     logicDiv.appendChild(onMatchLabel)
@@ -101,6 +112,12 @@ async function addQuestionLogic(q, existing=null){
     if(existing){
         onMatch.value = existing.on_match
     }
+    */
+
+    const onMatchLabel = document.createElement('label')
+    onMatchLabel.innerText = 'Show when: '
+    onMatchLabel.style.fontWeight = 'bold'
+    logicDiv.appendChild(onMatchLabel)
 
     const operatorLabel = document.createElement('label')
     operatorLabel.innerText = 'Operator (if dependent on multiple questions)'
@@ -108,6 +125,7 @@ async function addQuestionLogic(q, existing=null){
     const operator = document.createElement('select')
 
     operator.setAttribute('name', `logic[${ruleId}][operator]`)
+    operator.setAttribute('search', 'no')
     const operatorAnd = document.createElement('option')
     operatorAnd.innerText = 'AND'
     operatorAnd.value = 'AND'
@@ -117,27 +135,18 @@ async function addQuestionLogic(q, existing=null){
     operatorOr.innerText = 'OR'
     operatorOr.value = 'OR'
     operator.appendChild(operatorOr)
-
     logicDiv.appendChild(operator)
 
     if(existing){
         operator.value = existing.conditional_operator
     }
-
-    const limitOptionsDiv = document.createElement('div')
-    limitOptionsDiv.setAttribute('class', 'limit-options')
-    logicDiv.appendChild(limitOptionsDiv)
-    const limitOptionsLabel = document.createElement('label')
-    limitOptionsLabel.innerText = 'Limit Options based on Question'
-    const limitOptions = document.createElement('input')
-    limitOptions.setAttribute('name', `logic[${ruleId}][limit_options]`)
-    limitOptions.setAttribute('type', 'checkbox')
-    limitOptionsDiv.appendChild(limitOptionsLabel)
-    limitOptionsDiv.appendChild(limitOptions)
-    if(existing){
-        if(existing.limit_options == true)
-            limitOptions.checked = true
+    else{
+        operator.value = 'AND'
     }
+
+    //hide these by default, since they are meaningless if there is only one rule
+    operatorLabel.display = 'none';
+    operator.style.display = 'none';
 
     const addRuleButton = document.createElement('button')
     addRuleButton.setAttribute('type', 'button')
@@ -167,7 +176,20 @@ function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=n
     const removeRuleButton = document.createElement('button')
     removeRuleButton.setAttribute('type', 'button')
     removeRuleButton.innerText='Remove Rule'
-    removeRuleButton.onclick = () => logicDiv.removeChild(logicRule)
+    removeRuleButton.onclick = () => {
+        logicDiv.removeChild(logicRule)
+        const checkRules = logicDiv.querySelectorAll('.logic-rule')
+        if(checkRules && checkRules.length == 1){
+            const operator = logicDiv.querySelector(`[name = "logic[${ruleId}][operator]"]`)
+            operator.style.display = 'none'
+        }
+        if(checkRules.length == 0){
+            q.removeChild(logicDiv)
+            const addQlButton = q.querySelector('.addQlButton')
+            addQlButton.innerText = 'Add Question Logic'
+            addQlButton.onclick = () => addQuestionLogic(q)
+        }
+    }
     logicRule.appendChild(removeRuleButton)
 
     const questionHeader = document.createElement('p')
@@ -176,6 +198,7 @@ function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=n
 
     const pqSelect = document.createElement('select')
     pqSelect.setAttribute('name', `logic[${ruleId}][parent_question]`)
+    pqSelect.setAttribute('class', 'pqSelect')
     const parentQs = document.querySelectorAll('.question')
     const pqNull = document.createElement('option')
     pqNull.text = '-----'
@@ -213,10 +236,31 @@ function newLogicRule(q, logicDiv, addRuleButton, existing=null, existingIndex=n
         }
     }
 
+    const limitOptionsDiv = document.createElement('div')
+    limitOptionsDiv.setAttribute('class', 'limit-options')
+    logicRule.appendChild(limitOptionsDiv)
+    const limitOptionsLabel = document.createElement('label')
+    limitOptionsLabel.innerText = 'Limit Options based on Question'
+    const limitOptions = document.createElement('input')
+    limitOptions.setAttribute('name', `logic[${ruleId}][limit_options]`)
+    limitOptions.setAttribute('type', 'checkbox')
+    limitOptionsDiv.appendChild(limitOptionsLabel)
+    limitOptionsDiv.appendChild(limitOptions)
+    if(existing){
+        if(existing.limit_options == true)
+            limitOptions.checked = true
+    }
+
     if(existing){
         existingValue = existing.rules[0].expected_values[existingIndex]
         setQLogicOptions(pqSelect, logicRule, ruleId, existingValue)
     }
+    const checkRules = logicDiv.querySelectorAll('.logic-rule')
+    if(checkRules && checkRules.length > 1){
+        const operator = logicDiv.querySelector(`[name = "logic[${ruleId}][operator]"]`)
+        operator.style.display = ''
+    }
+
 }
 
 async function setQLogicOptions(pqSelect, logicRule, ruleId, existingValue=null){   
@@ -355,9 +399,44 @@ async function checkLogic(q){
         }
     }
 }
+function addQChangeEvent(q){
+    const qSelect = q.querySelector('#id_question')
+    qSelect.onchange = () => updateRules(q)
+}
+
+function updateRules(q){
+    let index = q.getAttribute('index');
+    index = parseInt(index);
+
+    const pqSelects = document.querySelectorAll(`.pqSelect`)
+    pqSelects.forEach(pqSelect =>{
+        const pqSelectIndex = parseInt(pqSelect.parentElement.parentElement.parentElement.getAttribute('index'))
+        if(pqSelectIndex <= index){
+            return
+        }
+        const options = pqSelect.querySelectorAll('option')
+        options.forEach(option => {
+            if(option.value){
+                pqSelect.removeChild(option)
+            }
+        })
+        const parentQs = document.querySelectorAll('.question')
+        parentQs.forEach((pq) => {
+            if(pqSelectIndex > pq.getAttribute('index')){
+                const selector = pq.querySelector('select')
+                const questionId = selector.value
+                const questionText = selector.options[selector.selectedIndex].text
+                const pqOption = document.createElement('option')
+                pqOption.value = questionId
+                pqOption.text = questionText
+                pqSelect.appendChild(pqOption)
+            }
+        })
+    })
+}
 Array.from(questions).forEach((q) => {
-    console.log(q)
     createButtons(q);
+    addQChangeEvent(q);
     checkLogic(q)
 })
 
@@ -418,8 +497,13 @@ function removeQuestion(question){
    questionsList.removeChild(question);
     const allQuestions =questionsList.children;
     for(let i=0; i< allQuestions.length; i++){
-       allQuestions[i].setAttribute('index', `${i}`);
-       reorderLogic(allQuestions[i], i)
+        allQuestions[i].setAttribute('index', `${i}`);
+        if(i==0){
+            const qLogicButton = allQuestions[i].querySelector('.addQlButton')
+            qLogicButton.onclick = () => msg.innerText = 'The first question of a form must always be shown, and therefore cannot have logic.'
+            qLogicButton.style.backgroundColor = 'grey'
+        }
+        reorderLogic(allQuestions[i], i)
     };
     
 }
@@ -428,8 +512,13 @@ function removeQuestion(question){
 function shiftQUp(question){
     let index = question.getAttribute('index');
     index = parseInt(index);
+    const questionsList = document.querySelector('.questions');
     if(index==0){
         console.log('max uppage');
+        return;
+    }
+    if(index == 1 && question.querySelector('.question-logic') != null){
+        msg.innerText = 'The first question of a form cannot contain logic. Please remove logic from this question before moving it up.'
         return;
     }
     const target = document.querySelector(`[index="${index-1}"]`);
@@ -439,26 +528,48 @@ function shiftQUp(question){
     index = parseInt(question.getAttribute('index'))
     reorderLogic(question, index)
     reorderLogic(target, index+1)
+    updateRules(question)
+    console.log(index)
+    if(index == 0){
+        const qLogicButton = question.querySelector('.addQlButton')
+        qLogicButton.onclick = () => msg.innerText = 'The first question of a form must always be shown, and therefore cannot have logic.'
+        qLogicButton.style.backgroundColor = 'grey'
+
+        const targetQLB = target.querySelector('.addQlButton')
+        targetQLB.onclick = () => addQuestionLogic(question)
+        targetQLB.style.backgroundColor = 'green'
+    }
 }
 
 //function that places a question beneath another one in the questionquestionsList. Also switches id.
 function shiftQDown(question){
     let index = question.getAttribute('index');
     index = parseInt(index);
-
-    if(index== questionsList.children.length){
+    const questionsList = document.querySelector('.questions');
+    if(index == questionsList.children.length-1){
         console.log('max downage');
         return;
     }
     const target = document.querySelector(`[index="${index+1}"]`);
-    console.log(target)
     questionsList.insertBefore(target, question);
     question.setAttribute('index', index+1);
     target.setAttribute('index', index);
     index = parseInt(question.getAttribute('index'))
     reorderLogic(question, index)
     reorderLogic(target, index-1)
+    updateRules(question)
+    console.log(index)
+    if(index ==1){
+        const qLogicButton = question.querySelector('.addQlButton')
+        qLogicButton.onclick = () => addQuestionLogic(question)
+        qLogicButton.style.backgroundColor = 'green'
+
+        const targetQLB = target.querySelector('.addQlButton')
+        targetQLB.onclick = () => msg.innerText = 'The first question of a form must always be shown, and therefore cannot have logic.'
+        targetQLB.style.backgroundColor = 'grey'
+    }
 }
+
 function reorderLogic(question, index){
     const logic = question.querySelector('.question-logic')
     if(logic){
@@ -472,8 +583,13 @@ function reorderLogic(question, index){
             select.setAttribute('name', newName)
         })
         const inputs = logic.querySelectorAll('input')
+        console.log(inputs)
         inputs.forEach((input) => {
             let name = input.getAttribute('name')
+            console.log(name)
+            if(!name || !name.includes('logic')){
+                return
+            }
             const regex = /logic\[\d+\]/
             const replace = name.match(regex)[0];
             const value = `logic[${index}]`

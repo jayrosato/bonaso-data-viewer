@@ -76,3 +76,7 @@ class MobileLoginRequest(APIView):
             }
 
         return APIResponse(response)
+    
+class CheckAPI(APIView):
+    def get(self, request):
+        return JsonResponse({'status':'ok'})

@@ -573,9 +573,61 @@ class GetQuestions(LoginRequiredMixin, View):
         questions = Question.objects.all()
         data = {
             'labels':[q.question_text for q in questions],
-            'ids':[q.id for q in questions]
+            'ids':[q.id for q in questions],
+            'types':[q.question_type for q in questions],
         }
         return JsonResponse(data)
+
+class GetFormInfo(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        formQuestions = FormQuestion.objects.filter(form=pk).order_by('index')
+        form_logic = FormLogic.objects.filter()
+        logic_rules = FormLogicRule.objects.all().select_related('form_logic')
+        logic_map = {
+            logic.conditional_question.id: {
+                'id': logic.id,
+                'conditional_operator': logic.conditional_operator,
+                'limit_options': logic.limit_options,
+                'rules': []
+            }
+            for logic in form_logic
+        }
+        for rule in logic_rules:
+            logic_id = rule.form_logic_id
+            for logic in form_logic:
+                if logic.id == logic_id:
+                    conditional_question_id = logic.conditional_question_id
+                    logic_map[conditional_question_id]['rules'].append({
+                                    'id': rule.id,
+                                    'parent_question': rule.parent_question_id,
+                                    'expected_values': rule.expected_values,
+                                    'value_comparison': rule.value_comparison,
+                                    'negate_value': rule.negate_value,
+                    })
+        data = []
+        for fq in formQuestions:
+            question=fq.question
+            fq_data= {
+                'id': fq.id,
+                    'index': fq.index,
+                    'question_id':question.id,
+                    'question': question.question_text,
+                    'question_type':question.question_type,
+                    'options':[
+                        {
+                            'id': option.id,
+                            'option_text': option.option_text,
+                            'special': option.special
+                        } for option in question.option_set.all()
+                    ]
+            }
+            if fq.id in logic_map:
+                fq_data['logic'] = logic_map[fq.id]
+
+            data.append(fq_data)
+            print(data)
+        return JsonResponse(data, safe=False)
+
 
 class GetData(LoginRequiredMixin, View):
     def get(self, request):
@@ -718,6 +770,7 @@ class GetForms(View):
 
             data.append(form_data)
         return JsonResponse(data, safe=False)
+
 
 class SyncMobileResponses(APIView):
     def post(self, request):

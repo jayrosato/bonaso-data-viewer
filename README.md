@@ -2,7 +2,10 @@
 Conceptual project creating a system for interacting with a database for my organization.
 
 Planned Future Imporvements:
-    System for Batch Uplaods:
+    Form Logic Logic:
+        Now that we've done a bit more work on form logic, It's probably time to redesign the editor a little bit to hide some options for some questions so that it is slightly easier for the users to work with it. 
+        
+    System for Batch Uploads:
         As either a supplement or alternative to file uploads based on forms, there should be a way for users to batch record a group of respondents and questions they were targeted with. 
         
     Improving File Uploads:

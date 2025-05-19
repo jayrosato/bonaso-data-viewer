@@ -38,6 +38,7 @@ urlpatterns = [
     path('data/query/questions', views.GetQuestions.as_view()),
     path('data/query/questions/<int:pk>', views.GetQuestionData.as_view(), name='data-get-q'),
     path('data/query/forms/questions/<int:form>/<int:index>', views.GetFormQuestionByIndex.as_view()),
+    path('data/query/forms/<int:pk>', views.GetFormInfo.as_view()),
 
     #testing mobile development
     path('mobile/getforms', views.GetForms.as_view()),

@@ -10,6 +10,7 @@
             <h2>Form Details</h2>
             {{ form }}
             <h2>Form Questions</h2>
+            <p id="msg"></p>
             <div class="questions" url="{% url 'forms:create-question' %}">
                 <div id="question-0" class="question" index="0">
                     {{ form_question }}
