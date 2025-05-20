@@ -13,7 +13,7 @@ function getCookie(name) {
     return cookieValue;
 };
 
-const csrftoken = getCookie('csrftoken');
+let csrftoken = null;
 
 const div = document.querySelector('.qForm');
 const submitButton = document.getElementById('submit');
@@ -22,6 +22,7 @@ submitButton.onclick = () => submit();
 const warnings = document.getElementById('warnings')
 
 document.addEventListener('DOMContentLoaded', function () {
+    csrftoken = getCookie('csrftoken')
     const qTypeSelector = document.getElementById('id_question_type');
     qTypeSelector.addEventListener('change', function () {
         showOptions();

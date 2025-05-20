@@ -6,8 +6,8 @@ app_name = "forms"
 urlpatterns = [
     path('', views.ViewFormsIndex.as_view(), name='view-forms-index'),
     path('<int:pk>/view', views.ViewFormDetail.as_view(), name='view-form-detail'),
-    path('create', views.CreateForm.as_view(), name='create-form'),
-    path('<int:pk>/update', views.UpdateForm.as_view(), name='update-form'),
+    path('create', views.CreateUpdateForm.as_view(), name='create-form'),
+    path('<int:pk>/update', views.CreateUpdateForm.as_view(), name='update-form'),
     path('<int:pk>/delete', views.DeleteForm.as_view(), name='delete-form'),
     path('<int:pk>/template', views.FormTemplate.as_view(), name='form-template'),
     

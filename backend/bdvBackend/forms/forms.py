@@ -96,6 +96,7 @@ class ResponseForm(forms.Form):
                         continue
 
             self.fields[field_name].widget.attrs.update({'class':'form_question'})
+            self.fields[field_name].widget.attrs.update({'fqID':formQs[i].id})
 
 class QuestionForm(forms.ModelForm):
     class Meta:

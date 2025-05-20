@@ -1,0 +1,175 @@
+class CreateForm(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'forms/forms/create-form-all.html', 
+                          { 'form': FormsForm(organization=request.user.userprofile.organization), 
+                           'form_question':FormQuestionForm(),
+                           'msg':'Double check that all the fields are correctly filled out.' })
+
+    def post(self, request):
+        from organizations.models import Organization
+        form = Form(
+            form_name = request.POST.get('form_name'),
+            organization = get_object_or_404(Organization, id=request.POST.get('organization')),
+            start_date = request.POST.get('start_date'),
+            end_date = request.POST.get('end_date'),
+            created_by = self.request.user
+            )
+        form.save()
+        questions = request.POST.getlist('question')
+        for i in range(len(questions)):
+            #create FormQuestion
+            formQ = FormQuestion(
+            form=form,
+            index = i,
+            question = get_object_or_404(Question, id=questions[i]),
+            )
+            formQ.save()
+            #check for and create conditions
+            if request.POST.get(f'logic[{i}][on_match]'):
+                if request.POST.get(f'logic[{i}][on_match]'):
+                    if request.POST.get(f'logic[{i}][limit_options]') == 'on':
+                        limitOptions = True
+                    else:
+                        limitOptions = False
+                formLogic = FormLogic(
+                    form=form,
+                    conditional_question = formQ,
+                    on_match = request.POST.get(f'logic[{i}][on_match]'),
+                    conditional_operator = request.POST.get(f'logic[{i}][operator]'),
+                    limit_options = limitOptions
+                )
+                formLogic.save()
+                for k in range(len(request.POST.getlist(f'logic[{i}][parent_question]'))):
+                    pqId = request.POST.getlist(f'logic[{i}][parent_question]')[k]
+                    parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                    try:
+                        if request.POST.getlist(f'logic[question-{i+1}][value_comparison]')[k]:
+                            valueComp = valueComp = request.POST.getlist(f'logic[{i}][value_comparison]')[k]
+                        else:
+                            valueComp = None
+                    except(IndexError):
+                        valueComp = None
+                    try:    
+                        if request.POST.getlist(f'logic[{i}][negate_value]')[k]:
+                            negateValue = True
+                        else:
+                            negateValue = False
+                    except(IndexError):
+                        negateValue = False
+                    formLogicRule = FormLogicRule(
+                        form_logic = formLogic,
+                        parent_question = parentFormQuestion,
+                        expected_values = request.POST.getlist(f'logic[{i}][expected_values]')[k],
+                        value_comparison = valueComp,
+                        negate_value = negateValue,
+                    )
+                    formLogicRule.save()
+        return HttpResponseRedirect(reverse('forms:view-form-detail', kwargs={'pk': form.id}))
+
+
+class UpdateForm(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        form = get_object_or_404(Form, id=pk)
+        formQs = FormQuestion.objects.filter(form = form.id).order_by('index')
+        formQForms = [FormQuestionForm(instance=fq) for fq in formQs]
+        return render(request, 'forms/forms/update-form-all.html', 
+                          { 'form_meta':form, 'user_org':request.user.userprofile.organization,
+                            'form': FormsForm(organization=request.user.userprofile.organization,instance=form), 
+                           'form_question':formQForms,
+                           'msg':'Double check that all the fields are correctly filled out.' })
+
+    def post(self, request, pk):
+        from organizations.models import Organization
+        #update the information about the Form objects itself
+        form = get_object_or_404(Form, id=pk)
+        form.form_name = request.POST.get('form_name')
+        form.organization = get_object_or_404(Organization, id=request.POST.get('organization'))
+        form.start_date = request.POST.get('start_date')
+        form.end_date = request.POST.get('end_date')
+        form.save() #save changes
+
+        #get a list of all the questions submited as part of the form
+        fqIDs = request.POST.getlist('fqID')
+        fqIDs = [int(fqID) for fqID in fqIDs]
+        questions = request.POST.getlist('question')
+
+        #get questions that were previously in the form for comparison/updating
+        existingQuestions = FormQuestion.objects.filter(form=form.id).order_by('index')
+        
+        #if questions were removed, delete those questions from the database.
+        #this works based on the index position, not by tracking question ids
+        for question in existingQuestions:
+            if question.id not in fqIDs:
+                question.delete()
+        existingFQIDs = [question.id for question in existingQuestions]
+
+        #loop through each of the questions submitted
+        for i in range(len(questions)):
+            question = questions[i]
+            fqID = fqIDs[i]
+            #if the question is within the range of existing questions, update the question
+            if fqID in existingFQIDs:
+                formQ = get_object_or_404(FormQuestion, id=fqID)
+            else: 
+                formQ = FormQuestion(form=form)   
+            formQ.index = i
+            formQ.question = get_object_or_404(Question, id=question)
+            formQ.save()
+
+            #remove any previously associated logic with this question
+            existingLogic = FormLogic.objects.filter(conditional_question = formQ.id)
+            if existingLogic.exists():
+                existingLogic.delete()
+            #check if this question had any logic associated with it (per the update)
+            #logic is named with the convention of logic[question-index][logic field]
+            #question divs start at 1
+            if request.POST.get(f'logic[{i}][on_match]'):
+                #checkboxes return nothing by default, so check for a value here and if it doesn't exist,
+                #return false
+                if request.POST.get(f'logic[{i}][limit_options]') == 'on':
+                    limitOptions = True
+                else:
+                    limitOptions = False
+                formLogic = FormLogic(form=form, 
+                                conditional_question = formQ,
+                                on_match = request.POST.get(f'logic[{i}][on_match]'),
+                                conditional_operator = request.POST.get(f'logic[{i}][operator]'),
+                                limit_options = limitOptions
+                                )
+                formLogic.save()
+
+                rules = request.POST.getlist(f'logic[{i}][parent_question]')
+                #make sure that the question had rules, if not, skip this part
+                if not rules:
+                    continue
+                #loop through each rule
+                for k in range(len(rules)):
+                    #check the parent question associated with this rule and get its model
+                    pqId = request.POST.getlist(f'logic[{i}][parent_question]')[k]
+                    parentFormQuestion = get_object_or_404(FormQuestion, question=pqId, form=form.id)
+                    #these values may not appear for all questions, so check if they exist first.
+                    #if not, set them to none/false
+                    try:
+                        if request.POST.getlist(f'logic[{i}][value_comparison]')[k]:
+                            valueComp = request.POST.getlist(f'logic[{i}][value_comparison]')[k]
+                        else:
+                            valueComp = None
+                    except(IndexError):
+                        valueComp = None
+                    try:    
+                        if request.POST.getlist(f'logic[{i}][negate_value]')[k]:
+                            negateValue = True
+                        else:
+                            negateValue = False
+                    except(IndexError):
+                        negateValue = False
+                    #create the rule
+                    rule = FormLogicRule(
+                            form_logic = formLogic,
+                            parent_question = parentFormQuestion, 
+                            expected_values = request.POST.getlist(f'logic[{i}][expected_values]')[k],
+                            value_comparison = valueComp,
+                            negate_value = negateValue,
+                        )
+                    rule.save()
+        return HttpResponseRedirect(reverse('forms:view-form-detail', kwargs={'pk': form.id}))

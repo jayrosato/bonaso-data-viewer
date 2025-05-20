@@ -5,28 +5,26 @@
 <link rel="stylesheet" href="{% static 'forms/styles/formEditor.css' %}">
 <div class="content">
     {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
-    {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
-        <form action="{% url 'forms:update-form' form_meta.id %}" method="post">
+        {% if user_org.id == form_meta.organization.id or form_meta == None %}
             {%csrf_token%}
             <h2>Form Details</h2>
-            {{ form.as_p }}
-            <h2>Form Questions</h2>
-            <p id="msg"></p>
-            <div class="questions">
-                {% for fq_form in form_question %}
-                    <div id="question-{{ forloop.counter0 }}" index="{{ forloop.counter0 }}" class="question">
-                        {{ fq_form }}
-                    </div>
-                {% endfor %}
+            <div class="form-details">
+                {{ form.as_p }}
             </div>
-            <button id="submit" type="submit" submit-url="{% url 'forms:create-form' %}">Submit</button>
-        </form>
-        <div id="form-passer" form="{{form_meta.id}}"></div>
+
+            <h2>Form Questions</h2>
+            <p id="messages"></p>
+            <div class="questions">
+            </div>
+            {% if form_meta %}
+                <div id="form-passer" form="{{form_meta.id}}"></div>
+            {% endif %}
+
+        {% else %}
+            <p>You do not have permission to view this page. </p>
+        {% endif %}
     {% else %}
         <p>You do not have permission to view this page. </p>
-    {% endif %}
-    {% else %}
-    <p>You do not have permission to view this page. </p>
     {% endif %}
 </div>
 <script type="module" src="{% static 'forms/js/editingForms/editForm.js' %}"></script>

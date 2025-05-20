@@ -1,28 +1,42 @@
 import createButtons from "./createButtons.js";
 import { selectCreatorURL } from "./selectCreator.js";
-
-export default async function createFormQuestion(existing = null, index=null){
+import { addLogic, updateRules } from "./addLogic.js";
+import { reIndex } from "./shiftQuestions.js";
+export default async function createFormQuestion(existing = null, atQuestion = null){
     const questionsDiv = document.querySelector('.questions');
     const questions = questionsDiv.querySelectorAll('.question');
-    const index = questions.length - 1;
+    const index = questions.length;
 
     const question = document.createElement('div');
+    question.setAttribute('class', 'question')
     question.setAttribute('index', index);
-    questionsDiv.appendChild(question);
+    if(atQuestion){
+        let atIndex = parseInt(atQuestion.getAttribute('index'))
+        console.log(atIndex)
+        questionsDiv.insertBefore(question, atQuestion);
+        atQuestion.after(question);
+    }
+    else{
+        questionsDiv.appendChild(question);
+    }
+    
 
     const qSelector = await selectCreatorURL('question', '/forms/data/query/questions');
-    console.log(qSelector)
     qSelector.setAttribute('name', 'question');
     qSelector.setAttribute('class', 'questionSelector');
+    qSelector.onchange = () => updateRules()
     question.appendChild(qSelector);
     createButtons(question);
 
     if(existing){
+        console.log(existing)
+        question.setAttribute('fqID', existing.id)
         qSelector.value = existing.question_id
         qSelector.setAttribute('question-type', existing.question_type)
         if(existing.logic){
-            addLogic(existing.logic)
+            addLogic(question, existing)
         }
     }
+    reIndex()
 }
 

@@ -136,7 +136,6 @@ class FormLogic(models.Model):
     conditional_question = models.ForeignKey(FormQuestion, on_delete=models.CASCADE) #the question that is to appear conditionally
     on_match = models.CharField(max_length=255, choices=OM_CHOICES, default=None) #what to do if the conditions are met (show the question or hide the question)
     conditional_operator = models.CharField(max_length=255, null=True, blank=True, choices=CO_CHOICES, default=None) #an operator that the program will use to help fullfill logical conditons (i.e., and/or)
-    limit_options = models.BooleanField(null=True, blank=True) #if applicable, whether the parent question's selected options should limit the conditional question's available options
     
     def __str__(self):
         return f'Logic for {self.conditional_question} in form {self.form}.'
@@ -162,7 +161,9 @@ class FormLogicRule(models.Model):
     parent_question = models.ForeignKey(FormQuestion, on_delete=models.CASCADE) #the question(s) that will affect the conditional question
     expected_values = models.JSONField() #the value(s) that the parent question must have to trigger a condition
     value_comparison = models.CharField(max_length=255, choices=VC_CHOICES, blank=True, null=True, default=None)
+    limit_options = models.BooleanField(null=True, blank=True) #if applicable, whether the parent question's selected options should limit the conditional question's available options
     negate_value = models.BooleanField(default=False)
+    
     def __str__(self):
         return f'{self.parent_question} with value {self.expected_values}.'
 

@@ -1,6 +1,9 @@
 import createFormQuestion from "./createFormQuestion.js";
+import submitAsJson from "./submitAsJSON.js";
+let csrftoken = null;
+
 document.addEventListener('DOMContentLoaded', async function () {
-    const csrftoken = getCookie('csrftoken');
+    csrftoken = getCookie('csrftoken');
     await buildForm();
 });
 
@@ -24,9 +27,9 @@ function getCookie(name) {
 async function buildForm(){
     const questions = document.querySelector('.questions')
     const checkExisting = document.querySelector('#form-passer')
-    console.log(checkExisting)
+    let formID=null
     if(checkExisting){
-        const formID = checkExisting.getAttribute('form')
+        formID = checkExisting.getAttribute('form')
         try{
             const response = await fetch(`/forms/data/query/forms/${formID}`)
             const formQuestions = await response.json()
@@ -38,5 +41,14 @@ async function buildForm(){
             console.error('Could not get existing form information: ', err)
         }
     }
+    else{
+        createFormQuestion()
+    }
+    const content = document.querySelector('.content')
+    const submitButton = document.createElement('button');
+    submitButton.setAttribute('type', 'button');
+    submitButton.innerText = 'Save Form';
+    submitButton.onclick = () => submitAsJson(csrftoken, formID);
+    content.appendChild(submitButton)
 }
 
