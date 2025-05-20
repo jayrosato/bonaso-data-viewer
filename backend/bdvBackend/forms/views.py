@@ -609,13 +609,13 @@ class GetFormQuestionByIndex(LoginRequiredMixin, View):
                 'question': formQuestion.question.question_text,
                 'on_match':formLogic.on_match,
                 'conditional_operator':formLogic.conditional_operator,
-                'limit_options': formLogic.limit_options,
                 'rules':[{
                     'parent_question':[rule.parent_question.question.id for rule in formLogicRules],
                     'parent_question_index':[rule.parent_question.index for rule in formLogicRules],
                     'expected_values':[rule.expected_values for rule in formLogicRules],
                     'value_comparison':[rule.value_comparison for rule in formLogicRules],
-                    'negate_value':[rule.negate_value for rule in formLogicRules]
+                    'negate_value':[rule.negate_value for rule in formLogicRules],
+                    'limit_options': [rule.limit_options for rule in formLogicRules],
                 }]
             }
         else:
