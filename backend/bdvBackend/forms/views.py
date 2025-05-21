@@ -105,17 +105,25 @@ class CreateUpdateForm(LoginRequiredMixin, View):
         form.start_date = data['start_date']
         form.end_date = data['end_date']
         form.save()
-        print(form)
+
+        uploadedQuestions = data['form_questions']
+        existingQuestions = FormQuestion.objects.filter(form=form.id)
+        print(uploadedQuestions)
+        print(existingQuestions)
+        for eq in existingQuestions:
+            if not eq.id in uploadedQuestions:
+                eq.delete()
 
         for fq in data['form_questions']:
             fqID = fq['id']
-            print(fqID)
             if fqID:
                 if not fqID.isnumeric():
                     return JsonResponse({'warning': f'Question at {fq['index']+1} sent an invalid value. Please double check this field.'})
                 checkFQ = FormQuestion.objects.filter(id=fqID).first()
                 if checkFQ:
                     formQuestion = checkFQ
+                else:
+                    formQuestion = FormQuestion()
             else:
                 formQuestion = FormQuestion()
             if not fq['question'].isnumeric():
@@ -125,7 +133,6 @@ class CreateUpdateForm(LoginRequiredMixin, View):
             formQuestion.question = question
             formQuestion.index = fq['index']
 
-            print(formQuestion)
             formQuestion.save()
             if fq['logic']:
                 logic = fq['logic']
@@ -139,6 +146,8 @@ class CreateUpdateForm(LoginRequiredMixin, View):
                         existingRules = FormLogicRule.objects.filter(form_logic = formLogic.id)
                         for rule in existingRules:
                             rule.delete()
+                    else:
+                        formLogic = FormLogic()
                 else:
                     formLogic = FormLogic()
                 formLogic.form = form
@@ -146,7 +155,6 @@ class CreateUpdateForm(LoginRequiredMixin, View):
                 formLogic.conditional_operator = logic['conditional_operator']
                 formLogic.on_match = 'Show'
                 formLogic.save()
-                print(formLogic)
                 for rule in rules:
                     formLogicRule = FormLogicRule()
                     if not rule['parent_question'].isnumeric():
@@ -159,7 +167,6 @@ class CreateUpdateForm(LoginRequiredMixin, View):
                     formLogicRule.limit_options = rule['limit_options']
                     formLogicRule.negate_value = rule['negate_value']
                     formLogicRule.save()
-                    print(formLogicRule)
         return JsonResponse({'redirect': reverse('forms:view-form-detail', kwargs={'pk': form.id})})
     
 class DeleteForm(LoginRequiredMixin, generic.DeleteView):
@@ -296,9 +303,10 @@ class NewResponse(LoginRequiredMixin, View):
         self.form_meta = get_object_or_404(Form, id=pk)
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
+        fqIDs = [fq.id for fq in self.form_structure]
         user_org = self.request.user.userprofile.organization
         return render(request, 'forms/responses/create-response.html', 
-                    { 'form': ResponseForm(formQs=self.form_questions),
+                    { 'form': ResponseForm(formQs=self.form_questions, fqIDs = fqIDs),
                      'user_org':user_org,
                     'form_meta': self.form_meta,})
 
@@ -306,7 +314,8 @@ class NewResponse(LoginRequiredMixin, View):
         self.form_meta = get_object_or_404(Form, id=pk)
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
         self.form_questions = [fq.question for fq in self.form_structure]
-        self.form = ResponseForm(request.POST, formQs=self.form_questions)
+        fqIDs = [fq.id for fq in self.form_structure]
+        self.form = ResponseForm(request.POST, formQs=self.form_questions, fqIDs = fqIDs)
 
         #if self.form.is_valid():
         respondent_id = request.POST.get('Respondent')

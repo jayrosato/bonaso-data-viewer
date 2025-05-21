@@ -2,14 +2,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     const form = document.getElementById('response_form');
 
     const formID = document.getElementById('form_passer').getAttribute('form')
-    const formLogic = []
+
     async function loadLogic(){
         const response = await fetch(`/forms/data/query/forms/${formID}`)
         const formQuestions = await response.json()
-        return formQuestions.form_questions;
+        return formQuestions;
     }
     const formQuestionInfo = await loadLogic()
-
     function loadSpecialOptions(){
         const msInputs = document.querySelectorAll('[data-special]')
         msInputs.forEach((input) => {
@@ -19,32 +18,54 @@ document.addEventListener('DOMContentLoaded', async function () {
     loadSpecialOptions()
 
     form.addEventListener('change', function () {
-        updateForm(questions, formLogic);
+        updateForm(formQuestionInfo);
         verifyFields();
     });
 
-    updateForm(formQuestionInfo); // Run once on page load
+    updateForm(formQuestionInfo);
 });
-
-let flag = false
-let errorMsg = ''
+const msg = document.getElementById('messages')
 function verifyFields(){
+    msg.innerText = '';
+    let flag = false
     const submitButton = document.getElementById('submitButton')
-    const msg = document.getElementById('messages')
-
     //before performing any further validations
     const numbers = document.querySelectorAll('[number="yes"]')
     numbers.forEach((n) => {
         if(isNaN(parseInt(n.value)) && n.value != ''){
             flag = true
-            errorMsg += `\nConfirm that numeric inputs are correct.`
+            msg.innerText += `\nConfirm that numeric inputs are correct.`
+        }
+    })
+    const questions = document.querySelectorAll('div.form_question, input.form_question[type="text"]');
+    questions.forEach((question, index) => {
+        if(question.style.display == 'none'){
+            question.removeAttribute('required');
+            const inputs = question.querySelectorAll('input');
+            inputs.forEach(input => input.removeAttribute('required'))
+        }
+        if(question.style.display != 'none'){
+            if(question.nodeType == 'INPUT' && question.value == ''){
+                flag = true;
+                msg.innerText += `\nYou must answer question ${index + 1}`;
+            }
+            else{
+                const inputs = question.querySelectorAll('input');
+                const inputArray = Array.from(inputs)
+                const anyFilled = inputArray.some(input => {
+                    const checked = input.checked ? true : false;
+                    return checked;
+                })
+                flag = anyFilled ? false : true
+                if(flag){msg.innerText += `\nYou must answer question ${index + 1}`;}
+            }
         }
     })
     if(flag){
         submitButton.setAttribute('type', 'button');
         submitButton.onclick = () => {
-            msg.innerText = errorMsg;
-            errorMsg = ''
+            msg.innerText = 'Warnings:'
+            console.warn(flag)
         }
     }
     else{
@@ -78,16 +99,39 @@ function manageSpecialOptions(input){
 
 function checkQuestion(rule){
     const parentQuestionID = rule.parent_question;
-    const parentQuestion = document.querySelector(`[fqid="${parentQuestionID}"]`);
-    const actualValue = parentQuestion.value
-    if(actualValue == ''){
+    const parentQuestion = document.querySelectorAll(`[fqid="${parentQuestionID}"]`);
+    let actualValue = null;
+    let none = false
+    if(parentQuestion.length > 1){
+        actualValue = []
+        parentQuestion.forEach(pq => {
+            if(pq.getAttribute('data-special') == 'None of the above' && pq.checked){
+                none = true
+            }
+            const value = pq.checked ? pq.value : null
+            if(value){actualValue.push(value)}
+        })
+    }
+    else{
+        actualValue = parentQuestion[0].value
+    }
+
+    if(actualValue == '' || actualValue == [] || none){
         return false;
     }
     const expectedValue = rule.expected_values;
     const limitOptions = rule.limit_options;
     const valueComparison = rule.value_comparison;
     const negate = rule.negate_value;
-    if(!valueComparison || valueComparison == 'MATCHES' || valueComparison == 'EQUAL TO'){
+    if(Array.isArray(actualValue)){
+        if(expectedValue == 'any' && actualValue.length > 0){
+            return true;
+        }
+        let match = actualValue.includes(expectedValue) ? true : false;
+        match = negate ? !match : match
+        return match;
+    }
+    if(valueComparison == 'MATCHES' || valueComparison == 'EQUAL TO'){
         let match = expectedValue == actualValue ? true : false;
         match = negate ? !match : match
         return match;
@@ -110,10 +154,12 @@ function checkQuestion(rule){
     }
 }
 
-function goLimitOptions(question, parentQuestionInputs){
+function goLimitOptions(question, rule){
+    const parentQuestionID = rule.parent_question;
+    const parentQuestion = document.querySelectorAll(`[fqid="${parentQuestionID}"]`);
     let selectAll = false
     let checkedValues = []
-    parentQuestionInputs.forEach((input) => {
+    parentQuestion.forEach((input) => {
         if(input.checked == true){
             if(input.getAttribute('data-special') == 'All'){
                 selectAll = true;
@@ -133,9 +179,14 @@ function goLimitOptions(question, parentQuestionInputs){
 }
 
 function updateForm(fqInfo){
+    if(!fqInfo){
+        console.warn('This is unexpected. No logic was passed. Please try reloading the page.')
+        return;
+    }
     flag = false;
     const questions = document.querySelectorAll('div.form_question, input.form_question[type="text"]');
     questions.forEach((question, index) => {
+        let showValue = false
         const label = question.previousElementSibling;
         //assuming this works since both of these are ordered by index in their respective views
         const info = fqInfo[index];
@@ -147,28 +198,46 @@ function updateForm(fqInfo){
         }
         const logic = info.logic;
         const operator = logic.conditional_operator;
+        let limitOptions = []
         if(operator == 'AND'){
-            logic.rules.every((rule) => {
-                const showValue = checkQuestion(rule)
+            showValue = logic.rules.every((rule) => {
+                const checkValue = checkQuestion(rule)
+                if(rule.limit_options){
+                    limitOptions.push({'question': question, 'rule':rule})
+                }
+                return checkValue;
             });
         }
         else if(operator == 'OR'){
-            logic.rules.some(rule => {
-                const showValue = checkQuestion(rule)
+            showValue = logic.rules.some(rule => {
+                const checkValue = checkQuestion(rule)
+                if(rule.limit_options){
+                    goLimitOptions(question);
+                }
+                return checkValue;
             })
         }
+
         if(showValue){
             question.style.display = ''
             label.style.display = ''
-            //figure out how to get this
-            if(limitOptions){
-                parentQuestionInputs = parentQuestion.getAllInputs()
-                goLimitOptions(question)
-            }
         }
         if(!showValue){
             question.style.display = 'none'
             label.style.display = 'none'
+            if(question.nodeName == 'INPUT'){
+                question.value = '';
+            }
+            else{
+                question.querySelectorAll('input[type=checkbox]').forEach(option => {option.checked = false});
+                question.querySelectorAll('input[type=radio]').forEach(option => {option.checked = false});
+            }
+            
+        }
+        if(showValue && limitOptions.length > 0){
+            limitOptions.forEach(element => {
+                goLimitOptions(element.question, element.rule);
+            })
         }
 
     })

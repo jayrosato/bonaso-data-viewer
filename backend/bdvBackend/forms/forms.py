@@ -39,7 +39,7 @@ class DynamicCheckboxes(CheckboxSelectMultiple):
         return option
     
 class ResponseForm(forms.Form):
-    def __init__(self, *args, formQs, response=None, **kwargs):
+    def __init__(self, *args, formQs, fqIDs, response=None, **kwargs):
         super().__init__(*args, **kwargs)
         CHOICES = [
         ('Yes', 'Yes'),
@@ -96,7 +96,7 @@ class ResponseForm(forms.Form):
                         continue
 
             self.fields[field_name].widget.attrs.update({'class':'form_question'})
-            self.fields[field_name].widget.attrs.update({'fqID':formQs[i].id})
+            self.fields[field_name].widget.attrs.update({'fqID':fqIDs[i]})
 
 class QuestionForm(forms.ModelForm):
     class Meta:
