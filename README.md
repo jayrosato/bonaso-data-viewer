@@ -1,21 +1,21 @@
 # bonaso-data-viewer
 Conceptual project creating a system for interacting with a database for my organization.
 
-Planned Future Imporvements:
-    Form Logic Logic:
-        Now that we've done a bit more work on form logic, It's probably time to redesign the editor a little bit to hide some options for some questions so that it is slightly easier for the users to work with it. 
+Planned Future Imporvements: 
+    Better UI for filtering:
+        Search bars for selects are functional, but not very ui friendly, and 100% need to be worked on. Also, some of the filters for tables need to be redone slightly.
+    
+    APP: Send organization and get user information for requests and posts.
+        The app needs to send information about the user requesting data when making requests to the server so that it knows what information to send. Really this is mostly for sending forms, but also for created_by for responses. 
         
     System for Batch Uploads:
         As either a supplement or alternative to file uploads based on forms, there should be a way for users to batch record a group of respondents and questions they were targeted with. 
         
     Improving File Uploads:
         File uploading for forms is a bit janky right now. There needs to be some more validation (checking logic, proper inputs, etc.) and there should also be a way for responses to be updated via files. Also, users need more information about when a field/respondent runs into an error so they can correct on their end. 
-    
-    Better UI for filtering:
-        Search bars for selects are functional, but not very ui friendly, and 100% need to be worked on. Also, some of the filters for tables need to be redone slightly.
 
-    Better data validity checks/error handling:
-        Data validity is basically funcitonal, but there needs to be better messaging. Also, we need to determine a way to record an absence of data (i.e., none).
+    Improving UI:
+        Improve error messaging, directions, etc.
 
 
 Important Notes:

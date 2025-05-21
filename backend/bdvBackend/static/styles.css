@@ -145,10 +145,17 @@ table {
 td{
     padding: 2px;
 }
+
 th {
     background-color: rgb(13, 60, 32);
+    max-width: 30%;
 }
 
+.headerDiv{
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    gap: 5px;
+}
 tr:nth-child(odd) {
     background-color: rgb(18, 87, 46);
 }
@@ -160,6 +167,18 @@ form{
 }
 
 .sort{
-    max-height: 3vh;
+    max-height: 20px;
     filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+}
+
+.filter{
+    width: 20px;
+    height: 20px;
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+}
+
+.filterOptions{
+    z-index: 1;
+    padding: 10px;
+    position: absolute;
 }
