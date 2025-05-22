@@ -117,6 +117,10 @@ function showInputs(option, type, index){
     input.setAttribute('class', 'input')
     input.type = type == 'number' ? ('number') : ('date')
     input.onkeyup = () => applyFilter(index, filter, type)
+    if(type == 'date'){
+        input.onchange = () => applyFilter(index, filter, type)
+    }
+    
     option.appendChild(input)
     if(value == 'BETWEEN'){
         const input2 = document.createElement('input')

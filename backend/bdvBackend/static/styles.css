@@ -134,6 +134,13 @@ select:hover {
     background-color: white;
 }
 
+.selectSearch{
+    z-index: 1;
+    position: relative;
+    max-width: 19rem;
+    bottom: 4.9rem;
+}
+
 textarea {
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }

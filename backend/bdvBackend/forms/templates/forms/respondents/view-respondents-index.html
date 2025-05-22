@@ -11,13 +11,41 @@
     </div>
     <table class="sortable-table">
         <thead>
-            <th>Respondent</th>
-            <th sort="number">Responses</th>
-            <th>Sex</th>
-            <th sort="number">Age</th>
-            <th>Created By</th>
-            <th sort="date">Created At</th>
-            <th sort="date">Updated At</th>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Responses
+                </div>
+            </th>
+            <th sort="number">
+                <div class="headerDiv" sort="number" filter="number">
+                    Responses
+                </div>
+            </th>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Sex
+                </div>
+            </th>
+            <th sort="number">
+                <div class="headerDiv" sort="number" filter="number">
+                    Age
+                </div>
+            </th>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Created By
+                </div>
+            </th>
+            <th sort="date">
+                <div class="headerDiv" sort="date" filter="date">
+                    Created On
+                </div>
+            </th>
+            <th sort="date">
+                <div class="headerDiv" sort="date" filter="date">
+                    Last Updated
+                </div>
+            </th>
         </thead>
         {% if perms.forms.view_respondent %}
             <tbody>
@@ -42,7 +70,6 @@
     {% if perms.forms.add_respondent %}
         <a href="{% url 'forms:create-respondent' %}"><button>Create New Respondent</button></a>
     {% endif %}
-    <script src="{% static 'js/sort-tables.js' %}"></script>
 </div>
 
 {% endblock %}

@@ -3,7 +3,7 @@ Conceptual project creating a system for interacting with a database for my orga
 
 Planned Future Imporvements: 
     Better UI for filtering:
-        Search bars for selects are functional, but not very ui friendly, and 100% need to be worked on. Also, some of the filters for tables need to be redone slightly.
+        Some fine tuning, but most of the basic functionality is there.
     
     APP: Send organization and get user information for requests and posts.
         The app needs to send information about the user requesting data when making requests to the server so that it knows what information to send. Really this is mostly for sending forms, but also for created_by for responses. 

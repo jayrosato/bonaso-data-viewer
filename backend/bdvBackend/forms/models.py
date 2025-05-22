@@ -62,7 +62,8 @@ class Form(models.Model):
         return f'{self.organization}: {self.form_name}'
     
     def isActive(self):
-        return date.today() >= self.end_date
+        today = date.today()
+        return self.start_date <= today <= self.end_date
     
     def responsesCount(self):
         return Response.objects.filter(form_id=self.id).count()

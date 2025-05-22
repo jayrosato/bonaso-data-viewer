@@ -115,7 +115,9 @@ export function applyFilter(col, filter, type){
                     value = parseInt(value);
                 } 
                 else if (type == 'date') {
+                    value = value.replace(/\b(a|p)\.m\./i, (match, p1) => p1.toUpperCase() + "M");
                     value = new Date(value);
+                    console.log(value)
                     value.setHours(0,0,0,0)
                     value = value.getTime()
                 } 
@@ -151,7 +153,6 @@ export function applyFilter(col, filter, type){
         })
     }
     checkRows()
-    console.log(filterValues)
     if(filterValues == '' || filterValues.length == 0){
         filter.style.backgroundImage = "url('/static/images/filter-outline.svg')";
     }

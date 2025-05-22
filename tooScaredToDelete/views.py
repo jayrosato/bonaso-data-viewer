@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response as APIResponse
 from rest_framework import status, permissions
 
-from datetime import datetime
+from datetime import datetime, date
 import json
 import csv
 
@@ -26,11 +26,14 @@ now = timezone.now()
 
 #views related to forms
 class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
+    #index view for seeing a list of forms. By default is limited to forms from a users organization and active forms
     template_name = 'forms/forms/view-forms-index.html'
     context_object_name = 'active_forms'
     
     def get_queryset(self):
-        return Form.objects.all()
+        user_org = self.request.user.userprofile.organization
+        today = date.today()
+        return Form.objects.filter(organization = user_org, start_date__lte = today, end_date__gte = today)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -39,6 +42,7 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
         return context
     
 class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
+    #view
     model=Form
     template_name = 'forms/forms/view-form-detail.html'
 
@@ -631,11 +635,14 @@ class GetFormQuestionByIndex(LoginRequiredMixin, View):
             data = {}
         return JsonResponse(data)
 
-#login will be required, this is currently unprotected for mobile testing
-class GetForms(View):
-    def get(self, request):
+class GetForms(APIView):
+    def get(self, request, pk):
+        user = User.objects.filter(id=pk).first()
+        userProfile = UserProfile.objects.filter(user = user).first()
+        userOrg = userProfile.organization
+        today = date.today()
         #filter is_active && filter by organization --> once accounts are set up
-        forms = Form.objects.select_related('organization').prefetch_related('formquestion_set__question__option_set')
+        forms = Form.objects.filter(organization = userOrg, start_date__lte = today, end_date__gte = today).select_related('organization').prefetch_related('formquestion_set__question__option_set')
         form_logic = FormLogic.objects.all().select_related('conditional_question')
         logic_rules = FormLogicRule.objects.all().select_related('form_logic')
         logic_map = {

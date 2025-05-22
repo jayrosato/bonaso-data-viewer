@@ -9,26 +9,33 @@ function addSearch(){
             return
         }
         let selectParent = select.parentElement
-        let selectLoc = selectParent.nodeName.toLocaleLowerCase();
-        if(selectLoc == 'th'){
-            let checkSearch = selectParent.getAttribute('sort')
-            if(checkSearch != 'text'){
-                return
-            }
-        }
         const search = document.createElement('input')
+        /*
+        const searchList = document.createElement('datalist')
+        select.querySelectorAll('option').forEach(option => {
+            const searchItem = option.cloneNode()
+            searchList.appendChild(searchItem)
+        })
+        selectParent.appendChild(searchList)
+        */
         search.setAttribute('type', 'text')
-        search.setAttribute('class', 'select-search')
+        search.setAttribute('class', 'selectSearch')
         search.onkeydown = () => updateSearch(search, select)
         search.setAttribute('placeholder', 'Start typing to search...')
         select.parentElement.insertBefore(search, select)
         search.style.display = 'none'
-        select.onclick = () => displaySearch(search)
+        select.onclick = () => displaySearch(search, select)
+        selectParent.appendChild(search)
     })
 }
 
-function displaySearch(search){
+function displaySearch(search, select){
     search.style.display = ''
+    document.addEventListener('click', function(event) {
+        if (search && !search.contains(event.target) && !select.contains(event.target)) {
+            search.style.display = 'none';
+        }
+    });
 }
 
 function updateSearch(search, select){
@@ -42,6 +49,5 @@ function updateSearch(search, select){
         else{
             option.style.display = 'none'
         }
-    })
-         
+    })        
 }
