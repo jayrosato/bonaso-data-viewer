@@ -55,6 +55,16 @@
         {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
             <div class="templates">
                 <h3>Template Management</h3>
+                <div class="warnings">
+                    <p id="messages"> {{warnings}}</p>
+                    {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
                 <div class="templateUpload">
                     <h4>Upload Responses</h4>
                     <form action="{% url 'forms:form-template' form.id %}" method="post" enctype="multipart/form-data">
