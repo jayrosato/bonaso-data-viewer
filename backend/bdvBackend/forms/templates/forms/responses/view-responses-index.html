@@ -5,13 +5,55 @@
 <div class="content">
     <h1>Your Responses</h1>
     {% if responses %}
-    <ul>
+    <table class="sortable-table">
+        <thead>
+            <tr>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Respondent First Name
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="number" filter="number">
+                        Respondent Last Name
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Form
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Organization
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="date" filter="date">
+                        Date
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Created By
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
         {% for response in responses %}
             {% if user.id == response.created_by.id or user.userprofile.access_level == 'admin' %}
-                <li><a href="{% url 'forms:view-response-detail' response.id %}">{{response}}</a></li>
+            <tr>
+                <td><a href="{% url 'forms:view-response-detail' response.id %}">{{response.respondent.fname}}</a></td>
+                <td>{{response.respondent.lname}}</td>
+                <td>{{response.form}}</td>
+                <td>{{response.form.organization}}</td>
+                <td>{{response.response_date}}</td>
+                <td>{{response.created_by}}</td>
+            </tr>
             {% endif %}
         {% endfor %}
-    </ul>
+        </tbody>
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}

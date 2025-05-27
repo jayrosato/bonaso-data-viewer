@@ -6,12 +6,35 @@
     <h1>Viewing All Questions</h1>
     {% if user.userprofile.access_level == 'admin' %}
     {% if questions %}
-        <table>
-            <th>Question</th>
-            <th>Type</th>
-            <th>Options</th>
-            <th>Updated At</th>
-            <th>Edit Question</th>
+        <table class="sortable-table">
+            <thead>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Question
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Type
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Options (If Any...)
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="date" filter="date">
+                        Updated At
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv">
+                        Edit Question
+                    </div>
+                </th>
+            </thead>
+            <tbody>
                 {% for question in questions %}
                 <tr>
                     <td>{{question}}</td>
@@ -33,6 +56,7 @@
                     <td><a href="{% url 'forms:update-question' question.id %}"><button>Edit Question</button></a></td>
                 </tr>
                 {% endfor %}
+            </tbody>
         </table>
     {% else %}
     <p>Nothing here yet!</p>

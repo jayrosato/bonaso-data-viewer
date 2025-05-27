@@ -1,4 +1,5 @@
 import createFilter from "./create-filter.js";
+import { recalculatePage } from "./table-pages.js";
 
 document.addEventListener('DOMContentLoaded', async function () {
     addClickable()
@@ -159,6 +160,7 @@ export function applyFilter(col, filter, type){
     else{
         filter.style.backgroundImage = "url('/static/images/filter-check.svg')";
     }
+    recalculatePage();
 }
 
 function checkRows(){
@@ -251,3 +253,5 @@ function sortTable(i, asc=true){
         }
     })
 }
+
+export { check as 'filtered' }

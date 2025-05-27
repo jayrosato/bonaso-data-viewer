@@ -22,10 +22,8 @@ export default function createFilter(type, header, index){
         search.onkeyup = () => {
             searchFilter(search, filterOptions);
             applyFilter(index, filter, type);
-
         }
         filterOptions.appendChild(search)
-
     }
     //create a button to clear all options
     const clearFilter = document.createElement('button')
@@ -142,7 +140,7 @@ function searchFilter(search, filterOptions){
         }
         else{
             check.parentElement.style.display = 'none';
-            check.checked == false
+            check.checked = false;
         }
     })
 }
