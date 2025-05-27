@@ -1,0 +1,7 @@
+.selector{
+    max-height: 10rem;
+}
+.optionsList{
+    max-height: 10rem;
+    overflow: scroll;
+}

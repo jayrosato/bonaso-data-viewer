@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="{% static 'dataviewer/styles/create-chart.css' %}">
+
+<div class="content">
+    {% if user.userprofile.access_level == 'admin' %}
+        <h1>Create a New Chart</h1>
+        <ol>
+            <li class="step1">Select a question: <div class="questionSelect"></div></li>
+            <li class="step2">Select an x-axis breakdown: <div class="axisSelect"></div></li>
+        </ol>
+        <div class="dashboard">
+            <canvas id="chart"></canvas>
+        </div>
+    {% else %}
+        <p>You do not have permission to view this page.</p>
+    {% endif %}
+</div>
+<script type="module" src="{% static 'dataviewer/js/create-chart.js' %}"></script>
+{% endblock %}

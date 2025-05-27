@@ -80,6 +80,40 @@ class GetQuestions(LoginRequiredMixin, View):
         }
         return JsonResponse(data)
 
+class GetQuestionResponses(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        question = Question.objects.filter(id=pk).first()
+        questionType = question.question_type
+        answers = Answer.objects.filter(question=question).select_related(
+            'option',
+            'response__form',
+            'response__respondent'
+        )
+        data = []
+        
+        for answer in answers:
+            response = answer.response
+            if not response:
+                continue
+
+            if questionType in ['Single Selection', 'Multiple Selections']:
+                value = answer.option.option_text
+            else:
+                value = answer.open_answer
+
+            data.append({
+                'answer_id': answer.id,
+                'answer_value': value,
+                'organization_id':response.form.organization.id,
+                'organization_name': response.form.organization.organization_name,
+                'date': response.response_date,
+                'sex': response.respondent.sex,
+                'age': response.respondent.get_age(),
+                'district': response.respondent.district
+            })
+        return JsonResponse(data, safe=False) 
+
+
 #used to get information about question options/logic when editing forms
 class GetQuestionInfo(LoginRequiredMixin, View):
     def get(self, request, pk):

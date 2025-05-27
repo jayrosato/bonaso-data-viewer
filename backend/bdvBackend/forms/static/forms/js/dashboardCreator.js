@@ -16,6 +16,7 @@ class DBChart{
         index++
     }
 
+
     async createQSelect(){
         const response = await fetch('/forms/data/query/questions')
         const data = await response.json()

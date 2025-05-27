@@ -3,6 +3,6 @@ from .responseViews import ViewResponseIndex, ViewResponseDetail, NewResponse, U
 from .questionViews import ViewQuestions, CreateQuestion, UpdateQuestion, DeleteQuestion
 from .respondentViews import ViewRespondentsIndex, ViewRespondentDetail, CreateRespondent, UpdateRespondent, DeleteRespondent
 from .mobileAPIViews import GetForms, SyncMobileResponses
-from .siteAPIViews import GetFormInfo, GetQuestions, GetQuestionInfo
+from .siteAPIViews import GetFormInfo, GetQuestions, GetQuestionInfo, GetQuestionResponses
 from .dashboardViews import Dashboard, GetData, GetQuestionData
 from .fileUploadViews import FormTemplate

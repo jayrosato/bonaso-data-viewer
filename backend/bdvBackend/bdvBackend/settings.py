@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'forms.apps.FormsConfig',
     'organizations.apps.OrganizationsConfig',
     'accounts.apps.AccountsConfig',
+    'dataviewer.apps.DataviewerConfig',
     'home.apps.HomeConfig',
     'django.contrib.admin',
     'django.contrib.auth',
