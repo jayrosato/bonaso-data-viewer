@@ -247,3 +247,24 @@ class GetTargetDetails(LoginRequiredMixin, View):
             ]
         }
         return JsonResponse(data)
+
+class GetTargets(LoginRequiredMixin, View):
+    def get(self, request):
+        targets = Target.objects.all()
+        amount = 0
+        data = []
+        for target in targets:
+            if target.target_amount:
+                amount = target.target_amount
+            else:
+                amount = target.get_actual()
+            data.append({
+                'target_id': target.id,
+                'question': target.question.id,
+                'amount': amount,
+                'organization': target.organization.id,
+                'start': target.target_start,
+                'end': target.target_end,
+                'match_option': target.match_option
+            })
+        return JsonResponse(data, safe=False)

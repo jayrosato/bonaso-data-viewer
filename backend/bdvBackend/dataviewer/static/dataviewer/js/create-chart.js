@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     const response = await fetch(`/forms/data/query/questions/responses`);
     const data = await response.json()
 
+    const targetResponse = await fetch('/organizations/targets/query')
+    const targets = await targetResponse.json()
+    data.targets = targets;
     //build a custom selector for selecting a specific question/indicator to view
     let qIDs = [];
     data.questions.forEach(item => {if(!qIDs.includes(item.question_id)){qIDs.push(item.question_id)}})
@@ -49,6 +52,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     location.appendChild(targetToggle)
     targetCheck.onchange = () => {
         showTargets = targetCheck.checked ? true : false
+        getDataset(data)
     }
 
     //build filters
@@ -110,7 +114,6 @@ function selectDetails(){
     axisCont.style.display = '';
 }
 
-
 async function buildChart(labels, datasets, axis){
     const oldCanvas = document.getElementById(`chart`)
     if(oldCanvas){
@@ -154,9 +157,13 @@ function getDataset(data){
     if(axis == ''){return};
     const question = data.questions.filter((question) => question.question_id == questionID)[0]
     const answers = question.answers
+    let targets = null;
+    if(showTargets){
+        targets = data.targets.filter((target) => target.question == questionID);
+    }
     let labels = [];
     let datasets = {};
-    const groups = {}
+    const groups = {};
     let respondents = []
     answers.forEach(item => {
         let axisGroup = null
@@ -168,61 +175,11 @@ function getDataset(data){
         
         const answer = item.answer_value || 'Unknown';
         if(!groups[axisGroup]) groups[axisGroup] = {};
-        let pass = true
-        console.log(filters)
         if(filters.length > 0){
-            filters.forEach(filter => {
-                if(item[filter.name] == undefined){
-                    console.warn('Check the API. A filter value was not found in the answers object.')
-                    return
-                }
-                if(filter.type=='multiple'){
-                    if(!filter.values.includes(item[filter.name].toString())){
-                        pass = false
-                        return;
-                    }
-                }
-                else if(filter.type=='date' || filter.type=='number'){
-                    let low = filter.values.low;
-                    let high = filter.values.high;
-                    let value = item[filter.name]
-                    if(filter.type == 'date'){
-                        low = new Date(low);
-                        low.setHours(0,0,0,0)
-                        low = low.getTime()
-
-                        high = new Date(high);
-                        high.setHours(0,0,0,0)
-                        high = high.getTime()
-
-                        try{
-                            value = new Date(value);
-                            value.setHours(0,0,0,0)
-                            value = value.getTime()
-                        }
-                        catch(err){
-                            console.warn('Cannot apply date filter to field that contains invalid dates.')
-                            return;
-                        }
-                    }
-                    if(filter.type == 'number'){
-                        try{
-                            value = parseInt(value)
-                        }
-                        catch(err){
-                            console.warn('Cannot apply numeric filter to field that does not contain numbers.')
-                            return;
-                        }
-                    }
-                    if(value < low || value > high){
-                        pass = false
-                        return;
-                    }
-                }
-            })
-        }
-        if(!pass){
-            return;
+            let pass = testFilter(item);
+            if(!pass){
+                return;
+            }
         }
         if(showLegend){
             groups[axisGroup][answer] = (groups[axisGroup][answer] || 0)+1;
@@ -237,13 +194,47 @@ function getDataset(data){
             else{
                 respondents.push(item.respondent_id);
             }
-            console.log(respondents)
             groups[axisGroup]['count'] = (groups[axisGroup]['count'] || 0)+1;
         }
     });
-    console.log(groups)
+    const targetGroups = {};
+    if(targets){
+        let targetGroup = null;
+        targets.forEach((target) => {
+            if(axis=='date'){
+                const rawDate = new Date(target.end)
+                targetGroup = rawDate.toLocaleString('default', {month: 'short', year: 'numeric'})
+                target.date = target.end
+            }
+            if(filters.length >0){
+                let pass = testFilter(target);
+                if(!pass){
+                    return;
+                }
+            }
+            else{
+                try{
+                    targetGroup = target[axis];
+                }
+                catch(err){
+                    targetGroup = null;
+                    console.warn('This axis type is not applicable for targets.')
+                }
+            }
+            const amount = target.amount || 0;
+            if(targetGroup){
+                if(!targetGroups[targetGroup]) targetGroups[targetGroup] = 0;
+                targetGroups[targetGroup] += amount;
+            }
+            else{
+                if(!targetGroups['target']) targetGroups['target'] = 0;
+                targetGroups['target'] += amount;
+            }
+        })
+    }
 
     const axisGroups = Object.keys(groups);
+    const targetAxisGroups = Object.keys(targetGroups)
     const allAnswers = [... new Set(answers.map(item => item.answer_value || 'Unknown'))];
     labels = axisGroups;
     if(showLegend){
@@ -257,13 +248,18 @@ function getDataset(data){
     }
     else{
         datasets = [{
-            label: 'Total Number', 
+            label: 'Actual Number', 
             data: axisGroups.map(group => groups[group]['count'] || 0),
             backgroundColor: getRandomColor()
         }]
     }
-    
-
+    if(targets){
+        datasets.push({
+            label: 'Target',
+            data: targetAxisGroups.map(group => targetGroups[group] || 0),
+            backgroundColor: '#FF0000'
+        })
+    }
     buildChart(labels, datasets, axis)
 }
 
@@ -296,6 +292,58 @@ function updateFilters(filter, data){
     }
     filters.push({'name':name, 'values':values, 'type':type})
     getDataset(data)
+}
+
+function testFilter(item){
+    let pass = filters.every((filter) => {
+        if(item[filter.name] == undefined){
+        console.warn('Check the API. A filter value was not found in the answers object.')
+        return true;
+        }
+        if(filter.type=='multiple'){
+            if(!filter.values.includes(item[filter.name].toString())){
+                return false;
+            }
+        }
+        else if(filter.type=='date' || filter.type=='number'){
+            let low = filter.values.low;
+            let high = filter.values.high;
+            let value = item[filter.name]
+            if(filter.type == 'date'){
+                low = new Date(low);
+                low.setHours(0,0,0,0)
+                low = low.getTime()
+
+                high = new Date(high);
+                high.setHours(0,0,0,0)
+                high = high.getTime()
+
+                try{
+                    value = new Date(value);
+                    value.setHours(0,0,0,0)
+                    value = value.getTime()
+                }
+                catch(err){
+                    console.warn('Cannot apply date filter to field that contains invalid dates.')
+                    return true;
+                }
+            }
+            if(filter.type == 'number'){
+                try{
+                    value = parseInt(value)
+                }
+                catch(err){
+                    console.warn('Cannot apply numeric filter to field that does not contain numbers.')
+                    return true;
+                }
+            }
+            if(value < low || value > high){
+                return false;
+            }
+        }
+        return true
+    })
+    return pass
 }
 
 

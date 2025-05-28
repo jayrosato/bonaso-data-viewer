@@ -20,4 +20,5 @@ urlpatterns = [
     path('targets/<int:pk>/delete', views.DeleteTarget.as_view(), name='delete-target'),
 
     path('targets/<int:pk>/query', views.GetTargetDetails.as_view()),
+    path('targets/query', views.GetTargets.as_view()),
 ]
