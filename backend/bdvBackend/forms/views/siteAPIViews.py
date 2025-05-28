@@ -81,36 +81,57 @@ class GetQuestions(LoginRequiredMixin, View):
         return JsonResponse(data)
 
 class GetQuestionResponses(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        question = Question.objects.filter(id=pk).first()
-        questionType = question.question_type
-        answers = Answer.objects.filter(question=question).select_related(
+    def get(self, request):
+        from organizations.models import Organization
+        allAnswers = Answer.objects.all().select_related(
             'option',
-            'response__form',
-            'response__respondent'
+            'response__form__organization',
+            'response__respondent',
+            'question'
         )
-        data = []
-        
-        for answer in answers:
+        questionMap = {}
+        for answer in allAnswers:
+            question = answer.question
+            if question.id not in questionMap:
+                questionMap[question.id] = {
+                    'question_id': question.id,
+                    'question_text': question.question_text,
+                    'answers': [],
+                    'question_type': question.question_type
+                }
             response = answer.response
-            if not response:
-                continue
-
-            if questionType in ['Single Selection', 'Multiple Selections']:
-                value = answer.option.option_text
+            if question.question_type in ['Single Selection', 'Multiple Selections']:
+                value = answer.option.option_text if answer.option else None
             else:
                 value = answer.open_answer
-
-            data.append({
+            questionMap[question.id]['answers'].append({
                 'answer_id': answer.id,
                 'answer_value': value,
-                'organization_id':response.form.organization.id,
-                'organization_name': response.form.organization.organization_name,
                 'date': response.response_date,
+                'respondent_id': response.respondent.id,
                 'sex': response.respondent.sex,
                 'age': response.respondent.get_age(),
-                'district': response.respondent.district
+                'district': response.respondent.district,
+                'organization': response.form.organization.id
             })
+        sexValues = list(set(list(Respondent.objects.values_list('sex', flat=True))))
+        districtValues = list(set(list(Respondent.objects.values_list('district', flat=True))))
+        orgValues = list(set(list(Organization.objects.values_list('organization_name', flat=True).order_by('id'))))
+        orgNames = list(set(list(Organization.objects.values_list('id', flat=True).order_by('id'))))
+
+        filters = [
+            {'name': 'date', 'type': 'date'},
+            {'name': 'sex', 'type': 'multiple', 'values':sexValues},
+            {'name': 'age', 'type': 'number'},
+            {'name': 'district', 'type': 'multiple', 'values':districtValues},
+            {'name': 'organization', 'type': 'multiple', 'values':orgNames, 'labels':orgValues}
+        ]
+
+        data = {'questions': [],'filters': filters}
+        for q in questionMap.values():
+            q.pop('question_type')  # Remove if not needed
+            data['questions'].append(q)
+
         return JsonResponse(data, safe=False) 
 
 

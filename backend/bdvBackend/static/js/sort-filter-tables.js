@@ -118,7 +118,6 @@ export function applyFilter(col, filter, type){
                 else if (type == 'date') {
                     value = value.replace(/\b(a|p)\.m\./i, (match, p1) => p1.toUpperCase() + "M");
                     value = new Date(value);
-                    console.log(value)
                     value.setHours(0,0,0,0)
                     value = value.getTime()
                 } 

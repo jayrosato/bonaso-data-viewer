@@ -9,11 +9,16 @@
     {% if user.userprofile.access_level == 'admin' %}
         <h1>Create a New Chart</h1>
         <ol>
-            <li class="step1">Select a question: <div class="questionSelect"></div></li>
-            <li class="step2">Select an x-axis breakdown: <div class="axisSelect"></div></li>
+            <li class="questionCont">Select a question: <div class="questionSelect"></div></li>
+            <li class="axisCont">Select an x-axis breakdown: <div class="axisSelect"></div></li>
+            <li class="legendCont">Select an x-axis breakdown: <div class="legendToggle"></div></li>
+            <li class="targetCont">Select an x-axis breakdown: <div class="targetToggle"></div></li>
         </ol>
         <div class="dashboard">
             <canvas id="chart"></canvas>
+        </div>
+        <div class="filtersDiv">
+
         </div>
     {% else %}
         <p>You do not have permission to view this page.</p>
