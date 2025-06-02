@@ -1,7 +1,9 @@
 import createButtons from "./createButtons.js";
-import { selectCreatorURL } from "./selectCreator.js";
 import { addLogic, updateRules } from "./addLogic.js";
 import { reIndex } from "./shiftQuestions.js";
+import createSelect from "../../../../../static/js/customSelector/create-select.js";
+import { addSearch } from "../../../../../static/js/select-search.js";
+
 export default async function createFormQuestion(existing = null, atQuestion = null){
     const questionsDiv = document.querySelector('.questions');
     const questions = questionsDiv.querySelectorAll('.question');
@@ -12,7 +14,6 @@ export default async function createFormQuestion(existing = null, atQuestion = n
     question.setAttribute('index', index);
     if(atQuestion){
         let atIndex = parseInt(atQuestion.getAttribute('index'))
-        console.log(atIndex)
         questionsDiv.insertBefore(question, atQuestion);
         atQuestion.after(question);
     }
@@ -20,8 +21,9 @@ export default async function createFormQuestion(existing = null, atQuestion = n
         questionsDiv.appendChild(question);
     }
     
-
-    const qSelector = await selectCreatorURL('question', '/forms/data/query/questions');
+    const response = await fetch('/forms/data/query/questions');
+    const questionsList = await response.json();
+    const qSelector = createSelect(questionsList.ids, questionsList.labels, true, 'question-type', questionsList.types, true);
     qSelector.setAttribute('name', 'question');
     qSelector.setAttribute('class', 'questionSelector');
     qSelector.onchange = () => updateRules()
@@ -38,5 +40,6 @@ export default async function createFormQuestion(existing = null, atQuestion = n
         }
     }
     reIndex()
+    addSearch()
 }
 

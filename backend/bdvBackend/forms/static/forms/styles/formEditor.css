@@ -6,6 +6,11 @@ form{
     display: flex;
     flex-direction: column;
 }
+select{
+    width: 45vw;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
 .question{
     border: 1px solid white;
     padding-top: 10px;
@@ -42,12 +47,12 @@ form{
 .logic-rule >* {
     margin-bottom: 2vh;
 }
-.limit-options, .negate{
+.limitOptionsDiv, .negateDiv{
     display: flex;
     flex-direction: row;
     
 }
-.limit-options >*, .negate >*{
-    margin-left: 2vw;
+.limitOptions , .negate {
+    margin-left: 1vw;
     
 }

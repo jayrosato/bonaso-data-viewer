@@ -42,18 +42,18 @@ class ViewOrgDetail(LoginRequiredMixin, generic.DetailView):
 class CreateOrg(LoginRequiredMixin, generic.CreateView):
     model=Organization
     template_name = 'organizations/orgs/update-org.html'
-    fields = [
-            'organization_name', 'parent_organization'
-            ]
+    fields =  '__all__'
+            
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        user_org = self.request.user.userprofile.organization
-        if user_org.id != 3:
+        user = self.request.user
+        user_org = user.userprofile.organization
+        if user.userprofile.access_level != 'admin':
             if user_org.parent_organization:
-                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org.parent_organization.id)
+                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org.id)
             else:
-                form.fields['parent_organization'].queryset = Organization.objects.filter(Q(id=user_org.id) | Q(id=user_org.parent_organization))
+                form.fields['parent_organization'].queryset = Organization.objects.filter(Q(id=user_org.id) | Q(parent_organization=user_org.id))
         return form
     
     def get_context_data(self, **kwargs):
@@ -69,16 +69,15 @@ class CreateOrg(LoginRequiredMixin, generic.CreateView):
 class UpdateOrg(LoginRequiredMixin, generic.UpdateView):
     model=Organization
     template_name = 'organizations/orgs/update-org.html'
-    fields = [
-            'organization_name', 'parent_organization'
-            ]
+    fields =  '__all__'
     
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        user_org = self.request.user.userprofile.organization
-        if user_org.id != 3:
+        user = self.request.user
+        user_org = user.userprofile.organization
+        if user.userprofile.access_level != 'admin':
             if user_org.parent_organization:
-                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org.parent_organization.id)
+                form.fields['parent_organization'].queryset = Organization.objects.filter(id=user_org)
             else:
                 form.fields['parent_organization'].queryset = Organization.objects.filter(Q(id=user_org.id) | Q(id=user_org.parent_organization))
         return form
@@ -102,7 +101,11 @@ class ViewTargetsIndex(LoginRequiredMixin, generic.ListView):
     context_object_name = 'targets'
 
     def get_queryset(self):
-        return Target.objects.all().order_by('organization')
+        user = self.request.user
+        if user.userprofile.access_level == 'admin':
+            return Target.objects.all().order_by('organization')
+        else:
+            return Target.objects.filter(organization = user.userprofile.organization)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

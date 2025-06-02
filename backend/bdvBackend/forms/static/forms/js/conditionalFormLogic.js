@@ -1,3 +1,4 @@
+import { addWarning, initWarning, clearWarning } from '../../../../static/js/customWarning.js'
 document.addEventListener('DOMContentLoaded', async function () {
     const form = document.getElementById('response_form');
 
@@ -26,7 +27,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 const msg = document.getElementById('messages')
 function verifyFields(){
-    msg.innerText = '';
+    clearWarning();
+    let msgs = []
     let flag = false
     const submitButton = document.getElementById('submitButton')
     //before performing any further validations
@@ -34,7 +36,7 @@ function verifyFields(){
     numbers.forEach((n) => {
         if(isNaN(parseInt(n.value)) && n.value != ''){
             flag = true
-            msg.innerText += `\nConfirm that numeric inputs are correct.`
+            msgs.push(`Confirm that numeric inputs are correct.`)
         }
     })
     const questions = document.querySelectorAll('div.form_question, input.form_question[type="text"]');
@@ -47,7 +49,7 @@ function verifyFields(){
         if(question.style.display != 'none'){
             if(question.nodeType == 'INPUT' && question.value == ''){
                 flag = true;
-                msg.innerText += `\nYou must answer question ${index + 1}`;
+                msgs.push(`You must answer question ${index + 1}`);
             }
             else{
                 const inputs = question.querySelectorAll('input');
@@ -57,15 +59,15 @@ function verifyFields(){
                     return checked;
                 })
                 flag = anyFilled ? false : true
-                if(flag){msg.innerText += `\nYou must answer question ${index + 1}`;}
+                if(flag){msgs.push( `You must answer question ${index + 1}`);}
             }
         }
     })
     if(flag){
         submitButton.setAttribute('type', 'button');
         submitButton.onclick = () => {
-            msg.innerText = 'Warnings:'
-            console.warn(flag)
+            initWarning()
+            msgs.forEach(msg => addWarning(msg))
         }
     }
     else{
@@ -183,7 +185,6 @@ function updateForm(fqInfo){
         console.warn('This is unexpected. No logic was passed. Please try reloading the page.')
         return;
     }
-    flag = false;
     const questions = document.querySelectorAll('div.form_question, input.form_question[type="text"]');
     questions.forEach((question, index) => {
         let showValue = false

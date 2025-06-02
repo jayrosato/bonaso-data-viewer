@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="{% static 'dataviewer/styles/create-chart.css' %}">
 
 <div class="content">
-    {% if user.userprofile.access_level == 'admin' %}
         <h1>Create a New Chart</h1>
         <ol>
             <li class="questionCont">Select a question: <div class="questionSelect"></div></li>
@@ -20,9 +19,6 @@
         <div class="filtersDiv">
 
         </div>
-    {% else %}
-        <p>You do not have permission to view this page.</p>
-    {% endif %}
 </div>
 <script type="module" src="{% static 'dataviewer/js/create-chart.js' %}"></script>
 {% endblock %}

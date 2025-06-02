@@ -40,8 +40,8 @@
                             <a href="{% url 'forms:view-respondents-index' %}">Respondents</a>
                             <img class="sbIcon" src="{% static 'images/record-player.svg' %}" />   
                             <a href="{% url 'forms:view-responses-index' %}">Responses</a>
-                            <img class="sbIcon" src="{% static 'images/monitor-dashboard.svg' %}" />   
-                            <a href="{% url 'forms:dashboard' %}">Dashboard</a>
+                            <img class="sbIcon" src="{% static 'images/chart-bar.svg' %}" />   
+                            <a href="{% url 'dataviewer:create-chart' %}">Charts</a>
                         </div>
                         {% if user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'admin' %}
                         <h3 class="sbLinkHeader"> Organizations </h3>
@@ -81,9 +81,9 @@
                 <p>footer would be here</p>
             </div>
         {% endblock %}
-        <script type="module" src="{% static 'js/sort-filter-tables.js' %}"></script>
-        <script type="module" src="{% static 'js/table-pages.js' %}"></script>
-        <script src="{% static 'js/select-search.js' %}"></script>
+        <script type="module" src="{% static 'js/sortFilterTables/sort-filter-tables.js' %}"></script>
+        <script type="module" src="{% static 'js/sortFilterTables/table-pages.js' %}"></script>
+        <script type="module" src="{% static 'js/select-search.js' %}"></script>
     </body>
 </html>
 {% endif %}

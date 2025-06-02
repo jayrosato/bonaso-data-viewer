@@ -3,11 +3,15 @@ from django.views import generic, View
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
+from datetime import datetime, date
 
 User = get_user_model()
 
 class Home(LoginRequiredMixin, View):
     def get(self, request):
+        from forms.models import Form 
         user = self.request.user
         userProfile = user.userprofile
+        today = date.today()
+        forms = Form.objects.filter(organization = userProfile.organization, start_date__lte = today, end_date__gte = today)
         return render(request, 'home/home.html', {'user':user, 'userProfile':userProfile})

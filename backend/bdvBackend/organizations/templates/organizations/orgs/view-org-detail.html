@@ -2,24 +2,44 @@
 {% load static %}
 {% block content %}
 <div class="content">
-    {% if user_org.id == organization.id or user_org.id == 3 or user_org.id == organization.parent_organization.id %}
+    {% if user_org.id == organization.id or user_org.id == organization.parent_organization.id or user.userprofile.access_level == 'admin' %}
         <h1>{{organization}}</h1>
+
         {% if organization.parent_organization %}
             <h3>Parent Organization: {{organization.parent_organization}}</h3>
         {% endif %}
+
         {% if perms.forms.change_organization %}
-            <a href="{%url 'organizations:update-org' organization.id%}"><button>Edit Organization</button></a>
+            <a href="{%url 'organizations:update-org' organization.id%}"><button>Edit Details</button></a>
+        {% endif %}
+        <p>Office Information</p>
+        <ul>
+            <li>Office Address: {{ organization.office_adress|default_if_none:"No adress on record." }}</p>
+            <li>Office Email: {{ organization.office_email|default_if_none:"No office email on record." }}</p>
+            <li>Office Phone: {{ organization.office_no|default_if_none:"No office phone number on record." }}</p>
+        </ul>
+        <p>Executive Director: {{organization.executive_director|default_if_none:"No Executive Director on record." }}</p>
+        {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'admin' %}
+            <ul>
+                <li>Executive Director: {{ organization.ed_email|default_if_none:"No Executive Director Email on record." }}</li>
+                <li>Executive Director: {{ organization.ed_no |default_if_none:"No Executive Director Phone Number on record." }}</li>
+            </ul>
         {% endif %}
         {% if perms.forms.add_organization %}
             <a href="{%url 'organizations:create-org' %}"><button>Add a Subgrantee</button></a>
         {% endif %}
+
         {% if child_orgs %}
+            <h3>Child Organizations</h3>
             {% for org in child_orgs %}
-                <a href="{%url 'organizations:view-org-detail' org.id%}">{{org}}</a>
+                <ul>
+                    <li><a href="{%url 'organizations:view-org-detail' org.id%}">{{org}}</a></li>
+                </ul>
             {% endfor %}
         {% else %}
             <p>This organization does not have any subgrantees.</p>
         {% endif %}
+
     {% else %}
             <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
     {% endif %}

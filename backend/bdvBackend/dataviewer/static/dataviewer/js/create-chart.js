@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     let location = document.querySelector('.questionSelect')
     const response = await fetch(`/forms/data/query/questions/responses`);
     const data = await response.json()
-
     const targetResponse = await fetch('/organizations/targets/query')
     const targets = await targetResponse.json()
     data.targets = targets;
@@ -148,8 +147,7 @@ async function buildChart(labels, datasets, axis){
     })
 }
 
-//group by raw response counts (total reached)
-//factor in targets
+
 function getDataset(data){
     const questionID = document.querySelector('.selector').getAttribute('value');
     if(questionID == ''){return};
@@ -233,8 +231,12 @@ function getDataset(data){
         })
     }
 
-    const axisGroups = Object.keys(groups);
-    const targetAxisGroups = Object.keys(targetGroups)
+    let axisGroups = Object.keys(groups);
+    let targetAxisGroups = Object.keys(targetGroups)
+    if(axis=='date'){
+        axisGroups = Object.keys(groups).sort((a,b) => new Date(a) - new Date(b));
+        targetAxisGroups = Object.keys(groups).sort((a,b) => new Date(a) - new Date(b));
+    }
     const allAnswers = [... new Set(answers.map(item => item.answer_value || 'Unknown'))];
     labels = axisGroups;
     if(showLegend){

@@ -1,3 +1,5 @@
+import { addWarning, initWarning, clearWarning } from '../../../../static/js/customWarning.js';
+
 document.addEventListener('DOMContentLoaded', async function () {
     const form = document.querySelector('#target-form')
     form.addEventListener('change', function () {validateTargets()})
@@ -13,17 +15,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 })
 });
 
-function showWarning(messages){
-    const messageBox = document.querySelector('#messages')
-    messageBox.innerText = messages
-
-}
-
 function validateTargets(){
-    console.log('validating')
+    let messages = [];
+    console.log('validating');
+    clearWarning();
     let flagged = false
     const submit = document.getElementById('submit')
-    let messages = ''
     const table = document.querySelector('tbody')
     let amounts = null
     let pqSelects = null
@@ -44,28 +41,32 @@ function validateTargets(){
         const pqInputsValue = pqInputs[index].value
         console.log(amountValue, pqSelectValue)
         if(amountValue == '' && pqSelectValue == ''){
-            messages += `\nWarning! Target in row ${index+1} must have either a target amount or a percentage of a question.`
+
+            messages.push(`Target in row ${index+1} must have either a target amount or a percentage of a question.`)
             flagged = true
         }
         else if(pqInputsValue == '' && pqSelectValue != ''){
-            messages += `\nWarning! Target in row ${index+1} must have percent.`
+            messages.push(`Target in row ${index+1} must have percent.`)
             flagged = true
         }
         else if(pqInputsValue < 0 || pqInputsValue > 100){
-            messages += `\nWarning! Percent in row ${index+1} must be between 1 and 100%.`
+            messages.push(`Percent in row ${index+1} must be between 1 and 100%.`)
             flagged = true
         }
     })
     if(flagged){
         submit.setAttribute('type', 'button')
-        submit.onclick = () => showWarning(messages)
+        submit.onclick = () => {
+            messages.forEach(msg => addWarning(msg));
+            initWarning();
+        }
     }
     else if(!flagged){
         submit.setAttribute('type', 'submit')
     }
 }
 
-function checkInputs(amount, pqSelect, pqInput){
+export function checkInputs(amount, pqSelect, pqInput){
     if(amount.value != ''){
         pqSelect.style.display = 'none'
         pqInput.style.display = 'none'

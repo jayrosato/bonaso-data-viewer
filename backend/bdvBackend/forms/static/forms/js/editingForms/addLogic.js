@@ -1,4 +1,4 @@
-import { staticSelectCreator } from "./selectCreator.js";
+import createSelect from "../../../../../static/js/customSelector/create-select.js";
 
 export function addLogic(question, existing = null){
     const logicDiv = document.createElement('div');
@@ -8,7 +8,7 @@ export function addLogic(question, existing = null){
     logicLabel.innerText = `Question Logic:`;
     logicDiv.appendChild(logicLabel);
 
-    const operator = staticSelectCreator(['AND', 'OR'])
+    const operator = createSelect(['AND', 'OR'])
     operator.setAttribute('class', 'operator')
     logicDiv.appendChild(operator)
     operator.style.display = 'none' //hide operators by default, since it doesn't make sense if there is only one rule
@@ -72,7 +72,7 @@ export function addRule(question, existing=null){
     let parentQuestionText = []
     let parentQuestionType = []
     formQuestions.forEach((formQuestion, index) =>{
-        if(index >= conditionalIndex){
+        if(index >= conditionalIndex || formQuestion.value == ''){
             return;
         }
         const questionID = formQuestion.value
@@ -81,13 +81,12 @@ export function addRule(question, existing=null){
         parentQuestionText.push(selectedOption.text)
         parentQuestionType.push(selectedOption.getAttribute('question-type'))
     })
-    const parentQuestionSelector = staticSelectCreator(parentQuestionIDs, parentQuestionText, true, 'question-type', parentQuestionType)
+    const parentQuestionSelector = createSelect(parentQuestionIDs, parentQuestionText, true, 'question-type', parentQuestionType)
     parentQuestionSelector.setAttribute('class', 'parentQuestionSelector')
     parentQuestionSelector.onchange = () => updateRule(ruleDiv)
     ruleDiv.appendChild(parentQuestionSelector)
 
     if(existing){
-        console.log(existing)
         parentQuestionSelector.value = existing.parent_question_id;
         updateRule(ruleDiv, existing);
     }
@@ -117,18 +116,18 @@ export async function updateRule(ruleDiv, existing=null){
     if(parentQuestionValue == ''){
         return
     }
+
     const parentQuestion = parentQuestionSelector.selectedOptions[0]
     const parentQuestionType = parentQuestion.getAttribute('question-type')
-    console.log(existing)
     if(parentQuestionType == 'Multiple Selections' || parentQuestionType =='Single Selection'){
-            const negateSelector = staticSelectCreator([false, true], ['WHEN VALUE IS', 'WHEN VALUE IS NOT']);
+            const negateSelector = createSelect([false, true], ['WHEN VALUE IS', 'WHEN VALUE IS NOT']);
             negateSelector.setAttribute('class', 'negateSelector')
             ruleDiv.appendChild(negateSelector);
             negateSelector.value = existing && existing.negate_value ? true:false;
 
             const response = await fetch(`/forms/data/query/questions/${parentQuestionValue}/meta`);
             const options = await response.json();
-            const valueInput = staticSelectCreator(options.option_ids, options.option_text, true);
+            const valueInput = createSelect(options.option_ids, options.option_text, true);
             const anyOption = document.createElement('option');
             anyOption.value = 'any';
             anyOption.text = 'Anything Selected';
@@ -143,7 +142,7 @@ export async function updateRule(ruleDiv, existing=null){
             valueInput.setAttribute('class', 'valueInput');
     }
     if(parentQuestionType == 'Yes/No'){
-        const valueInput = staticSelectCreator(['Yes', 'No'])
+        const valueInput = createSelect(['Yes', 'No'])
         valueInput.setAttribute('class', 'valueInput');
         ruleDiv.appendChild(valueInput);
         valueInput.value = existing ? existing.expected_values : '';
@@ -155,7 +154,7 @@ export async function updateRule(ruleDiv, existing=null){
         valueInput.setAttribute('type', 'text');
         valueInput.setAttribute('class', 'valueInput');
         ruleDiv.appendChild(valueInput);
-        const comparisonSelector = staticSelectCreator(['MATCHES', 'CONTAINS', 'DOES NOT CONTAIN']);
+        const comparisonSelector = createSelect(['MATCHES', 'CONTAINS', 'DOES NOT CONTAIN']);
         comparisonSelector.setAttribute('class', 'comparisonSelector');
         ruleDiv.appendChild(comparisonSelector);
         valueInput.value = existing ? existing.expected_values : '';
@@ -168,7 +167,7 @@ export async function updateRule(ruleDiv, existing=null){
         valueInput.setAttribute('type', 'number');
         valueInput.setAttribute('class', 'valueInput')
         ruleDiv.appendChild(valueInput);
-        const comparisonSelector = staticSelectCreator(['EQUAL TO', 'GREATER THAN', 'LESS THAN']);
+        const comparisonSelector = createSelect(['EQUAL TO', 'GREATER THAN', 'LESS THAN']);
         comparisonSelector.setAttribute('class', 'comparisonSelector');
         ruleDiv.appendChild(comparisonSelectorNum);
         valueInput.value = existing ? existing.expected_values : '';
@@ -201,39 +200,38 @@ export function updateRules(){
     let questionIDs = []
     let questionText = []
     let questionTypes = []
-    questions.forEach((question, index) => {
+    questions.forEach((question) => {
         const questionSelector = question.querySelector('.questionSelector')
         const questionIndex = parseInt(question.getAttribute('index'))
-        if(questionSelector.value == ''){
-            return
-        }
         const selectedOption = questionSelector.options[questionSelector.selectedIndex]
         questionIDs.push(questionSelector.value);
         questionText.push(selectedOption.text)
         questionTypes.push(selectedOption.getAttribute('question-type'))
-
-        const parentQuestionSelector = question.querySelector('.parentQuestionSelector');
-        if(!parentQuestionSelector){
-            return;
-        }
-        const oldOptions = parentQuestionSelector.querySelectorAll('option')
-        if(oldOptions){
-            console.log(oldOptions)
-            oldOptions.forEach(option => {
-                if(option.value == ''){return}
-                if(questionIDs.includes(option.value)){return}
-                parentQuestionSelector.removeChild(option)
-            })
-        }
-        const remainingOptions = Array.from(parentQuestionSelector.options).map(option => option.value);
-        questionIDs.forEach((id, index) =>{
-            if(index >= questionIndex){return}
-            if(remainingOptions.includes(id)){return}
-            const option = document.createElement('option');
-            option.value = id
-            option.innerText = questionText[index]
-            option.setAttribute('question-type', questionTypes[index])
-            parentQuestionSelector.appendChild(option)
-        })
     })
+
+    const parentQuestionSelectors = document.querySelectorAll('.parentQuestionSelector');
+    if(!parentQuestionSelectors){
+        return;
+    }
+    parentQuestionSelectors.forEach(selector => {
+        let qIndex = parseInt(selector.parentElement.parentElement.parentElement.getAttribute('index'))
+        const oldOptions = selector.querySelectorAll('option')
+        const oldOptionIDs = [];
+        oldOptions.forEach(option => {
+            oldOptionIDs.push(option.value);
+            if(!questionIDs.includes(option.value) && option.value != ''){
+                option.remove();
+            }
+        });
+        questionIDs.forEach((id, index) => {
+            if(!oldOptionIDs.includes(id) && id != ''){
+                if(qIndex <= index){return;}
+                const option = document.createElement('option');
+                option.value = id;
+                option.innerText = questionText[index];
+                option.setAttribute('question-type', questionTypes[index]);
+                selector.appendChild(option);
+            }
+        });
+    });
 }

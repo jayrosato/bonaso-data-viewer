@@ -4,25 +4,62 @@
 
 <div class="content">
     <h1>Your Organizations</h1>
+    {% if user.userprofile.access_level == 'admin' or user.userprofile.access_level == 'manager' %}
+        <a href="{% url 'organizations:create-org' %}"><button>Create New Organization</button></a>
+    {% endif %}
     {% if organizations %}
-    <table>
-        <th>Organizaiton Name</th>
-        <th>Parent Organization</th>
+    <table class="sortable-table">
+        <thead>
+            <tr>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Organization Name
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Parent Organization
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Office Address
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Office Email
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Office Phone
+                    </div>
+                </th>
+                <th>
+                    <div class="headerDiv" sort="text" filter="value">
+                        Executive Director
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
         {% for organization in organizations %}
-            {% if user_org.id == organization.id or user_org.id == organization.parent_organization.id or user_org.id == 3 %}
+            {% if user_org.id == organization.id or user_org.id == organization.parent_organization.id or user.userprofile.access_level == 'admin' %}
                 <tr>
                     <td><a href="{% url 'organizations:view-org-detail' organization.id %}">{{organization}}</a></td>
-                    <td>{{organization.parent_organization}}</td>
+                    <td>{{ organization.parent_organization |default_if_none:"No parent Organization." }}</td>
+                    <td>{{ organization.office_address |default_if_none:"No address on record." }}</td>
+                    <td>{{ organization.office_no |default_if_none:"No phone number on record." }}</td>
+                    <td>{{ organization.office_email |default_if_none:"No email on record." }}</td>
+                    <td>{{ organization.executive_director |default_if_none:"No executive director on record." }}</td>
                 </tr>
             {% endif %}
         {% endfor %}
+        </tbody>
     </table>
     {% else %}
     <p>Nothing here yet!</p>
-    {% endif %}
-
-    {% if perms.forms.add_organization %}
-        <a href="{% url 'organizations:create-org' %}"><button>Create New Organization</button></a>
     {% endif %}
 </div>
 

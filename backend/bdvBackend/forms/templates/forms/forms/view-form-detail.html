@@ -4,7 +4,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'forms/styles/formDetail.css' %}">
 <div class="content">
-    {% if form.organization == user_org or user_org.id == 3 %}
+    {% if form.organization == user_org or user.userprofile.access_level == 'admin' %}
     <h1>{{ form.form_name }}</h1>
         <div class="formInfo">
             <div class="dates">
@@ -18,9 +18,13 @@
                 <h3>Form Actions</h3>
                 <a href="{% url 'forms:create-response' form.id %}"><button>New Response</button></a>
                 <a href="{% url 'forms:update-form' form.id %}"><button>Edit Form</button></a>
+                <form method="post" action="{% url 'forms:duplicate-form' form.id %}">
+                    {%csrf_token%}
+                    <button>Duplicate Form</button>
+                </form>
                 {% endif %}
 
-                {% if user.userprofile.access_level == 'admin' %}
+                {% if user.userprofile.access_level == 'admin' or user.userprofile.access_level == 'manager' %}
                     <a href="{% url 'forms:delete-form' form.id %}"><button>Delete Form</button></a>
                 {% endif %}
                 
@@ -35,12 +39,13 @@
                     {% if fq.logic %}
                         <i>{{fq.logic.on_match}} when:</i>
                         {% for rule in fq.rules %}
-                            <ul>
-                                <li>"{{rule.parent_question.question}}" is {{rule.value_comparison}} "{{rule.expected_values}}"</li>
-                            </ul>
+                            <ol>
+                                <li>"{{rule.parent_question.question}}" is {% if rule.negate_value%} not {% endif %} {{rule.value_comparison|default_if_none:"" }} "{{rule.expected_values}}". {% if rule.limit_options %} Options limited. {% endif %}</li>
+                            </ol>
                         {% endfor %}
                     {% endif %}
                     {% if fq.options|length > 0 %}
+                        <i>Options</i>
                         {% for option in fq.options%}
                             <ul>
                                 <li>{{option.option_text}}</li>

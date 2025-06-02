@@ -1,3 +1,6 @@
+import { addSearch } from "../../../../static/js/select-search.js";
+import { checkInputs } from "./validate-targets.js";
+
 document.addEventListener('DOMContentLoaded', async function () {
     const button = document.getElementById('add-row')
     button.onclick = () => addRow()
@@ -18,26 +21,27 @@ function addRow(){
     });
     const inputs = newRow.querySelectorAll('input')
     inputs.forEach(input => {
-        input.value = ''
+        input.value = '';
     });
-    const searchBar = newRow.querySelectorAll('.select-search')
+    const searchBar = newRow.querySelectorAll('.selectSearch')
     if(searchBar){
         searchBar.forEach((bar) => {bar.remove()})
     }
     tbody.appendChild(newRow)
+
     //make sure that target-limit-option.js is in the tempalte
     const question = newRow.querySelector('#id_question')
     const option = newRow.querySelector('#id_match_option')
     question.onchange = () => updateOptions(question, option)
 
-    //make sure that select-search.js is in the base html or the template, or this will throw an error
-    addSearch()
-
     //make sure that validate-targets.js is in the template
     const targetAmount = newRow.querySelector('#id_target_amount')
-    targetAmount.onchange = () => checkInputs(targetAmount, pqSelect, pqInput)
     const pqSelect = newRow.querySelector('#id_percentage_of_question')
-    pqSelect.onchange = () => checkInputs(targetAmount, pqSelect, pqInput)
     const pqInput = newRow.querySelector('#id_as_percentage')
+    pqSelect.onchange = () => checkInputs(targetAmount, pqSelect, pqInput)
+    targetAmount.onchange = () => checkInputs(targetAmount, pqSelect, pqInput)
     checkInputs(targetAmount, pqSelect, pqInput)
+
+    //make sure that select-search.js is in the base html or the template, or this will throw an error
+    addSearch()
 }

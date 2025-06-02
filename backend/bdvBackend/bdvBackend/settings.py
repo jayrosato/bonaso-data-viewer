@@ -33,6 +33,7 @@ ALLOWED_HOSTS = [
     '192.168.0.197',
     '192.168.0.170',
     '192.168.0.167',
+    '192.168.0.186',
     ]
 
 
@@ -121,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LOGIN_URL = '/accounts/login/'
 
-LOGIN_REDIRECT_URL = '/forms/'
+LOGIN_REDIRECT_URL = '/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

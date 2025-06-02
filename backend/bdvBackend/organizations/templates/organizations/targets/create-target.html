@@ -5,8 +5,13 @@
 <div class="content">
     {% if user.userprofile.access_level == 'admin' %}
         <h1>Create New Targets</h1>
+        <div class="warnings">
+            <ul>
+            </ul>
+        </div>
         <p id="messages"></p>
         <form action="" method="post" id="target-form">
+            <input type="submit" value="Submit" id="submit">
         <table>
             <thead>
                 <th>Question</th>
@@ -28,7 +33,6 @@
             </tbody>
         </table>
         <div class="controls">
-            <input type="submit" value="Submit" id="submit">
             <button type ="button" id="add-row">Add Row</button>
         </div>
         </form>
@@ -36,7 +40,7 @@
             <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
     {% endif %}
 </div>
-<script src="{% static 'organizations/js/add-target-row.js' %}"></script>
-<script src="{% static 'organizations/js/target-limit-option.js' %}"></script>
-<script src="{% static 'organizations/js/validate-targets.js' %}"></script>
+<script type="module" src="{% static 'organizations/js/add-target-row.js' %}"></script>
+<script type="module" src="{% static 'organizations/js/target-limit-option.js' %}"></script>
+<script type="module" src="{% static 'organizations/js/validate-targets.js' %}"></script>
 {% endblock %}

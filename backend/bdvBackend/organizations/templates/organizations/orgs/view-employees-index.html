@@ -5,17 +5,54 @@
 <div class="content">
     <h1>Your Team</h1>
     {% if employees %}
-    <table>
-        <th>User</th>
-        <th>User Organization</th>
+
+    <table class="sortable-table">
+        <thead>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Team Member
+                </div>
+            </th>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Organization
+                </div>
+            </th>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Role
+                </div>
+            </th>
+            <th>
+                <div class="headerDiv" sort="date" filter="date">
+                    Last Login
+                </div>
+            </th>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Supervisor
+                </div>
+            </th>
+            <th>
+                <div class="headerDiv" sort="text" filter="value">
+                    Manager
+                </div>
+            </th>
+        </thead>
+        <tbody>
         {% for employee in employees %}
-            {% if employee.userprofile.organization.id == user_org.id or employee.userprofile.organization.id == user_org.id or user_org.id == 3 %}
+            {% if employee.userprofile.organization.id == user_org.id or employee.userprofile.organization.id == user_org.id or user.userprofile.access_level == 'admin' %}
                 <tr>
                     <td><a href="{% url 'organizations:view-employee-detail' employee.id %}">{{employee}}</a></td>
                     <td>{{employee.userprofile.organization}}</td>
+                    <td>{{employee.userprofile.access_level}}</td>
+                    <td>{{employee.last_login}}</td>
+                    <td>{{employee.userprofile.supervisor}}</td>
+                    <td>{{employee.userprofile.manager}}</td>
                 </tr>
             {% endif %}
         {% endfor %}
+        </tbody>
     </table>
     {% else %}
     <p>Nothing here yet!</p>

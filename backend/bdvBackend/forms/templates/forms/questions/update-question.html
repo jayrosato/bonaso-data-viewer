@@ -5,7 +5,11 @@
 <link rel="stylesheet" href="{% static 'forms/styles/questionForm.css' %}">
 <div class="content">
     <div class="qForm">
-    <p id="warnings"></p>
+        <h1>Editing Question</h1>
+        <div class="warnings">
+            <ul>
+            </ul>
+        </div>
     {% if user.userprofile.access_level == 'admin' %}
             {%csrf_token%}
             {{ form }}
@@ -16,6 +20,7 @@
             {% endif %}
     </div>
          <button id="submit" submit-url="{% url 'forms:update-question' question.id %}">Submit</button>
+         <button id="submit-create" submit-url="{% url 'forms:create-question' %}">Save & Create Another</button>
             {% if user.userprofile.access_level == 'admin' %}
                     <a href="{%url 'forms:delete-question' question.id%}">
                         <button>
@@ -24,7 +29,7 @@
                     </a>
             {% endif %}
     {% endif %}
-    <script src="{% static 'forms/js/editQuestionLogic.js' %}"></script>
+    <script type="module" src="{% static 'forms/js/editQuestionLogic.js' %}"></script>
 </div>
 
 {% endblock %}

@@ -1,23 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(addSearch, 100) //slight delay to ensure that any other scripts that may create selects on load have completed
+    setTimeout(addSearch, 1000) //slight delay to ensure that any other scripts that may create selects on load have completed
+    addSearch();
 });
 
-function addSearch(){
+export function addSearch(){
     const selects = document.querySelectorAll('select')
     selects.forEach((select) => {
-        if(select.getAttribute('search') == 'no'){
-            return
+        if(select.getAttribute('search') != 'true' && select.getAttribute('id') != 'id_question'){
+            return;
         }
         let selectParent = select.parentElement
         const search = document.createElement('input')
-        /*
-        const searchList = document.createElement('datalist')
-        select.querySelectorAll('option').forEach(option => {
-            const searchItem = option.cloneNode()
-            searchList.appendChild(searchItem)
-        })
-        selectParent.appendChild(searchList)
-        */
         search.setAttribute('type', 'text')
         search.setAttribute('class', 'selectSearch')
         search.onkeydown = () => updateSearch(search, select)
@@ -33,6 +26,8 @@ function displaySearch(search, select){
     search.style.display = ''
     document.addEventListener('click', function(event) {
         if (search && !search.contains(event.target) && !select.contains(event.target)) {
+            search.value = '';
+            updateSearch(search, select);
             search.style.display = 'none';
         }
     });

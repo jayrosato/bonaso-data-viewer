@@ -1,4 +1,4 @@
-from .formViews import ViewFormsIndex, ViewFormDetail, CreateUpdateForm, DeleteForm
+from .formViews import ViewFormsIndex, ViewPastForms, ViewFormDetail, CreateUpdateForm, DuplicateForm, DeleteForm
 from .responseViews import ViewResponseIndex, ViewResponseDetail, NewResponse, UpdateResponse, DeleteResponse
 from .questionViews import ViewQuestions, CreateQuestion, UpdateQuestion, DeleteQuestion
 from .respondentViews import ViewRespondentsIndex, ViewRespondentDetail, CreateRespondent, UpdateRespondent, DeleteRespondent

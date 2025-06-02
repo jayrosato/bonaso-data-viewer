@@ -5,8 +5,12 @@
 {% if user %}
 {% if user_org.id == form_meta.organization.id or user_org.id == 3 %}
 <div class="content">
+    <h1>New Response</h1>
+    <div class="warnings">
+        <ul>
+        </ul>
+    </div>
     <button onclick="openInputWindow()">New Respondent</button>
-
     <script>
         function openInputWindow() {
             window.open("{% url 'forms:create-respondent' %}", "Input Window", "width=800,height=600");
@@ -22,7 +26,7 @@
     </form>
     
 </div>
-<script src="{% static 'forms/js/conditionalFormLogic.js' %}"></script>
+<script type="module" src="{% static 'forms/js/conditionalFormLogic.js' %}"></script>
 {% else %}
     <p>You do not have permission to view this page. If you think this is a mistake, please contact your supervisor.</p>
 {% endif %}

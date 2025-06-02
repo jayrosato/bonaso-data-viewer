@@ -5,6 +5,7 @@
 <div class="content">
     <h1>Viewing All Questions</h1>
     {% if user.userprofile.access_level == 'admin' %}
+    <a href="{% url 'forms:create-question' %}"><button>Create New Question</button></a>
     {% if questions %}
         <table class="sortable-table">
             <thead>
@@ -61,7 +62,6 @@
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}
-    <a href="{% url 'forms:create-question' %}"><button>Create New Question</button></a>
     {% else %}
     <p>
         Sorry, but only site administrators may access questions. The reason for this is to assure

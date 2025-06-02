@@ -114,12 +114,13 @@ class FormsForm(forms.ModelForm):
         widgets = {
             'start_date': DateInput(), 'end_date':DateInput(),
         }
-    def __init__(self, *args, organization, **kwargs):
+    def __init__(self, *args, userProfile, **kwargs):
         super().__init__(*args, **kwargs)
         from organizations.models import Organization
-        if organization.id != 3:
-            self.fields['organization'].queryset = Organization.objects.filter(Q(id=organization.id) | Q(parent_organization=organization.id))
-            self.fields['organization'].initial = organization.id
+        userOrg = userProfile.organization
+        if userProfile.access_level != 'admin':
+            self.fields['organization'].queryset = Organization.objects.filter(Q(id=userOrg.id) | Q(parent_organization=userOrg.id))
+            self.fields['organization'].initial = userOrg.id
 
 class FormQuestionForm(forms.ModelForm):
     class Meta:

@@ -32,8 +32,26 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
         context = super().get_context_data(**kwargs)
         user_org = self.request.user.userprofile.organization
         context['user_org'] = user_org
+        context['active'] = True
         return context
+
+class ViewPastForms(LoginRequiredMixin, generic.ListView):
+    #index view for seeing a list of forms. By default is limited to forms from a users organization and active forms
+    template_name = 'forms/forms/view-forms-index.html'
+    context_object_name = 'active_forms'
     
+    def get_queryset(self):
+        user_org = self.request.user.userprofile.organization
+        today = date.today()
+        return Form.objects.filter(organization = user_org)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_org = self.request.user.userprofile.organization
+        context['user_org'] = user_org
+        context['active'] = False
+        return context
+
 class ViewFormDetail(LoginRequiredMixin, generic.DetailView):
     #view
     model=Form
@@ -73,12 +91,12 @@ class CreateUpdateForm(LoginRequiredMixin, View):
         if pk:
             form = Form.objects.filter(id=pk).first()
             return render(request, 'forms/forms/update-form-all.html',
-                        {'form': FormsForm(organization=request.user.userprofile.organization, instance=form), 
+                        {'form': FormsForm(userProfile = request.user.userprofile, instance=form), 
                           'form_meta': form, 
                           'user_org':request.user.userprofile.organization})
         else:
             return render(request, 'forms/forms/update-form-all.html', 
-                          {'form': FormsForm(organization=request.user.userprofile.organization),
+                          {'form': FormsForm(userProfile = request.user.userprofile),
                            'form_meta': None,
                             'user_org':request.user.userprofile.organization})
     def post(self, request, pk=None):
@@ -165,6 +183,49 @@ class CreateUpdateForm(LoginRequiredMixin, View):
                     formLogicRule.negate_value = rule['negate_value']
                     formLogicRule.save()
         return JsonResponse({'redirect': reverse('forms:view-form-detail', kwargs={'pk': form.id})})
+
+class DuplicateForm(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        copyForm = Form.objects.filter(id=pk).first()
+        oldID = copyForm.id
+        copyForm.pk = None
+        copyForm.form_name = 'Copy of ' + copyForm.form_name
+        copyForm.save()
+
+        copyFQs = FormQuestion.objects.filter(form=oldID)
+        oldFQs = []
+        for fq in copyFQs:
+            oldFQ = fq.id
+            newFQ = fq
+            newFQ.pk = None
+            newFQ.form = copyForm
+            newFQ.save()
+
+            checkLogic = FormLogic.objects.filter(conditional_question = oldFQ).first()
+            if checkLogic:
+                oldLogic = checkLogic.id
+                newLogic = checkLogic
+                newLogic.pk = None
+                newLogic.form = copyForm
+                newLogic.conditional_question = newFQ
+                newLogic.save()
+                checkRules = FormLogicRule.objects.filter(form_logic = oldLogic)
+                if checkRules:
+                    for rule in checkRules:
+                        oldRule = rule.id
+                        newRule = rule
+                        newRule.pk = None
+                        newRule.form_logic = newLogic
+                        newRule.save()
+            oldFQs.append({'newFQ': newFQ, 'oldFQ':oldFQ})
+
+        for fq in oldFQs:
+            checkDepRules = FormLogicRule.objects.filter(form_logic = newLogic, parent_question = fq['oldFQ'])
+            if checkDepRules:
+                for rule in checkDepRules:
+                    rule.parent_question = fq['newFQ']
+                    rule.save()
+        return HttpResponseRedirect(reverse('forms:view-form-detail', kwargs={'pk': copyForm.id}))
     
 class DeleteForm(LoginRequiredMixin, generic.DeleteView):
     model=Form

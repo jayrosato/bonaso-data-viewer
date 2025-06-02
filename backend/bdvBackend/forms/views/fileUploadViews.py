@@ -55,6 +55,9 @@ class FormTemplate(LoginRequiredMixin, View):
         form_structure = FormQuestion.objects.filter(form=form_meta).order_by('index')
         form_questions = [fq.question for fq in form_structure]
         if form_questions:
+            if request.POST['template'] == '':
+                messages.add_message(request, messages.INFO, 'Uploaded file must be a .csv file.')
+                return HttpResponseRedirect(reverse("forms:view-form-detail", kwargs={'pk': form_meta.id}))
             csv_file = request.FILES['template']
             testFile = str(csv_file)
             file_extension = Path(testFile).suffix

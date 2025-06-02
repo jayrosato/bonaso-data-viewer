@@ -4,7 +4,14 @@
 
 {% block content %}
 <div class="content">
-    <h1>Active Forms</h1>
+    {% if active %}
+        <h1>Active Forms</h1>
+    {% else %}
+        <h1>Viewing all Forms</h1>
+    {% endif %}
+    {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
+            <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
+    {% endif %}
     {% if active_forms %}
         <table class="sortable-table">
             <thead>
@@ -54,10 +61,17 @@
             </tbody>
         </table>
     {% else %}
-    <p>Nothing here yet!</p>
+        {% if active %}
+            <p>No active forms!</p>
+        {% else %}
+            <p>Your organization has not created any forms.</p>
+        {% endif %}
     {% endif %}
-    {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
-            <a href="{% url 'forms:create-form' %}"><button> Create a New Form</button></a>
+    {% if active %}
+        <a href="{% url 'forms:view-past-forms' %}">See inactive forms.</a>
+    {% else %}
+        <a href="{% url 'forms:view-forms-index' %}">See only active forms.</a>
     {% endif %}
+    
 </div>
 {% endblock %}

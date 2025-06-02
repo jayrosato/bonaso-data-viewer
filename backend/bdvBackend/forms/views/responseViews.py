@@ -125,10 +125,11 @@ class UpdateResponse(LoginRequiredMixin, View):
         self.response = get_object_or_404(Response, id=pk)
         self.form_meta = Form.objects.filter(id=self.response.form.id).first()
         self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
+        fqIDs = [fq.id for fq in self.form_structure]
         self.form_questions = [fq.question for fq in self.form_structure]
         user_org = self.request.user.userprofile.organization
         return render(request, 'forms/responses/update-response.html', 
-                    { 'form': ResponseForm(formQs=self.form_questions, response=self.response),
+                    { 'form': ResponseForm(formQs=self.form_questions, fqIDs=fqIDs, response=self.response),
                      'user':self.request.user, 'user_org':user_org,
                     'form_meta': self.form_meta,
                     'response': self.response})

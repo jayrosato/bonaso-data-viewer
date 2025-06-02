@@ -3,11 +3,11 @@
 {% block content %}
 <div class="content">
 
-        {% if user_org.id == 3 or employee_user_profile.supervisor.id == user.id or employee_user_profile.manager.id == user.id or user.id == employee.id %}
+        {% if user.userprofile.access_level == 'admin' or employee_user_profile.supervisor.id == user.id or employee_user_profile.manager.id == user.id or user.id == employee.id %}
             <h1>{{employee}}</h1>
             <p>{{employee_user_profile.organization}}</p>
-            <p>Last Logged In: {{user.last_login}}</p>
-            <p>Date Joined: {{user.date_joined}}</p>
+            <p>Last Logged In: {{employee.last_login}}</p>
+            <p>Date Joined: {{employee.date_joined}}</p>
             <p>Number of Responses Recorded: {{responses}}</p>
             <p>Number of Respondents Added: {{respondents}}</p>
             <p>Number of Forms Created: {{forms}}</p>

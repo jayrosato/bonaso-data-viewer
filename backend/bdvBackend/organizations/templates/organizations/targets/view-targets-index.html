@@ -43,7 +43,6 @@
         </thead>
         <tbody>
         {% if user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'admin' %}
-        {% if form.organization == user_org or user.userprofile.access_level == 'admin' %}
             {% for target in targets %}
             <tr>
                 <td><a href="{% url 'organizations:view-target-detail' target.id %}" >{{target.question}}</a></td>
@@ -59,7 +58,6 @@
             </tr>
             {% endfor %}
         </tbody>
-        {% endif %}
         {% endif %}
     </table>
     {% else %}

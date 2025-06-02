@@ -251,6 +251,7 @@ function sortTable(i, asc=true){
             index == i ? sorter.src = asc ? '/static/images/sort-ascending.svg' : '/static/images/sort-descending.svg': null;
         }
     })
+    recalculatePage();
 }
 
 export { check as 'filtered' }

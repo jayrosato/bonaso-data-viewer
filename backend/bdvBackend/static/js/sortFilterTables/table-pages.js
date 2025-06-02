@@ -107,6 +107,7 @@ export function recalculatePage(){
     if(page > lastPage){page = lastPage}
     showPage();
 }
+
 function showPage() {
     const table = document.querySelector('.sortable-table');
     if(!table){return;}

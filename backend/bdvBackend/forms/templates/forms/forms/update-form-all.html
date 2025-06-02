@@ -8,12 +8,15 @@
         {% if user_org.id == form_meta.organization.id or form_meta == None %}
             {%csrf_token%}
             <h2>Form Details</h2>
+            <div class="warnings">
+                <ul>
+                </ul>
+            </div>
             <div class="form-details">
                 {{ form.as_p }}
             </div>
 
             <h2>Form Questions</h2>
-            <p id="messages"></p>
             <div class="questions">
             </div>
             {% if form_meta %}

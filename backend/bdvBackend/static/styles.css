@@ -104,7 +104,7 @@ a{
     text-decoration: underline;
 }
 
-button{
+button, input[type="submit"], input[type="button"]{
     padding: 5px;
     margin: 3px;
     border: 1.5px solid white;
@@ -114,10 +114,18 @@ button{
     font-weight: bold;
 }
 
-button:hover {
+button:hover, input[type="submit"]:hover, input[type="button"]:hover {
     cursor: pointer;
     color: rgb(21, 103, 54);
     background-color: white;
+}
+
+.warnings{
+    margin: 1vw;
+    border-radius: 5px;
+    color:  darkred;
+    font-weight: bold;
+    padding: 5px;
 }
 
 select {
@@ -138,7 +146,7 @@ select:hover {
     z-index: 1;
     position: relative;
     max-width: 19rem;
-    bottom: 4.9rem;
+    bottom: 3rem;
 }
 
 textarea {

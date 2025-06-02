@@ -2,6 +2,20 @@
 {% load static %}
 {% block content %}
 <div class="content">
-    <p>Welcome home. There will be more stuff here soon </p>
+    <h2>Welcome, {{user.username | capfirst}}!</h2>
+    <p>Today is <i>{% now "D, d M Y" %}</i></p>
+
+    <div class="forms">
+        <h3>Your Forms</h3>
+        {% if forms %}
+            <ul>
+            {% for form in forms %}
+                <li><a href="{% url 'forms:view-form-detail' form.id %}">{{form.form_name}}</a></li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No forms! Congratulations!</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

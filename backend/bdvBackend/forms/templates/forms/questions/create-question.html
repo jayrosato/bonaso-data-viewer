@@ -5,15 +5,21 @@
 <link rel="stylesheet" href="{% static 'forms/styles/questionForm.css' %}">
 <div class="content">
     <div class="qForm">
-        <p id="warnings"></p>
+        <h1>Creating a New Question</h1>
+        <div class="warnings">
+            <ul>
+            </ul>
+        </div>
+
     {% if user.userprofile.access_level == 'admin' %}
             {%csrf_token%}
             {{ form }}
         </div>
-            <button id="submit" submit-url="{% url 'forms:create-question' %}">Submit</button>
+            <button id="submit" submit-url="{% url 'forms:create-question' %}">Save</button>
+            <button id="submit-create" submit-url="{% url 'forms:create-question' %}">Save & Create Another</button>
     {% else %}
         <p>You do not have permission to perform this action.</p>
     {% endif %}
-    <script src="{% static 'forms/editQuestionLogic.js' %}"></script>
+    <script type="module" src="{% static 'forms/js/editQuestionLogic.js' %}"></script>
 </div>
 {% endblock %}

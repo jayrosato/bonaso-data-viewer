@@ -34,9 +34,7 @@ class ViewQuestions(LoginRequiredMixin, generic.ListView):
 
 class CreateQuestion(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'forms/questions/create-question.html', 
-                          { 'form': QuestionForm(),
-                           'msg':'Double check that all the fields are correctly filled out.' })
+        return render(request, 'forms/questions/create-question.html', { 'form': QuestionForm() })
 
     def post(self, request):
         try:
@@ -94,9 +92,9 @@ class UpdateQuestion(LoginRequiredMixin, View):
                     else:
                         option = Option(question = question, option_text=options[i]['text'], special=os)
                         option.save()
-            return JsonResponse({'redirect': reverse('forms:view-questions')})
+            return JsonResponse({'status': 'success'})
         except:
-            print('Ah nuts')
+            return JsonResponse({'status': 'failed'})
 
 
 class DeleteQuestion(LoginRequiredMixin, generic.DeleteView):

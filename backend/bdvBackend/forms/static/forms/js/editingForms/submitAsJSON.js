@@ -1,28 +1,27 @@
-
+import { addWarning, clearWarning, initWarning } from "../../../../../static/js/customWarning.js";
 
 export default async function submitAsJson(csrftoken, formID=null){
-    const msg = document.getElementById('messages');
-    msg.innerText = '';
+    clearWarning();
     let flag = false;
     const formName = document.getElementById('id_form_name').value
     if(formName == ''){
         flag=true;
-        msg.innerText += '\nPlease enter a name for this form!';
+        addWarning('Please enter a name for this form!');
     }
     const organization = document.getElementById('id_organization').value
     if(organization == ''){
         flag=true;
-        msg.innerText += '\nPlease select an organizaiton.';
+        addWarning('Please select an organizaiton.');
     }
     const startDate = document.getElementById('id_start_date').value
     if(startDate == ''){
         flag=true;
-        msg.innerText += '\nPlease enter a start date.';
+        addWarning('Please enter a start date.');
     }
     const endDate = document.getElementById('id_end_date').value
     if(endDate == ''){
         flag=true;
-        msg.innerText += '\nPlease select an organizaiton.';
+        addWarning('Please select an organizaiton.');
     }
     const form = {
         'form_name': formName,
@@ -33,13 +32,12 @@ export default async function submitAsJson(csrftoken, formID=null){
     };
 
     const questions = document.querySelectorAll('.question');
-
+    let questionSequence = []
     questions.forEach((question, index) => {
         const checkQuestion = question.querySelector('.questionSelector');
-        console.log
         if(!checkQuestion || checkQuestion.value == ''){
             flag = true;
-            msg.innerText += `\nPlease select a valid question at index ${index+1}.`;
+            addWarning(`Please select a valid question at index ${index+1}.`);
             return;
         }
         const fqID = question.hasAttribute('fqID') ? question.getAttribute('fqID') : null
@@ -55,7 +53,7 @@ export default async function submitAsJson(csrftoken, formID=null){
             const checkRules = checkLogic.querySelectorAll('.ruleDiv');
             if(!checkRules){
                 flag = true
-                msg.innerText += `\nQuestion at index ${index+1} has logic, but no rules. Please remove logic for this question or add a rule.`;
+                addWarning(`Question at index ${index+1} has logic, but no rules. Please remove logic for this question or add a rule.`);
             }
             let logic = formQuestion.logic
             logic.conditional_operator = checkLogic.querySelector('.operatorSelector') ? checkLogic.querySelector('.operatorSelector').value: 'AND';
@@ -64,13 +62,18 @@ export default async function submitAsJson(csrftoken, formID=null){
                 const parentQuestion = rule.querySelector('.parentQuestionSelector').value;
                 if(parentQuestion == ''){
                     flag = true;
-                    msg.innerText += `\nPlease select a valid question for all rules at question ${index+1}.`;
+                    addWarning(`Please select a valid question for all rules at question ${index+1}.`);
+                    return;
+                }
+                if(!questionSequence.includes(parentQuestion) || parentQuestion == fqID){
+                    addWarning(`For logic to work properly, the parent question for logic at ${index+1} must be a question that appears before this one in the form and must be a different question.`);
+                    flag = true;
                     return;
                 }
                 const expectedValue = rule.querySelector('.valueInput').value;
                 if(expectedValue == ''){
                     flag = true;
-                    msg.innerText += `\nPlease select/enter valid values for all rules at question ${index+1}.`;
+                    addWarning(`Please select/enter valid values for all rules at question ${index+1}.`);
                     return;
                 }
                 const limitOptions = rule.querySelector('.limitOptions') && rule.querySelector('.limitOptions').checked == true ? true : false;
@@ -88,10 +91,11 @@ export default async function submitAsJson(csrftoken, formID=null){
                 logic.rules.push(logicRule);
             })
         }
+        questionSequence.push(question.querySelector('.questionSelector').value);
         form.form_questions.push(formQuestion);
     })
-    console.log(form)
     if(flag){
+        initWarning();
         return;
     }
 
@@ -109,7 +113,6 @@ export default async function submitAsJson(csrftoken, formID=null){
         window.location.href = result.redirect;
     }
     else if(result.warning){
-        msg.innerText += result.warning;
+        addWarning(result.warning);
     }
-    console.log(result)    
 }   

@@ -1,4 +1,4 @@
-export default function createSelect(options=[], text=null, includeNull=false, setAttribute=null, attributeValues=null){
+export default function createSelect(options=[], text=null, includeNull=false, setAttribute=null, attributeValues=null, search=false){
     const selector = document.createElement('select')
     if(includeNull){
         const nullOption = document.createElement('option');
@@ -6,7 +6,7 @@ export default function createSelect(options=[], text=null, includeNull=false, s
         nullOption.innerText = '-----';
         selector.appendChild(nullOption)
     }
-    if(options.length == 0){
+    if(options.length == 0 && !includeNull){
         console.warn('Static select creator requires options!');
         return;
     }
@@ -19,5 +19,8 @@ export default function createSelect(options=[], text=null, includeNull=false, s
         }
         selector.appendChild(option)
     })
+    if(search){
+        selector.setAttribute('search', 'true')
+    }
     return selector
 }
