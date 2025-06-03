@@ -39,64 +39,61 @@ class DynamicCheckboxes(CheckboxSelectMultiple):
         return option
     
 class ResponseForm(forms.Form):
-    def __init__(self, *args, formQs, fqIDs, response=None, **kwargs):
+    def __init__(self, *args, formQuestions, response=None, **kwargs):
         super().__init__(*args, **kwargs)
         CHOICES = [
         ('Yes', 'Yes'),
         ('No', 'No'),
         ]
-        self.formQs = formQs
         if response == None:
-            field_name = 'Respondent'
-            self.fields[field_name] = forms.ModelChoiceField(queryset=Respondent.objects.all())
-        else: 
-            self.response=response
+            self.fields['Respondent'] = forms.ModelChoiceField(queryset=Respondent.objects.all())
 
-        for i in range(len(formQs)):
-            field_name = formQs[i].question_text
-            if formQs[i].question_type == 'Text':
-                self.fields[field_name] = forms.CharField(max_length=100000)
-                if response:
-                    try:
-                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
-                    except:
-                        continue
-            if formQs[i].question_type == 'Number':
-                self.fields[field_name] = forms.CharField(max_length=100)
-                self.fields[field_name].widget.attrs.update({'number':'yes'})
-                if response:
-                    try:
-                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
-                    except:
-                        continue
-            if formQs[i].question_type == 'Yes/No':
-                self.fields[field_name] = forms.ChoiceField(choices=CHOICES, widget=forms.RadioSelect)
-                if response:
-                    try:
-                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().open_answer
-                    except:
-                        continue
+        for fq in formQuestions:
+            field = fq.id
+            question = fq.question
+            if response:
+                if question.question_type == 'Multiple Selections':
+                    answer = Answer.objects.filter(response=response, question=question)
+                else:
+                    answer = Answer.objects.filter(response=response, question=question).first()
+            else:
+                answer = None
+            if question.question_type == 'Text':
+                self.fields[field] = forms.CharField(max_length=100000)
+                if answer:
+                    self.fields[field].initial = answer.open_answer
+            if question.question_type == 'Number':
+                self.fields[field] = forms.CharField(max_length=100)
+                self.fields[field].widget.attrs.update({'number':'yes'})
+                if answer:
+                    self.fields[field].initial = answer.open_answer
+            if question.question_type == 'Yes/No':
+                self.fields[field] = forms.ChoiceField(choices=CHOICES, widget=forms.RadioSelect)
+                if answer:
+                    self.fields[field].initial = answer.open_answer
 
-            if formQs[i].question_type == 'Single Selection':
-                self.fields[field_name] = forms.ModelChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=forms.RadioSelect)
-                if response:
-                    try:
-                        self.fields[field_name].initial = Answer.objects.filter(response=self.response.id, question=formQs[i].id).first().option
-                    except:
-                        continue
+            if question.question_type == 'Single Selection':
+                self.fields[field] = forms.ModelChoiceField(queryset=Option.objects.filter(pk__in=question.option_set.all()), widget=forms.RadioSelect)
+                if answer:
+                    self.fields[field].initial = answer.option
            
-            if formQs[i].question_type == 'Multiple Selections':
-                self.fields[field_name] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=formQs[i].option_set.all()), widget=DynamicCheckboxes)
-                if response:
-                    try:
-                        answers = Answer.objects.filter(response=self.response.id, question=formQs[i].id)
-                        options = [a.option for a in answers]
-                        self.fields[field_name].initial = options
-                    except: 
-                        continue
-
-            self.fields[field_name].widget.attrs.update({'class':'form_question'})
-            self.fields[field_name].widget.attrs.update({'fqID':fqIDs[i]})
+            if question.question_type == 'Multiple Selections':
+                self.fields[field] = forms.ModelMultipleChoiceField(queryset=Option.objects.filter(pk__in=question.option_set.all()), widget=DynamicCheckboxes)
+                if answer:
+                    options = [a.option for a in answer]
+                    self.fields[field].initial = options
+                    if len(options) == len(Option.objects.filter(question=question, special=None)):
+                        special = Option.objects.filter(question=question, special='All').first()
+                        if special:
+                            self.fields[field].initial = special
+                if not answer:
+                    special = Option.objects.filter(question=question, special='None of the above').first()
+                    if special:
+                        self.fields[field].initial = special
+            self.fields[field].label = question.question_text
+            self.fields[field].widget.attrs.update({'class':'form_question'})
+            self.fields[field].widget.attrs.update({'fqID':fq.id})
+            self.fields[field].required = False
 
 class QuestionForm(forms.ModelForm):
     class Meta:

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="content">
+    {% if message.sender == user or message.recipient == user %}
+        <h1>Message from {{message.sender}}</h1>
+        {% if user == message.sender %}
+            <a href="{%url 'accounts:update-message' message.id%}"><button>Edit Details</button></a>
+            <a href="{%url 'accounts:delete-message' message.id%}"><button>Delete Message</button></a>
+        {% endif %}
+
+        <h2>Subject: {{message.subject}}</h2>
+        <p>From: {{message.sender}}</p>
+        <h2>Body</h2>
+        <p>{{message.body}}</p>
+        {% if message.recipient == user and message.completed == False %}
+        <form action="{% url 'accounts:complete-message' message.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Mark as Complete</button>
+        </form>
+        {% endif %}
+
+        <a href="{% url 'accounts:reply' message.id %}"><button>Reply</button></a>
+        {% if replies %}
+            <h3>Replies</h3>
+            {% for reply in replies %}
+                <div class="reply">
+                    <p>{{reply.sent_on}}</p>
+                    <h3>{{reply.sender}}</h3>
+                    <p>{{reply.body}}</p>
+                    {% if user == reply.sender %}
+                        <a href="{%url 'accounts:update-message' reply.id%}"><button>Edit Reply</button></a>
+                        <a href="{%url 'accounts:delete-message' reply.id%}"><button>Delete Reply</button></a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No replies</p>
+        {% endif %}
+
+    {% else %}
+            <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
+    {% endif %}
+</div>
+{% endblock %}

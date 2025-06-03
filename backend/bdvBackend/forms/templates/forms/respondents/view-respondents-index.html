@@ -47,7 +47,6 @@
                 </div>
             </th>
         </thead>
-        {% if perms.forms.view_respondent %}
             <tbody>
             {% for respondent in respondents %}
             <tr>
@@ -61,7 +60,6 @@
             </tr>
             {% endfor %}
             </tbody>
-        {% endif %}
     </table>
     {% else %}
     <p>Nothing here yet!</p>

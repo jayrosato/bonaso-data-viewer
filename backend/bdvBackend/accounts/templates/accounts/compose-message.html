@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="content">
+    {% if update == True %}
+            <form action="" method="post">
+                {%csrf_token%}
+                {{ form }}
+                <input type="submit" value="Submit">
+            </form>
+            {% if message.id %}
+                <a href="{%url 'organizations:delete-message' message.id%}">
+                    <button>
+                        Delete Organization
+                    </button>
+                </a>
+            {% endif %}
+    {% else %}
+        <form action="" method="post">
+            {%csrf_token%}
+            {{ form }}
+            <input type="submit" value="Submit">
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

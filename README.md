@@ -2,20 +2,19 @@
 Conceptual project creating a system for interacting with a database for my organization.
 
 Planned Future Imporvements: 
-    Better UI for filtering:
-        Some fine tuning, but most of the basic functionality is there.
-    
-    APP: Send organization and get user information for requests and posts.
+        APP: Send organization and get user information for requests and posts.
         The app needs to send information about the user requesting data when making requests to the server so that it knows what information to send. Really this is mostly for sending forms, but also for created_by for responses. 
-        
-    System for Batch Uploads:
-        As either a supplement or alternative to file uploads based on forms, there should be a way for users to batch record a group of respondents and questions they were targeted with. 
-        
+   
     Improving File Uploads:
-        File uploading for forms is a bit janky right now. There needs to be some more validation (checking logic, proper inputs, etc.) and there should also be a way for responses to be updated via files. Also, users need more information about when a field/respondent runs into an error so they can correct on their end. 
+        File uploads work, but they're a bit limiting, need to figure out how to get user input for conflicts/updating records.
 
-    Improving UI:
-        Improve error messaging, directions, etc.
+    Tutorial:
+        Consider designing an information page.
+
+    Need Redesign/Designs:
+        Responses
+        Login Page
+        Home page
 
 
 Important Notes:

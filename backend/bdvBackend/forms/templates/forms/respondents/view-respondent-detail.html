@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="content">
-    {% if perms.forms.view_respondent %}
+    {% if user.userprofile.access_level == 'admin' or respondent.created_by == user or respondent.created_by.manager == user or respondent.created_by.supervisor %}
         <h2>Viewing {{respondent}}</h2>
         <p>First Name: {{respondent.fname}}</p>
         <p>Last Name: {{respondent.lname}}</p>
@@ -16,12 +16,12 @@
 
         <p> Created At: {{respondent.created_at}}</p>
         <p> Last Updated At: {{respondent.updated_at}}</p>
-
+        <p>Created By: {{respondent.created_by}}</p>
         <h3>{{respondent}}'s Responses</h3>
         {% if responses %}
         <ul>
             {% for response in responses %}
-                {% if response.form.organization.id == user_org.id or user_org.id == 3 %}
+                {% if response.form.organization.id == user_org.id or user.userprofile.access_level == 'admin' %}
                     <a href="{% url 'forms:view-response-detail' response.id %}"> <li>{{response.form}} ({{response.response_date}})</li></a>
                 {% endif %}
             {% endfor %}

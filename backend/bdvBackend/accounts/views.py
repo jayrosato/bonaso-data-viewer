@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic, View
+from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model, login, authenticate
+from django.db.models import Q
 import json
 
 User = get_user_model()
-from accounts.models import UserProfile
+from accounts.models import UserProfile, Message
 
 class Settings(LoginRequiredMixin, View):
     def get(self, request):
@@ -44,6 +46,111 @@ class Profile(LoginRequiredMixin, generic.DetailView):
 
         context['employee_user_profile'] = employee_user_profile
         return context
+    
+class ViewMessagesIndex(LoginRequiredMixin, generic.ListView):
+    template_name = 'accounts/view-messages-index.html'
+    context_object_name = 'messages'
+    def get_queryset(self):
+        user = self.request.user
+        return Message.objects.filter(recipient=user, parent=None)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        sentMessages = Message.objects.filter(sender=user, parent=None)
+        context['sent'] = sentMessages
+        return context
+
+class ViewMessageDetail(LoginRequiredMixin, generic.DetailView):
+    model=Message
+    template_name='accounts/view-message-detail.html'
+    context_object_name = 'message'
+
+    def get_object(self, queryset=None):
+        msg = super().get_object(queryset)
+        if msg.recipient == self.request.user and not msg.read:
+            msg.read = True
+            msg.save(update_fields=['read'])
+        return msg
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        replies = Message.objects.filter(parent = pk).order_by('sent_on')
+        for reply in replies:
+            reply.read = True
+            reply.save()
+        context['replies'] = replies
+        return context
+    
+class CreateMessage(LoginRequiredMixin, generic.CreateView):
+    model=Message
+    template_name = 'accounts/compose-message.html'
+    fields =  ['recipient', 'subject', 'body']
+            
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        user = self.request.user
+        user_org = user.userprofile.organization
+        if user.userprofile.access_level != 'admin':
+            form.fields['recipient'].queryset = User.objects.filter(Q(userprofile__organization=user_org) | Q(userprofile__access_level='admin'))
+        else:
+            form.fields['recipient'].queryset = User.objects.all()
+        return form
+    def form_valid(self, form):
+        form.instance.sender = self.request.user
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('accounts:view-messages-index')
+    
+class CreateReply(LoginRequiredMixin, generic.CreateView):
+    model=Message
+    template_name = 'accounts/compose-message.html'
+    fields =  ['body']
+
+    def form_valid(self, form):
+        pk = self.kwargs['pk']
+        parent = Message.objects.filter(id=pk).first()
+        if self.request.user == parent.sender:
+            recipient = parent.recipient
+        else:
+            recipient = parent.sender
+        form.instance.sender = self.request.user
+        form.instance.recipient = recipient
+        form.instance.parent = parent
+        form.instance.subject = 'Replying to: ' + parent.subject
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('accounts:view-message-detail', kwargs={'pk': self.object.parent.id})
+
+
+class UpdateMessage(LoginRequiredMixin, generic.UpdateView):
+    model=Message
+    template_name = 'accounts/compose-message.html'
+    fields =  ['subject', 'body']
+
+    def get_success_url(self):
+        if(self.object.parent == None):
+            return reverse_lazy('accounts:view-message-detail', kwargs={'pk': self.object.id})
+        else:
+            return reverse_lazy('accounts:view-message-detail', kwargs={'pk': self.object.parent.id})
+
+
+class CompleteMessage(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        message = Message.objects.filter(id=pk).first()
+        message.completed = True
+        message.save(update_fields=['completed'])
+
+        return HttpResponseRedirect(reverse_lazy('accounts:view-message-detail', kwargs={'pk': message.id}))
+
+
+class DeleteMessage(LoginRequiredMixin, generic.DeleteView):
+    model=Message
+    success_url = reverse_lazy('accounts:view-messages-index')
+
 
 
 #for verifying mobile logins

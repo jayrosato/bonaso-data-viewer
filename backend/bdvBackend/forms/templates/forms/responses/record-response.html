@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+{% if user %}
+    {% if user_org.id == form_meta.organization.id or user.userprofile.access_level == 'admin' %}
+    <div class="content">
+        <p id="form_passer" form="{{ form_meta.id }}"></p>
+        <h1>New Response</h1>
+        <div class="warnings">
+            <ul>
+            </ul>
+        </div>
+        {% if not response %}
+            <button onclick="openInputWindow()">New Respondent</button>
+            <script>
+                function openInputWindow() {
+                    window.open("{% url 'forms:create-respondent' %}", "Input Window", "width=800,height=600");
+                }
+            </script>
+
+            <form id="response_form" action="{% url 'forms:create-response' form_meta.id %}" method="post">
+                {%csrf_token%}
+                {{ form }}
+                <input type="submit" value="Submit Response" id="submitButton">
+            </form>
+        {% else %}
+            <form id="response_form" action="{% url 'forms:update-response' form_meta.id response.id %}" method="post">
+                {%csrf_token%}
+                {{ form }}
+                <input type="submit" value="Submit Response" id="submitButton">
+            </form>
+        {% endif %}
+        
+    </div>
+    <script type="module" src="{% static 'forms/js/conditionalFormLogic.js' %}"></script>
+    {% else %}
+        <p>You do not have permission to view this page. If you think this is a mistake, please contact your supervisor.</p>
+    {% endif %}
+{% else %}
+    <p>You do not have permission to view this page. If you think this is a mistake, please contact your supervisor.</p>
+{% endif %}
+{% endblock %}
+
+
+
+
+
+

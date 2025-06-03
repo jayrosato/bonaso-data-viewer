@@ -1,5 +1,5 @@
 from .formViews import ViewFormsIndex, ViewPastForms, ViewFormDetail, CreateUpdateForm, DuplicateForm, DeleteForm
-from .responseViews import ViewResponseIndex, ViewResponseDetail, NewResponse, UpdateResponse, DeleteResponse
+from .responseViews import ViewResponseIndex, ViewResponseDetail, NewResponse, UpdateResponse, DeleteResponse, RecordResponse
 from .questionViews import ViewQuestions, CreateQuestion, UpdateQuestion, DeleteQuestion
 from .respondentViews import ViewRespondentsIndex, ViewRespondentDetail, CreateRespondent, UpdateRespondent, DeleteRespondent
 from .mobileAPIViews import GetForms, SyncMobileResponses

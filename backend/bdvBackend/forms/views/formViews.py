@@ -26,7 +26,10 @@ class ViewFormsIndex(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         user_org = self.request.user.userprofile.organization
         today = date.today()
-        return Form.objects.filter(organization = user_org, start_date__lte = today, end_date__gte = today)
+        if self.request.user.userprofile.access_level =='admin':
+             return Form.objects.filter(start_date__lte = today, end_date__gte = today)
+        else:   
+            return Form.objects.filter(organization = user_org, start_date__lte = today, end_date__gte = today)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -105,8 +108,6 @@ class CreateUpdateForm(LoginRequiredMixin, View):
 
         if len(data['form_questions']) == 0:
             return JsonResponse({'warning': 'Form has no questions!'})
-        
-        print(data)
         if pk:
             form = Form.objects.filter(id=pk).first()
         else:
@@ -123,8 +124,6 @@ class CreateUpdateForm(LoginRequiredMixin, View):
 
         uploadedQuestions = data['form_questions']
         existingQuestions = FormQuestion.objects.filter(form=form.id)
-        print(uploadedQuestions)
-        print(existingQuestions)
         for eq in existingQuestions:
             if not eq.id in uploadedQuestions:
                 eq.delete()

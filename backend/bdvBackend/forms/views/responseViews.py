@@ -56,7 +56,90 @@ class ViewResponseDetail(LoginRequiredMixin, generic.DetailView):
         context['question_answer_pairs'] = zip(form_questions, answers)
         context['form_meta'] = form
         return context
+
+
+class RecordResponse(LoginRequiredMixin, View):
+    def get(self, request, pk, rid=None):
+        form = Form.objects.filter(id=pk).first()
+        formQuestions = FormQuestion.objects.filter(form=form).order_by('index')
+        user_org = self.request.user.userprofile.organization
+        response = None
+        if rid:
+            response = Response.objects.filter(id=rid).first()
+        return render(request, 'forms/responses/record-response.html', 
+                    { 'form': ResponseForm(formQuestions=formQuestions, response=response),
+                     'user_org':user_org, 'response': response,
+                    'form_meta': form
+                    })
     
+    def post(self, request, pk, rid=None):
+        form = Form.objects.filter(id=pk).first()
+        formQuestions = FormQuestion.objects.filter(form=form).order_by('index')
+        if rid:
+            response = Response.objects.filter(id=rid).first()
+            if not response:
+                print('WARNING: No response found, aborting upload!')
+                return HttpResponseRedirect(reverse("forms:view-forms-index"))
+            response.updated_at = timezone.now()
+        else:
+            respondentID = request.POST.get('Respondent')
+            respondent = Respondent.objects.filter(id=respondentID).first()
+            if not respondent:
+                print('WARNING: No respondent found, aborting upload!')
+                return HttpResponseRedirect(reverse("forms:view-forms-index"))
+            checkResponse = Response.objects.filter(form=form, respondent=respondent).first()
+            flag = False
+            if checkResponse:
+                flag = True
+            response = Response(form=form, respondent=respondent, created_by=request.user, flag=flag)
+        response.save()
+
+        for fq in formQuestions:
+            question = fq.question
+            value = request.POST.get(str(fq.id))
+            if question.question_type == 'Multiple Selections':
+                answer = Answer.objects.filter(question = question, response = response)
+                for a in answer:
+                    answer.delete()
+            else:
+                answer = Answer.objects.filter(question = question, response = response).first()
+            if not value:
+                if answer:
+                    for a in answer:
+                        answer.delete()
+                continue
+            if not answer:
+                answer = Answer(response=response, question=question)
+
+            if question.question_type in ['Yes/No', 'Text', 'Number']:
+                answer.open_answer = value
+                answer.option = None
+                answer.save()
+            if question.question_type == 'Single Selection':
+                option = Option.objects.filter(id=value).first()
+                if option:
+                    answer.option = option
+                    answer.open_answer = None
+                    answer.save()
+                else:
+                    answer.delete()
+            if question.question_type == 'Multiple Selections':
+                selectedOptions = request.POST.getlist(str(fq.id))
+                for so in selectedOptions:
+                    option = Option.objects.filter(id=so).first()
+                    if not option or option.special == 'None of the above':
+                        continue
+                    elif option.special == 'All':
+                        options = Option.objects.filter(question = question)
+                        for option in options:
+                            if not option.special:
+                                answer = Answer(response=response, question=question,  option=option, open_answer=None)
+                                answer.save()
+                        continue
+                    answer = Answer(response=response, question=question,  option=option, open_answer=None)
+                    answer.save()
+        return HttpResponseRedirect(reverse("forms:view-forms-index"))
+
 class NewResponse(LoginRequiredMixin, View):
     def get(self, request, pk):
         self.form_meta = get_object_or_404(Form, id=pk)
@@ -68,47 +151,61 @@ class NewResponse(LoginRequiredMixin, View):
                     { 'form': ResponseForm(formQs=self.form_questions, fqIDs = fqIDs),
                      'user_org':user_org,
                     'form_meta': self.form_meta,})
-
+    
     def post(self, request, pk):
-        self.form_meta = get_object_or_404(Form, id=pk)
-        self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
-        self.form_questions = [fq.question for fq in self.form_structure]
-        fqIDs = [fq.id for fq in self.form_structure]
-        self.form = ResponseForm(request.POST, formQs=self.form_questions, fqIDs = fqIDs)
+        form_meta = get_object_or_404(Form, id=pk)
+        form_structure = FormQuestion.objects.filter(form=form_meta).order_by('index')
+        form_questions = [fq.question for fq in form_structure]
+        fqIDs = [fq.id for fq in form_structure]
+        form = ResponseForm(request.POST, formQs=form_questions, fqIDs = fqIDs)
 
-        #if self.form.is_valid():
         respondent_id = request.POST.get('Respondent')
-        response = Response(form=self.form_meta, respondent=get_object_or_404(Respondent, pk=respondent_id), created_by=request.user)
+        checkResponse = Response.objects.filter(form=form_meta, respondent=respondent_id).first()
+        flag = False
+        if checkResponse:
+            flag = True
+        respondent = Respondent.objects.filter(id=respondent_id).first()
+        if not respondent:
+            print('WARNING: No respondent found.')
+            return
+        response = Response(form=form_meta, respondent=respondent, created_by=request.user, flag=flag)
         
         response.save()
-        for i in range(len(self.form_questions)):
-            if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
-                openResponse = request.POST.get(self.form_questions[i].question_text)
-                answer = Answer(response=response, question=self.form_questions[i], open_answer=openResponse, option=None)
+        for i in range(len(form_questions)):
+            if request.POST.get(form_questions[i].question_text) == '':
+                continue
+            if form_questions[i].question_type == 'Text' or form_questions[i].question_type == 'Number':
+                openResponse = request.POST.get(form_questions[i].question_text)
+                answer = Answer(response=response, question=form_questions[i], open_answer=openResponse, option=None)
                 answer.save()
-            if self.form_questions[i].question_type == 'Yes/No':
-                yesNo = request.POST.get(self.form_questions[i].question_text)
-                answer = Answer(response=response, question=self.form_questions[i], open_answer=yesNo)
+            if form_questions[i].question_type == 'Yes/No':
+                yesNo = request.POST.get(form_questions[i].question_text)
+                answer = Answer(response=response, question=form_questions[i], open_answer=yesNo)
                 answer.save()
-            if self.form_questions[i].question_type == 'Single Selection':
-                option_id = request.POST.get(self.form_questions[i].question_text)
-                answer = Answer(response=response, question=self.form_questions[i], option=get_object_or_404(Option, pk=option_id), open_answer=None)
+            if form_questions[i].question_type == 'Single Selection':
+                option_id = request.POST.get(form_questions[i].question_text)
+                option = Option.objects.filter(id=option_id).first()
+                if not option:
+                    continue
+                answer = Answer(response=response, question=form_questions[i], option=option, open_answer=None)
                 answer.save()
-            if self.form_questions[i].question_type == 'Multiple Selections':
-                selected_options = request.POST.getlist(self.form_questions[i].question_text)
+            if form_questions[i].question_type == 'Multiple Selections':
+                selected_options = request.POST.getlist(form_questions[i].question_text)
                 #check if the options selected is none, and if so record nothing
                 for o in range(len(selected_options)):
-                    option=get_object_or_404(Option, pk=selected_options[o])
+                    option = Option.objects.filter(id=selected_options[o]).first()
+                    if not option:
+                        continue
                     if option.special == 'None of the above':
                         continue
                     elif option.special == 'All':
-                        options = Option.objects.filter(question = self.form_questions[i])
+                        options = Option.objects.filter(question = form_questions[i])
                         for option in options:
                             if not option.special:
-                                answer = Answer(response=response, question=self.form_questions[i],  option=option, open_answer=None)
+                                answer = Answer(response=response, question=form_questions[i],  option=option, open_answer=None)
                                 answer.save()
                         continue
-                    answer = Answer(response=response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
+                    answer = Answer(response=response, question=form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
                     answer.save()
         return HttpResponseRedirect(reverse("forms:view-forms-index"))
         '''
@@ -121,67 +218,79 @@ class NewResponse(LoginRequiredMixin, View):
         '''
 
 class UpdateResponse(LoginRequiredMixin, View):
-    def get(self, request, pk):
-        self.response = get_object_or_404(Response, id=pk)
-        self.form_meta = Form.objects.filter(id=self.response.form.id).first()
-        self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
-        fqIDs = [fq.id for fq in self.form_structure]
-        self.form_questions = [fq.question for fq in self.form_structure]
-        user_org = self.request.user.userprofile.organization
+    def get(self, request, pk, rid):
+        response = get_object_or_404(Response, id=rid)
+        form_meta = Form.objects.filter(id=response.form.id).first()
+        form_structure = FormQuestion.objects.filter(form=form_meta).order_by('index')
+        fqIDs = [fq.id for fq in form_structure]
+        form_questions = [fq.question for fq in form_structure]
+        user_org = request.user.userprofile.organization
         return render(request, 'forms/responses/update-response.html', 
-                    { 'form': ResponseForm(formQs=self.form_questions, fqIDs=fqIDs, response=self.response),
-                     'user':self.request.user, 'user_org':user_org,
-                    'form_meta': self.form_meta,
-                    'response': self.response})
-
+                    { 'form': ResponseForm(formQs=form_questions, fqIDs=fqIDs, response=response),
+                     'user':request.user, 'user_org':user_org,
+                    'form_meta': form_meta,
+                    'response': response})
 
     def post(self, request, pk):
-        self.response = get_object_or_404(Response, id=pk)
-        self.form_meta = Form.objects.filter(id=self.response.form.id).first()
-        self.form_structure = FormQuestion.objects.filter(form=self.form_meta).order_by('index')
-        self.form_questions = [fq.question for fq in self.form_structure]
-        self.form = ResponseForm(request.POST, formQs=self.form_questions, response=self.response)
+        response = Response.objects.filter(id=pk).first()
+        if not response:
+            print('WARNING: Response not found...')
+            return
+        form_meta = Form.objects.filter(id=response.form.id).first()
+        form_structure = FormQuestion.objects.filter(form=form_meta).order_by('index')
+        fqIDs = [fq.id for fq in form_structure]
+        form_questions = [fq.question for fq in form_structure]
+        form = ResponseForm(request.POST, formQs=form_questions, fqIDs=fqIDs, response=response)
 
+        #if form.is_valid():
+        response.updated_at = timezone.now()
+        response.save()
 
-        #if self.form.is_valid():
-        self.response.updated_at = timezone.now()
-        self.response.save()
-
-        for i in range(len(self.form_questions)):
-            if self.form_questions[i].question_type == 'Text' or self.form_questions[i].question_type == 'Number':
-                openResponse = request.POST.get(self.form_questions[i].question_text)
-                answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+        for i in range(len(form_questions)):
+            if form_questions[i].question_type == 'Text' or form_questions[i].question_type == 'Number':
+                openResponse = request.POST.get(form_questions[i].question_text)
+                answer = Answer.objects.filter(response = response, question=form_questions[i]).first()
+                if not answer:
+                    continue
                 answer.open_answer = openResponse
                 answer.save()
-            if self.form_questions[i].question_type == 'Yes/No':
-                yesNo = request.POST.get(self.form_questions[i].question_text)
-                answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
+            if form_questions[i].question_type == 'Yes/No':
+                yesNo = request.POST.get(form_questions[i].question_text)
+                answer = Answer.objects.filter(response = response, question=form_questions[i]).first()
+                if not answer:
+                    continue
                 answer.open_answer = yesNo
                 answer.save()
-            if self.form_questions[i].question_type == 'Single Selection':
-                option_id = request.POST.get(self.form_questions[i].question_text)
-                answer = Answer.objects.filter(response = self.response, question=self.form_questions[i]).first()
-                answer.option = get_object_or_404(Option, pk=option_id)
+            if form_questions[i].question_type == 'Single Selection':
+                option_id = request.POST.get(form_questions[i].question_text)
+                option = Option.objects.filter(id=option_id).first()
+                if not option:
+                    continue
+                answer = Answer.objects.filter(response = response, question=form_questions[i]).first()
+                answer.option = option
                 answer.save()
-            if self.form_questions[i].question_type == 'Multiple Selections':
-                selected_options = request.POST.getlist(self.form_questions[i].question_text)
-                previous_answers =  Answer.objects.filter(response = self.response, question=self.form_questions[i])
+            if form_questions[i].question_type == 'Multiple Selections':
+                selected_options = request.POST.getlist(form_questions[i].question_text)
+                previous_answers =  Answer.objects.filter(response = response, question=form_questions[i])
                 for answer in previous_answers:
                     answer.delete()
                 for o in range(len(selected_options)):
-                    option=get_object_or_404(Option, pk=selected_options[o])
+                    option_id = request.POST.get(form_questions[i].question_text)
+                    option = Option.objects.filter(id=option_id).first()
+                    if not option:
+                        continue
                     if option.special == 'None of the above':
                         continue
                     elif option.special == 'All':
-                        options = Option.objects.filter(question = self.form_questions[i])
+                        options = Option.objects.filter(question = form_questions[i])
                         for option in options:
                             if not option.special:
-                                answer = Answer(response=self.response, question=self.form_questions[i],  option=option, open_answer=None)
+                                answer = Answer(response=response, question=form_questions[i],  option=option, open_answer=None)
                                 answer.save()
                         continue
-                    answer = Answer(response=self.response, question=self.form_questions[i],  option=get_object_or_404(Option, pk=selected_options[o]), open_answer=None)
+                    answer = Answer(response=response, question=form_questions[i],  option=option, open_answer=None)
                     answer.save()
-        return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': self.response.id}))
+        return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': response.id}))
         '''
         else:
             return render(request, 'forms/responses/update-response.html', 

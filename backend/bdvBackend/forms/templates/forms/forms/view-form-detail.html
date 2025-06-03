@@ -60,7 +60,7 @@
         {% if user.userprofile.access_level == 'manager' or user.userprofile.access_level == 'supervisor' or user.userprofile.access_level == 'admin' %}
             <div class="templates">
                 <h3>Template Management</h3>
-                <div class="warnings">
+                <div class="fileWarnings">
                     <p id="messages"> {{warnings}}</p>
                     {% if messages %}
                         <ul class="messages">

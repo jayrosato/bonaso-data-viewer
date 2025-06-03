@@ -3,6 +3,7 @@ from django.views import generic, View
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
+from django.db.models import Q
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
@@ -19,7 +20,15 @@ class ViewRespondentsIndex(LoginRequiredMixin, generic.ListView):
     template_name = 'forms/respondents/view-respondents-index.html'
     context_object_name = 'respondents'
     def get_queryset(self):
-        return Respondent.objects.all()
+        user = self.request.user
+        if user.userprofile.access_level == 'admin':
+            return Respondent.objects.all()
+        else:
+            return Respondent.objects.filter(
+                Q(created_by=user) |
+                Q(created_by__userprofile__manager=user) |
+                Q(created_by__userprofile__supervisor=user)
+            )
 
 class ViewRespondentDetail(LoginRequiredMixin, generic.DetailView):
     model=Respondent

@@ -32,3 +32,10 @@
     padding: .5rem;
     border-radius: 10px;
 }
+
+.fileWarnings {
+    border-radius: 5px;
+    background-color: lightcoral;
+    color: darkred;
+    font-weight: bold;
+}

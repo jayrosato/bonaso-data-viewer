@@ -2,28 +2,43 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'forms/styles/response-detail.css' %}">
 <div class="content">
     {% if perms.forms.view_response or user.id == response.created_by.id %}
         <h2>Viewing {{response}} from {{response.respondent}}</h2>
-
-        {% for question, answer in question_answer_pairs %}
-            <h5> {{question.question_text}} </h5>
-            {% if answer != 'No response given.' %}
-                <p>{{ answer }}</p>
-            {% else %}
-                <p> No response given</p>
-            {% endif %}
-        {% endfor %}
-        <p> Created At: {{response.created_at}}</p>
-        <p> Last Updated At: {{response.updated_at}}</p>
-
-
+        {% if response.flag %}
+            <div class="flags">
+                <h3>This Response Is Flagged</h3>
+                <p>This response was marked as suspect, most likely because this respondent already responded to the same form.</p>
+            </div>
+        {% endif %}
         {% if perms.forms.change_response %}
-            <a href="{% url 'forms:update-response' response.id %}"><button>Edit Response</button></a>
+            <a href="{% url 'forms:update-response' form_meta.id response.id %}"><button>Edit Response</button></a>
         {% endif %}
         {% if perms.forms.delete_response %}
-            <a href="{%url 'forms:delete-response' response.id%}"><button>Delete Response</button></a>
+            <a href="{% url 'forms:delete-response' response.id %}"><button>Delete Response</button></a>
         {% endif %}
+        <div class="questions">
+            <ol>
+                {% for question, answer in question_answer_pairs %}
+                    <li class="qTitle"> {{question.question_text}} </li>
+                        <ul>
+                            {% if answer == 'No response given.' %}
+                                <li>No response given.</li>
+                            {% elif question.question_type == 'Multiple Selections' %}
+                                {% for answer in answer %}<li><i>{{ answer.option.option_text }}</i></li>{% endfor %}
+
+                            {% elif question.question_type == 'Single Selection' %}
+                                <li>{{answer.0.option.option_text}}</li>
+                            {% else %}
+                                <li>{{answer.0.open_answer}}</li>
+                            {% endif %}
+                        </ul>
+                {% endfor %}
+            </ol>
+        </div>
+        <p> Created At: {{response.response_date}}</p>
+        <p> Last Updated At: {{response.updated_at}}</p>
     {% else %}
             <p>You do not have permissions to view this page. Please contact your manager if you think this is a mistake.</p>
     {% endif %}

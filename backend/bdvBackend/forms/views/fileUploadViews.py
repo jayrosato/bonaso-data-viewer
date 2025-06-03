@@ -41,7 +41,7 @@ class FormTemplate(LoginRequiredMixin, View):
         respondent_fields.remove('created_by')
         question_fields = [q.question_text for q in form_questions]
 
-        fields = respondent_fields + question_fields
+        fields = respondent_fields + ['response_date'] + question_fields
         writer = csv.writer(response)
         writer.writerow(fields)
 
@@ -49,15 +49,16 @@ class FormTemplate(LoginRequiredMixin, View):
 
     def post(self, request, pk):
         override = False #by default, leave any existing users alone
-        flag = False
-        warnings = ''
         form_meta = get_object_or_404(Form, id=pk)
         form_structure = FormQuestion.objects.filter(form=form_meta).order_by('index')
         form_questions = [fq.question for fq in form_structure]
         if form_questions:
-            if request.POST['template'] == '':
-                messages.add_message(request, messages.INFO, 'Uploaded file must be a .csv file.')
-                return HttpResponseRedirect(reverse("forms:view-form-detail", kwargs={'pk': form_meta.id}))
+            try:
+                if request.POST['template'] == '':
+                    messages.add_message(request, messages.INFO, 'Uploaded file must be a .csv file.')
+                    return HttpResponseRedirect(reverse("forms:view-form-detail", kwargs={'pk': form_meta.id}))
+            except:
+                pass
             csv_file = request.FILES['template']
             testFile = str(csv_file)
             file_extension = Path(testFile).suffix
@@ -81,8 +82,10 @@ class FormTemplate(LoginRequiredMixin, View):
                     try:
                         parsed_date = datetime.strptime(raw_date, '%m/%d/%Y').date()
                     except ValueError:
-                        messages.add_message(request, messages.INFO, f'Row {index+2} contains an invalid date value (expected MM/DD/YY) at column Date of Birth. This response will not be recorded until the error is fixed.')
+                        messages.add_message(request, messages.INFO, f'Row {index+1} contains an invalid date value (expected MM/DD/YY) at column Date of Birth. This response will not be recorded until the error is fixed.')
                         continue
+                    if parsed_date > datetime.today().date():
+                        messages.add_message(request, messages.INFO, f'Row {index+1} contains an impossible date of birth. Please verify this record.')
                     #check for valid sex responses
                     maleResponses = ['m', 'male', 'man', 'boy']
                     femaleResponses = ['f', 'female', 'woman', 'girl']
@@ -95,7 +98,7 @@ class FormTemplate(LoginRequiredMixin, View):
                     elif sex in nbResponses:
                         sex = 'NB'
                     else:
-                        messages.add_message(request, messages.INFO, f'Respondent sex at row {index+2} contained a value we could not read. Please enter "male/female/non-binary" or "M/F/NB".')
+                        messages.add_message(request, messages.INFO, f'Respondent sex at row {index+1} contained a value we could not read. Please enter "male/female/non-binary" or "M/F/NB".')
                         continue
 
                     #check email (if provided)
@@ -106,12 +109,14 @@ class FormTemplate(LoginRequiredMixin, View):
 
                         except EmailNotValidError as e:
                             email = ''
-                            messages.add_message(request, messages.INFO, f'Respondent email at row {index+2} contained an invalid email address. Value was not recorded.')
+                            messages.add_message(request, messages.INFO, f'Respondent email at row {index+1} contained an invalid email address. Value was not recorded.')
+                    else:
+                        email = None
                     if row['contact_no'] != '':
                         checkNum = re.search(r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', row['contact_no'])
                         if not checkNum:
-                            num = ''
-                            messages.add_message(request, messages.INFO, f'Respondent email at row {index+2} contained an invalid phone number. Value was not recorded.')
+                            num = None
+                            messages.add_message(request, messages.INFO, f'Respondent email at row {index+1} contained an invalid phone number. Value was not recorded.')
                         else:
                             num = row['contact_no']
                     
@@ -134,7 +139,19 @@ class FormTemplate(LoginRequiredMixin, View):
                     response = checkResponse
                     response.updated_at = now
                 else:
-                    response = Response(respondent=respondent, form=form_meta, created_by=request.user)
+                    response = Response(respondent=respondent, form=form_meta, created_by=request.user, response_date = responseDate)
+
+                raw_date = row['response_date'].strip().replace('“', '').replace('”', '').replace('"', '')
+                try:
+                    responseDate = datetime.strptime(raw_date, '%m/%d/%Y')
+                except ValueError:
+                    messages.add_message(request, messages.INFO, f'Row {index+1} contains an invalid date value (expected MM/DD/YY) at column Response Date. This response will default to the current date until the error is fixed.')
+                    responseDate = datetime.today()
+                if responseDate.date() > form_meta.end_date or responseDate.date() < form_meta.start_date:
+                    messages.add_message(request, messages.INFO, f'Row {index+1} contains a response date that is outside the time period of this form. Please double check this value.')
+                    response.flag = True
+                response.response_date = responseDate
+
                 response.save()
                 
                 for i in range(len(form_questions)):
@@ -156,10 +173,13 @@ class FormTemplate(LoginRequiredMixin, View):
                     if form_questions[i].question_type == 'Text' or form_questions[i].question_type == 'Number':
                         openResponse = row[form_questions[i].question_text]
                         if form_questions[i].question_type == 'Number':
+                            if openResponse == '':
+                                openResponse = 0
+                                messages.add_message(request, messages.INFO, f'The answer at column {i+13} row {index+1} contained an blank entry. This has been recorded as 0. If this was not intentional, please add a valid number.')
                             try:
                                 float(openResponse)
                             except (TypeError, ValueError):
-                                messages.add_message(request, messages.INFO, f'Answer {row[form_questions[i].question_text]} at column {i+12} row {index+1} expected a number.')
+                                messages.add_message(request, messages.INFO, f'Answer "{row[form_questions[i].question_text]}" at column {i+13} row {index+1} expected a number.')
                                 continue
                         answer.open_answer=openResponse
                         answer.save()
@@ -167,10 +187,10 @@ class FormTemplate(LoginRequiredMixin, View):
                         yesNo = row[form_questions[i].question_text]
                         if yesNo.strip().lower() == 'yes':
                             yesNo = 'Yes'
-                        elif yesNo.strip.lower() == 'no':
+                        elif yesNo.strip().lower() == 'no':
                             yesNo = 'No'
                         else:
-                            messages.add_message(request, messages.INFO, f'Answer {row[form_questions[i].question_text]} at column {i+12} row {index+1} is not a valid response. This question requires either a "Yes" or a "No"')
+                            messages.add_message(request, messages.INFO, f'Answer "{row[form_questions[i].question_text]}" at column {i+13} row {index+1} is not a valid response. This question requires either a "Yes" or a "No"')
                             continue
                         answer.open_answer = yesNo
                         answer.save()
@@ -188,11 +208,11 @@ class FormTemplate(LoginRequiredMixin, View):
                         except (TypeError, ValueError):
                             notFound = True
                         if notFound:  
-                            checkOption = Option.objects.filter(option_text=value, question=form_questions[i].id).first()
+                            checkOption = Option.objects.filter(option_text__iexact=value, question=form_questions[i].id).first()
                             if checkOption:
                                 answer.option = checkOption
                             else:
-                                messages.add_message(request, messages.INFO, f'Answer {row[form_questions[i].question_text]} column {i+12} row {index+1} is not a valid response.. No response will be recorded. Please double check that this is a valid response for this question.')
+                                messages.add_message(request, messages.INFO, f'Answer "{row[form_questions[i].question_text]}" at column {i+13} row {index+1} is not a valid response. No response will be recorded. Please double check that this is a valid response for this question.')
                                 continue
                         answer.save()
 
@@ -214,7 +234,7 @@ class FormTemplate(LoginRequiredMixin, View):
                                 if checkOption:
                                     answer = Answer(response=response, question = form_questions[i], option = checkOption)
                                 else:
-                                    messages.add_message(request, messages.INFO, f'Answer {row[form_questions[i].question_text]} column {i+12} row {index+1} is not a valid response.. No response will be recorded. Please double check that this is a valid response for this question.')
+                                    messages.add_message(request, messages.INFO, f'Answer "{row[form_questions[i].question_text]}" at column {i+13} row {index+1} is not a valid response. No response will be recorded. Please double check that this is a valid response for this question.')
                                     continue
                             answer.save()
         return HttpResponseRedirect(reverse("forms:view-form-detail", kwargs={'pk': form_meta.id}))

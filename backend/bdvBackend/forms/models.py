@@ -196,9 +196,10 @@ class Response(models.Model):
     created_by = models.ForeignKey(User, default=User.objects.first().id, on_delete=models.SET_DEFAULT)
     response_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    flag = models.BooleanField(default=False, blank=True, null=True)
 
     def __str__(self):
-        return f'Response from {self.respondent.get_full_name()} for {self.form} given on date {str(self.response_date)}'
+        return f'Response from {self.respondent.get_full_name()} for {self.form} given on date {str(self.response_date.date())}'
     
     class Meta:
         db_table_comment = 'Table containing responses, or an instance of a respondent completing a survey.'

@@ -5,6 +5,8 @@
     <head>
         <link rel="icon" type="image/x-icon" href="{% static 'images/boansoWhite.png' %}">
         <link rel="stylesheet" href="{% static 'styles.css' %}">
+        {% block styles%}
+        {% endblock %}
         {% block title %}
             <title>Bonaso Data Portal</title>
         {% endblock %}
@@ -16,13 +18,21 @@
                 <a href="{% url 'home:home' %}"> <img class="headerLogo" src="{% static 'images/boansoWhite.png' %}" /></a> 
                 <div class="headerText">
                     <a href="{% url 'home:home' %}"><h1>BONASO Data Portal</h1></a>
+                    <a href="{% url 'accounts:view-messages-index' %}">
+                        {% if has_unread_messages %}
+                            <img class="headerIcon" src="{% static 'images/email-alert.svg' %}" />
+                        {% else %}
+                            <img class="headerIcon" src="{% static 'images/email-outline.svg' %}" />
+                        {% endif %}
+                    </a>
                 </div>
+                
             </div>
         {% endblock %}
         <div class="middle">
             {% block sidebar %}
                 <div class="sidebar">
-                    <h2>Welcome, {{ user.username }}</h2>
+                    <h2>{{ user.username|title }}</h2>
                     <div class="sidebarLinksCont">
                         <h3 class="sbLinkHeader"> Data </h3>
                         <div class="sidebarLinks">
@@ -55,15 +65,17 @@
 
                         <h3 class="sbLinkHeader">Your Account</h3>
                             <div class="sidebarLinks">
-                            <img class="sbIcon" src="{% static 'images/account-box-edit-outline.svg' %}"" /> 
-                            <a href="{% url 'accounts:view-profile' user.id %}">Account</a>
-                            <img class="sbIcon" src="{% static 'images/cog.svg' %}" /> 
-                            <a href="{% url 'accounts:settings' %}">Settings</a>
-                            <img class="sbIcon" src="{% static 'images/logout.svg' %}" /> 
-                            <form id="logout-form" method="post" action="{% url 'logout' %}?next=/accounts/login/">
-                                {% csrf_token %}
-                                <button type="submit" class="logout">Logout</button>
-                            </form>
+                                <img class="sbIcon" src="{% static 'images/account-box-edit-outline.svg' %}" /> 
+                                <a href="{% url 'accounts:view-messages-index' %}">Your Messages</a>
+                                <img class="sbIcon" src="{% static 'images/account-box-edit-outline.svg' %}" /> 
+                                <a href="{% url 'accounts:view-profile' user.id %}">Account</a>
+                                <img class="sbIcon" src="{% static 'images/cog.svg' %}" /> 
+                                <a href="{% url 'accounts:settings' %}">Settings</a>
+                                <img class="sbIcon" src="{% static 'images/logout.svg' %}" /> 
+                                <form id="logout-form" method="post" action="{% url 'logout' %}?next=/accounts/login/">
+                                    {% csrf_token %}
+                                    <button type="submit" class="logout">Logout</button>
+                                </form>
                         </div>
 
                     </div>
@@ -78,7 +90,21 @@
         </div>
         {% block footer %}
             <div class="footer">
-                <p>footer would be here</p>
+                <a href="{% url 'home:home' %}"><img class="footerLogo" src="{% static 'images/boansoWhite.png' %}"/></a>
+                <div class="footerLinks">
+                    <a href="{% url 'home:home' %}">Home</a>
+                    <a href="{% url 'home:home' %}">Information</a>
+                    <a href="{% url 'home:home' %}">Contact</a>
+                </div>
+                <div class="footerContact">
+                    <p>info@bonaso.org</p>
+                    <p>+267 317 0582</p>
+                    <a href="https://bonaso.org/">bonaso.org</a>
+                </div>
+                <div class="legal">
+                    <p>C 2025 (*not legally binding)</p>
+                    <p>Designed by Cheesecake Industries</p>
+                </div>
             </div>
         {% endblock %}
         <script type="module" src="{% static 'js/sortFilterTables/sort-filter-tables.js' %}"></script>

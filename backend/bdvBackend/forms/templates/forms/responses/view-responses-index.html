@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-
 <div class="content">
     <h1>Your Responses</h1>
     {% if responses %}
@@ -54,9 +53,9 @@
             {% endif %}
         {% endfor %}
         </tbody>
+    </table>
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}
 </div>
-
 {% endblock %}

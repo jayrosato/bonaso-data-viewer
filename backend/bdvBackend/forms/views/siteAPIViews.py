@@ -67,7 +67,6 @@ class GetFormInfo(LoginRequiredMixin, View):
                 fq_data['logic'] = logic_map[fq.id]
 
             data.append(fq_data)
-            print(data)
         return JsonResponse(data, safe=False)
 
 class GetQuestions(LoginRequiredMixin, View):

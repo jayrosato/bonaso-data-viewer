@@ -21,3 +21,16 @@ class UserProfile(models.Model):
     supervisor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='supervisor')
     manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='manager')
     access_level = models.CharField(max_length=100, choices=ACCESS_LEVEL_CHOICES, default=DC)
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sender')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipient')
+    subject = models.CharField('Subject', max_length=255)
+    body = models.TextField('Message Body')
+    read = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    sent_on = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Response to')
+
+    def __str__(self):
+        return f'{self.subject} from {self.sender} on {self.sent_on.date()}'

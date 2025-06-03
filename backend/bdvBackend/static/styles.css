@@ -3,6 +3,8 @@
 }
 
 body{
+    max-width: 100%;
+    overflow-x: hidden;
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
 }
@@ -30,6 +32,16 @@ body{
     margin-bottom: auto;
 }
 
+.headerIcon{
+    max-width: 3rem;
+    max-height: 3rem;
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+    position: absolute;
+    left: 85vw;
+    top:3vh;
+}
+
+
 .middle{
     padding-top: 3vh;
     display: grid;
@@ -44,6 +56,9 @@ body{
     padding: 3vh;
 }
 
+.sidebar > h2{
+    text-align: center;
+}
 .sidebarLinksCont{
     display: flex;
     flex-direction: column;
@@ -51,6 +66,7 @@ body{
 .sbLinkHeader{
     text-align: center;
     font-weight: bold;
+    text-decoration: underline;
     margin-top: 1.5rem;
     margin-bottom: .5rem;
 }
@@ -58,7 +74,7 @@ body{
     display: grid;
     grid-template-columns: 15% 85%;
     column-gap: 1rem;
-    row-gap: 1rem;
+    row-gap: .6rem;
 }
 .sidebarLinks >*{
     margin-top: auto;
@@ -154,6 +170,7 @@ textarea {
 }
 
 table {
+    overflow: scroll;
     margin-top: 1rem;
     margin-bottom: 1rem;
 }
@@ -197,4 +214,52 @@ form{
     z-index: 1;
     padding: 10px;
     position: absolute;
+}
+.content >* {
+    margin: 1vh;
+}
+
+.footer{
+    overflow: hidden;
+    height: 20vh;
+    background-color: rgb(18, 87, 46);
+}
+.footerLogo{
+    position: relative;
+    top: 3vh;
+    left: 3vw;
+    height: 15vh;
+}
+.footerLinks{
+    position: relative;
+    bottom: 8vh;
+    left: 40vw;
+    display: flex;
+    flex-direction: row;
+}
+.footerLinks >*{
+    font-size: larger;
+    margin-right: 3vw;
+}
+.footerContact{
+    position: relative;
+    bottom: 6vh;
+    left: 38vw;
+    display: flex;
+    flex-direction: row;
+}
+.footerContact >*{
+    font-size: small;
+    margin-right: 4vw;
+}
+.footerContact >*{
+    font-size: small;
+    margin-right: 4vw;
+}
+
+.legal{
+    font-size: x-small;
+    position: relative;
+    bottom: 9vh;
+    left: 85vw;
 }

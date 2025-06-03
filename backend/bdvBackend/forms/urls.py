@@ -31,8 +31,8 @@ urlpatterns = [
     #allows users to view, create, andedit responses given by respondents
     path('response', views.ViewResponseIndex.as_view(), name='view-responses-index'),
     path('response/<int:pk>', views.ViewResponseDetail.as_view(), name='view-response-detail'),
-    path('response/<int:pk>/create', views.NewResponse.as_view(), name='create-response'),
-    path('response/<int:pk>/update', views.UpdateResponse.as_view(), name='update-response'),
+    path('response/<int:pk>/create', views.RecordResponse.as_view(), name='create-response'),
+    path('response/<int:pk>/update/<int:rid>', views.RecordResponse.as_view(), name='update-response'),
     path('response/<int:pk>/delete', views.DeleteResponse.as_view(), name='delete-response'),
 
     #related to getting specific queries

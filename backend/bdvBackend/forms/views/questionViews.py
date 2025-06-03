@@ -72,7 +72,6 @@ class UpdateQuestion(LoginRequiredMixin, View):
             question.question_type = data.get('question_type')
             question.save()
             options = data.get('options')
-            print(options)
             existingOptions = Option.objects.filter(question=question.id)
             if len(existingOptions) > len(options):
                 for extra in existingOptions[len(options):]:

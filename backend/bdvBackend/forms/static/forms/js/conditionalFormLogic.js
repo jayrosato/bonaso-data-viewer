@@ -24,8 +24,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     updateForm(formQuestionInfo);
+    verifyFields();
 });
 const msg = document.getElementById('messages')
+
 function verifyFields(){
     clearWarning();
     let msgs = []
@@ -115,6 +117,7 @@ function checkQuestion(rule){
         })
     }
     else{
+        console.log(rule.parent_question)
         actualValue = parentQuestion[0].value
     }
 

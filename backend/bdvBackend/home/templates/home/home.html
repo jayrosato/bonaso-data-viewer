@@ -1,21 +1,77 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'home/styles/home.css' %}">
+{% endblock %}
+
 {% block content %}
+<link rel="stylesheet" href="{% static 'home/styles/home.css' %}">
+
 <div class="content">
     <h2>Welcome, {{user.username | capfirst}}!</h2>
     <p>Today is <i>{% now "D, d M Y" %}</i></p>
+    <div class="boards">
+        <div class="board">
+            <div class="messages">
+                <h3>Your Messages</h3>
+                {% if messages %}
+                    <ul>
+                    {% for message in messages %}
+                        {% if message.parent == None %}
+                            <a href="{% url 'accounts:view-message-detail' message.id %}"><li>{{message}}</li></a>
+                        {% else %}
+                            <a href="{% url 'accounts:view-message-detail' message.parent.id %}"><li>Reply to {{message.parent}}</li></a>
+                        {% endif %}
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No messages! Good work!</p>
+                {% endif %}
+            </div>
+        </div>
 
-    <div class="forms">
-        <h3>Your Forms</h3>
-        {% if forms %}
-            <ul>
-            {% for form in forms %}
-                <li><a href="{% url 'forms:view-form-detail' form.id %}">{{form.form_name}}</a></li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p>No forms! Congratulations!</p>
-        {% endif %}
+        <div class="board">
+            <div class="forms">
+                <h3>Your Forms</h3>
+                {% if forms %}
+                    <ul>
+                    {% for form in forms %}
+                        <li><a href="{% url 'forms:view-form-detail' form.id %}">{{form.form_name}}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No forms! Congratulations!</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="board">
+            <div class="responses">
+                <h3>Your Responses</h3>
+                {% if responses %}
+                    <ul>
+                    {% for response in responses %}
+                        <li><a href="{% url 'forms:view-response-detail' response.id %}">{{response}}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No responses! Get collecting!</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="board">
+            <div class="respondents">
+                <h3>Your Respondents</h3>
+                {% if respondents %}
+                    <ul>
+                    {% for respondent in respondents %}
+                        <li><a href="{% url 'forms:view-respondent-detail' respondent.id %}">{{respondent}}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No active respondents!</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
