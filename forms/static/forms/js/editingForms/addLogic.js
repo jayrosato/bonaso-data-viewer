@@ -9,7 +9,7 @@ export function addLogic(question, existing = null){
     logicDiv.appendChild(logicLabel);
 
     const operator = createSelect(['AND', 'OR'])
-    operator.setAttribute('class', 'operator')
+    operator.setAttribute('class', 'operatorSelector')
     logicDiv.appendChild(operator)
     operator.style.display = 'none' //hide operators by default, since it doesn't make sense if there is only one rule
     if(existing){
@@ -24,6 +24,8 @@ export function addLogic(question, existing = null){
         checkRules.forEach(rule => {
             addRule(question, rule)
         });
+        console.log(existing.logic)
+        operator.value = existing.logic.conditional_operator
     }
     else{
         addRule(question)
@@ -56,7 +58,7 @@ export function addRule(question, existing=null){
     ruleLabel.innerText = `Rule ${ruleIndex}:`
 
     if(ruleIndex > 1){
-        const operator = logicDiv.querySelector('.operator');
+        const operator = logicDiv.querySelector('.operatorSelector');
         operator.style.display = ''; //show the operator if there is more than one rule
         //also display the remove button if there is more than one rule
         const removeRuleButton = document.createElement('button')
@@ -167,8 +169,8 @@ export async function updateRule(ruleDiv, existing=null){
         valueInput.setAttribute('type', 'number');
         valueInput.setAttribute('class', 'valueInput')
         ruleDiv.appendChild(valueInput);
-        const comparisonSelector = createSelect(['EQUAL TO', 'GREATER THAN', 'LESS THAN']);
-        comparisonSelector.setAttribute('class', 'comparisonSelector');
+        const comparisonSelectorNum = createSelect(['EQUAL TO', 'GREATER THAN', 'LESS THAN']);
+        comparisonSelectorNum.setAttribute('class', 'comparisonSelector');
         ruleDiv.appendChild(comparisonSelectorNum);
         valueInput.value = existing ? existing.expected_values : '';
         comparisonSelectorNum.value = existing ? existing.value_comparison : '';

@@ -154,6 +154,7 @@ function checkQuestion(rule){
         return match;
     }
     if(valueComparison == 'DOES NOT CONTAIN'){
+        console.log(actualValue);
         const match = actualValue.includes(expectedValue) ? false : true;
         return match;
     }
@@ -206,6 +207,7 @@ function updateForm(fqInfo){
         if(operator == 'AND'){
             showValue = logic.rules.every((rule) => {
                 const checkValue = checkQuestion(rule)
+                console.log(question, checkValue)
                 if(rule.limit_options){
                     limitOptions.push({'question': question, 'rule':rule})
                 }

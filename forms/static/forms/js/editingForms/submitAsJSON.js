@@ -98,7 +98,7 @@ export default async function submitAsJson(csrftoken, formID=null){
         initWarning();
         return;
     }
-
+    console.log(form)
     const url = formID ? `/forms/${formID}/update` : '/forms/create'
     const response = await fetch(url, {
         method: 'POST', 

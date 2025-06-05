@@ -32,6 +32,7 @@ class ViewQuestions(LoginRequiredMixin, generic.ListView):
         context['options'] = options
         return context
 
+
 class CreateQuestion(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'forms/questions/create-question.html', { 'form': QuestionForm() })
@@ -51,9 +52,9 @@ class CreateQuestion(LoginRequiredMixin, View):
                         os = options[i]['special']
                     option = Option(question = question, option_text=options[i]['text'], special=os)
                     option.save()
-            return JsonResponse({'redirect': reverse('forms:view-questions')})
+            return JsonResponse({'status': 'success'})
         except:
-            print('Ah nuts')
+            return JsonResponse({'status': 'failed'})
 
 class UpdateQuestion(LoginRequiredMixin, View):
     def get(self, request, pk):
