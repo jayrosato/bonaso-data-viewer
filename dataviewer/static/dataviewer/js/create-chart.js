@@ -193,7 +193,7 @@ function getDataset(data){
             axisGroup = rawDate.toLocaleString('default',{month: 'short', year: 'numeric'});
         }
         else{
-            axisGroup = item[axis]
+            axisGroup = item[axis] || 'Unknown'
         }
         if(axis == 'organization'){
             axisValueLabels.push({'id': item.organization, 'name': item.organization_name})
@@ -275,7 +275,7 @@ function getDataset(data){
     let targetAxisGroups = Object.keys(targetGroups)
     if(axis=='date'){
         axisGroups = Object.keys(groups).sort((a,b) => new Date(a) - new Date(b));
-        targetAxisGroups = Object.keys(groups).sort((a,b) => new Date(a) - new Date(b));
+        targetAxisGroups = Object.keys(targetGroups).sort((a,b) => new Date(a) - new Date(b));
     }
 
     const allAnswers = [... new Set(answers.map(item => item.answer_value || 'Unknown'))];
@@ -288,7 +288,7 @@ function getDataset(data){
         })
         labels = tempGroups
     }
-    if (targets && targetAxisGroups === 'target') {
+    if (targets && targetAxisGroups.length === 1 && targetAxisGroups[0] === 'target') {
         labels.push('Target');
     }
 
