@@ -17,21 +17,21 @@ document.addEventListener('DOMContentLoaded', async function () {
     data.questions.forEach(item => {if(!qIDs.includes(item.question_id)){qIDs.push(item.question_id)}})
     let qText = [];
     data.questions.forEach(item => {if(!qText.includes(item.question_text)){qText.push(item.question_text)}})
-    const questionSelector = createSearchSelector(qIDs, qText, true, () => selectDetails())
+    const questionSelector = createSearchSelector(qIDs, qText, true, () => selectDetails(data, targets), 'Select a question...')
     location.appendChild(questionSelector)
 
     //build a custom axis selector for determining what goes on the x axis (y axis is always counts)
-    const axisCont = document.querySelector('.axisCont')
+    const axisCont = document.querySelector('.axisSelect')
     axisCont.style.display = 'none';
     location = document.querySelector('.axisSelect');
-    const axisSelector = createSelect(['date', 'sex'], ['By Date', 'By Sex'], true)
+    const axisSelector = createSelect(['count','date', 'sex', 'district', 'organization'], ['Raw Count','By Date', 'By Sex', 'By District', 'By Organization'], true)
     axisSelector.setAttribute('class', 'axisSelector')  
     axisSelector.onchange =() => getDataset(data)
     location.appendChild(axisSelector)
     
     //build a toggle for whether to show a legend or straight counts
-    const legendCont = document.querySelector('.legendCont')
-    legendCont.style.display == 'none';
+    const legendCont = document.querySelector('.legendToggle')
+    legendCont.style.display = 'none';
     location = document.querySelector('.legendToggle');
     const legendToggle = createCheckbox('true', 'Show legend?')
     const legendCheck = legendToggle.querySelector('input')
@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     //build a toggle for displaying targets
-    const targetCont = document.querySelector('.targetCont')
-    targetCont.style.display == 'none';
+    const targetCont = document.querySelector('.targetToggle')
+    targetCont.style.display = 'none';
     location = document.querySelector('.targetToggle');
     const targetToggle = createCheckbox('true', 'View Targets?')
     const targetCheck = targetToggle.querySelector('input')
@@ -64,10 +64,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         filter.setAttribute('id', item.name)
         const title = document.createElement('p');
         title.setAttribute('class', 'name')
-        title.innerText = item.name;
+        title.innerText = item.name.charAt(0).toUpperCase() + item.name.slice(1);
         filter.appendChild(title);
         if(item.type == 'date' || item.type == 'number'){
+            const label1 = document.createElement('label')
+            label1.innerText = 'Between'
             const low = document.createElement('input')
+            const label2 = document.createElement('label')
+            label2.innerText = 'And'
             const high = document.createElement('input')
             low.setAttribute('class', 'lowBound')
             high.setAttribute('class', 'highBound')
@@ -79,7 +83,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                 low.onchange= () => updateFilters(filter, data)
                 high.onchange = () => updateFilters(filter, data)
             }
+            filter.appendChild(label1)
             filter.appendChild(low)
+            filter.appendChild(label2)
             filter.appendChild(high)
         }
         if(item.type == 'multiple'){
@@ -104,13 +110,24 @@ document.addEventListener('DOMContentLoaded', async function () {
     })
 });
 
-function selectDetails(){
-    const axisCont = document.querySelector('.axisCont')
+function selectDetails(data, targets){
+    const qID = document.querySelector('.selector').getAttribute('value');
+    const axisCont = document.querySelector('.axisSelect')
     axisCont.style.display = '';
-    const legendCont = document.querySelector('.legendCont')
-    axisCont.style.display = '';
-    const targetCont = document.querySelector('.targetCont')
-    axisCont.style.display = '';
+    const legendCont = document.querySelector('.legendToggle')
+    legendCont.style.display = '';
+
+    const targetCont = document.querySelector('.targetToggle')
+    const showTargets = targets.some(target => target.question == qID)
+    if(showTargets){
+        targetCont.style.display = '';
+    }
+    else{
+        targetCont.style.display = 'none';
+    }
+    if(axisCont.value != ''){
+        getDataset(data)
+    }
 }
 
 async function buildChart(labels, datasets, axis){
@@ -162,14 +179,22 @@ function getDataset(data){
     let labels = [];
     let datasets = {};
     const groups = {};
-    let respondents = []
+    let respondents = [];
+    let axisValueLabels = [];
     answers.forEach(item => {
         let axisGroup = null
-        if(axis == 'date'){
+        if(axis == 'count'){
+            axisGroup = 'Count';
+        }
+        else if(axis == 'date'){
             const rawDate = new Date(item.date)
             axisGroup = rawDate.toLocaleString('default',{month: 'short', year: 'numeric'});
         }
         else{axisGroup = item[axis]}
+
+        if(axis == 'organization'){
+            axisValueLabels.push({'id': item.organization, 'name': item.organization_name})
+        }
         
         const answer = item.answer_value || 'Unknown';
         if(!groups[axisGroup]) groups[axisGroup] = {};
@@ -197,18 +222,13 @@ function getDataset(data){
     });
     const targetGroups = {};
     if(targets){
+        console.log(targets)
         let targetGroup = null;
         targets.forEach((target) => {
             if(axis=='date'){
                 const rawDate = new Date(target.end)
                 targetGroup = rawDate.toLocaleString('default', {month: 'short', year: 'numeric'})
                 target.date = target.end
-            }
-            if(filters.length >0){
-                let pass = testFilter(target);
-                if(!pass){
-                    return;
-                }
             }
             else{
                 try{
@@ -217,6 +237,12 @@ function getDataset(data){
                 catch(err){
                     targetGroup = null;
                     console.warn('This axis type is not applicable for targets.')
+                }
+            }
+            if(filters.length > 0){
+                let pass = testFilter(target);
+                if(!pass){
+                    return;
                 }
             }
             const amount = target.amount || 0;
@@ -239,6 +265,18 @@ function getDataset(data){
     }
     const allAnswers = [... new Set(answers.map(item => item.answer_value || 'Unknown'))];
     labels = axisGroups;
+    if(axisValueLabels.length > 0){
+        let tempGroups = []
+        axisGroups.forEach(group => {
+            const pair = axisValueLabels.find(item => item.id == group);
+            tempGroups.push(pair.name)
+        })
+        labels = tempGroups
+    }
+    if (targets && targetAxisGroups === 'target') {
+        labels.push('Target');
+    }
+
     if(showLegend){
         datasets = allAnswers.map(answer => {
             return {
@@ -250,15 +288,24 @@ function getDataset(data){
     }
     else{
         datasets = [{
-            label: 'Actual Number', 
+            label: 'Acheived Count', 
             data: axisGroups.map(group => groups[group]['count'] || 0),
             backgroundColor: getRandomColor()
         }]
     }
     if(targets){
+        let data = null
+        if(targetAxisGroups == 'target' && axis != 'count'){
+            labels.push('Target')
+            const targetValue = targetGroups['target'] || 0;
+            data = labels.map((label, index) => index === labels.length - 1 ? targetValue : null)
+        }
+        else{
+            data = targetAxisGroups.map(group => targetGroups[group] || 0)
+        }
         datasets.push({
             label: 'Target',
-            data: targetAxisGroups.map(group => targetGroups[group] || 0),
+            data: data,
             backgroundColor: '#FF0000'
         })
     }
@@ -267,7 +314,7 @@ function getDataset(data){
 
 function updateFilters(filter, data){
     const inputs = filter.querySelectorAll('input')
-    const name = filter.querySelector('.name').innerText
+    const name = filter.querySelector('.name').innerText.toLowerCase()
     let values = null
     let type = '';
     filters = filters.filter((filter) => filter.name != name)
@@ -347,7 +394,6 @@ function testFilter(item){
     })
     return pass
 }
-
 
 function getRandomColor() {
     const r = Math.floor(Math.random() * 200);

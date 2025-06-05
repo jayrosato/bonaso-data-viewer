@@ -99,6 +99,7 @@ class SyncMobileResponses(APIView):
         respondents = data['respondents']
         respRef = {}
         responses = data['responses']
+        override = False
         for resp in respondents:
             respondent = None
             if resp['linked_id']:
@@ -107,22 +108,24 @@ class SyncMobileResponses(APIView):
                 respondent = Respondent.objects.filter(id_no=resp['id_no']).first()
             if not respondent:
                 respondent = Respondent(id_no = resp['id_no'])
+                override = True
             if not resp['created_by']:
                 created_by = User.objects.filter(id=1).first()
             else:
-                created_by = User.objects.filter(id=resp['created_by'])
-            respondent.fname = resp['fname']
-            respondent.lname = resp['lname']
-            respondent.sex = resp['sex']
-            respondent.dob = resp['dob']
-            respondent.ward = resp['ward']
-            respondent.village = resp['village']
-            respondent.district = resp['district']
-            respondent.citizenship = resp['citizenship']
-            respondent.contact_no = resp['contact_no']
-            respondent.email = resp['email']
-            respondent.created_by = created_by
-            respondent.save()
+                created_by = User.objects.filter(id=resp['created_by']).first()
+            if override:
+                respondent.fname = resp['fname']
+                respondent.lname = resp['lname']
+                respondent.sex = resp['sex']
+                respondent.dob = resp['dob']
+                respondent.ward = resp['ward']
+                respondent.village = resp['village']
+                respondent.district = resp['district']
+                respondent.citizenship = resp['citizenship']
+                respondent.contact_no = resp['contact_no']
+                respondent.email = resp['email']
+                respondent.created_by = created_by
+                respondent.save()
             respRef[resp['id']] = respondent.id #ids in the django database will probably never line up with ids from local storage (both are autoincrement), so put this reference here
         for r in responses:
             respondentID = respRef[r['respondent']]
@@ -140,7 +143,6 @@ class SyncMobileResponses(APIView):
                 fqToQ = int(a['question'])
                 fqToQ = FormQuestion.objects.filter(id=fqToQ).first()
                 question = fqToQ.question
-                print(clearedQuestions)
                 answer=None
                 if question.question_type == 'Multiple Selections' and question.id not in clearedQuestions:
                     print('running for question', question.id)
@@ -166,7 +168,9 @@ class SyncMobileResponses(APIView):
                     else:
                         answer.option = option
                 elif a['open_answer']:
+                    print(a['open_answer'])
                     answer.open_answer = a['open_answer']
                 answer.save()
+                print('final', answer.open_answer)
         print('Responses synced!')
         return APIResponse({"message": "success"}, status=status.HTTP_200_OK)

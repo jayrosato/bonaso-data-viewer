@@ -57,9 +57,6 @@
     {% else %}
     <p>Nothing here yet!</p>
     {% endif %}
-    {% if perms.forms.add_user%}
-        <a href="{% url 'organizations:create-user' %}"><button>Add a new team member.</button></a>
-    {% endif %}
 
 </div>
 

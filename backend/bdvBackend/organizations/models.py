@@ -41,6 +41,38 @@ class Target(models.Model):
     def __str__(self):
         return f'Target for {self.organization} for {self.question} for period {self.target_start} to {self.target_end}.'
 
+    def get_amount_as_number(self):
+        from forms.models import Response, Answer
+        if(self.target_amount):
+            return self.target_amount
+        
+        elif self.percentage_of_question and self.as_percentage:
+            responses =  Response.objects.filter(form__organization__id = self.organization.id, response_date__lte= self.target_end, response_date__gte = self.target_start)
+            answers = Answer.objects.filter(response__id__in=responses, question=self.question)
+            if self.question.question_type == 'Yes/No':
+                answers = Answer.objects.filter(response__id__in=responses, question=self.question, open_answer='Yes')
+            elif self.question.question_type == 'Single Select' or self.question.question_type == 'Multiple Selections':
+                if self.match_option:
+                    answers = Answer.objects.filter(response__id__in=responses, question=self.question, option=self.match_option)
+                else:
+                    answers = Answer.objects.filter(response__id__in=responses, question=self.question)
+            target_count = answers.values('response').distinct().count()
+
+            if self.percentage_of_question.question_type == 'Yes/No':
+                ref_answers = Answer.objects.filter(response__id__in=responses, question=self.percentage_of_question, open_answer='Yes')
+            elif self.percentage_of_question.question_type == 'Single Select' or self.question.question_type == 'Multiple Selections':
+                if self.match_option:
+                    ref_answers = Answer.objects.filter(response__id__in=responses, question=self.percentage_of_question, option=self.match_option)
+                else:
+                    ref_answers = Answer.objects.filter(response__id__in=responses, question=self.percentage_of_question)
+            ref_count = ref_answers.values('response').distinct().count()
+            
+            return ref_count
+
+        else:
+            print(f'WARNING: A target {self} is without either an amount or a percentage. Check this value')
+            return 0
+
     def clean(self):
         super().clean()
         if not (self.target_amount or self.percentage_of_question):

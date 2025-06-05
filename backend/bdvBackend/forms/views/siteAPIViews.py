@@ -111,19 +111,20 @@ class GetQuestionResponses(LoginRequiredMixin, View):
                 'sex': response.respondent.sex,
                 'age': response.respondent.get_age(),
                 'district': response.respondent.district,
-                'organization': response.form.organization.id
+                'organization': response.form.organization.id,
+                'organization_name': response.form.organization.organization_name
             })
         sexValues = list(set(list(Respondent.objects.values_list('sex', flat=True))))
         districtValues = list(set(list(Respondent.objects.values_list('district', flat=True))))
-        orgValues = list(set(list(Organization.objects.values_list('organization_name', flat=True).order_by('id'))))
-        orgNames = list(set(list(Organization.objects.values_list('id', flat=True).order_by('id'))))
+        orgNames = list(set(list(Organization.objects.values_list('organization_name', flat=True).order_by('id'))))
+        orgValues = list(set(list(Organization.objects.values_list('id', flat=True).order_by('id'))))
 
         filters = [
             {'name': 'date', 'type': 'date'},
             {'name': 'sex', 'type': 'multiple', 'values':sexValues},
             {'name': 'age', 'type': 'number'},
             {'name': 'district', 'type': 'multiple', 'values':districtValues},
-            {'name': 'organization', 'type': 'multiple', 'values':orgNames, 'labels':orgValues}
+            {'name': 'organization', 'type': 'multiple', 'values':orgValues, 'labels':orgNames}
         ]
 
         data = {'questions': [],'filters': filters}

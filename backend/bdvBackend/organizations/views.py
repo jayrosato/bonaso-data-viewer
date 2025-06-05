@@ -260,7 +260,7 @@ class GetTargets(LoginRequiredMixin, View):
             if target.target_amount:
                 amount = target.target_amount
             else:
-                amount = target.get_actual()
+                amount = target.get_amount_as_number()
             data.append({
                 'target_id': target.id,
                 'question': target.question.id,

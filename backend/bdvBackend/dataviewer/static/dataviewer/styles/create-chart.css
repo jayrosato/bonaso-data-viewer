@@ -5,3 +5,47 @@
     max-height: 10rem;
     overflow: scroll;
 }
+
+.options {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 5vh;
+}
+.options >*{
+    margin-left: 1vw;
+}
+
+.toggles {
+    flex-direction: column;
+}
+
+.dashboard {
+    border-radius: 8px;
+    border: 1px solid white;
+    background-color: rgb(18, 87, 46);
+    margin-bottom: 5vh;
+}
+
+.filtersDiv{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.chartFilter {
+    margin: 1vw;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 5px;
+    border: 3px solid white;
+    background-color: rgb(18, 87, 46);
+}
+input[type="checkbox"] {
+    margin-right: .5vw;
+}
+option {
+    margin: 1vh;
+}
+.name {
+    font-weight: bold;
+}
