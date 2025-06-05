@@ -1,0 +1,15 @@
+.boards{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 3vh;
+}
+.board{
+    padding: 1vh;
+    border-radius: 5px;
+    border: 5px solid white;
+    background-color: rgb(18, 87, 46);
+    color: white;
+    width: 90%;
+    height: 40vh;
+    overflow: scroll;
+}

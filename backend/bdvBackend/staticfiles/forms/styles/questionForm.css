@@ -1,0 +1,23 @@
+.qForm {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2rem;
+}
+.qForm >* {
+    margin: 1vh;
+}
+
+textarea {
+    max-height: 12vh;
+}
+
+select{
+    max-width: 20vw;
+}
+#addOptionButton {
+    max-width: fit-content;
+}
+.option{
+    display: flex;
+    flex-direction: row;
+}

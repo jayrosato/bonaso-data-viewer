@@ -1,0 +1,265 @@
+*{
+    margin: 0;
+}
+
+body{
+    max-width: 100%;
+    overflow-x: hidden;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+}
+
+.header{
+    position: sticky;
+    top: 0;
+    color: white;
+    background-color: rgb(21, 103, 54);
+    border-bottom: 2px solid white;
+    display: flex;
+    flex-direction: row;
+    z-index:1;
+}
+
+.headerLogo{
+    max-height: 10vh;
+    padding: 2vh;
+    margin-left: 2vh;
+}
+
+.headerText{
+    margin-left: 1rem;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.headerIcon{
+    max-width: 3rem;
+    max-height: 3rem;
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+    position: absolute;
+    left: 85vw;
+    top:3vh;
+}
+
+
+.middle{
+    padding-top: 3vh;
+    display: grid;
+    grid-template-columns: 30% 70%;
+}
+
+.sidebar{
+    margin: 1rem;
+    background-color: rgb(21, 103, 54);
+    color: white;
+    border-radius: 10px;
+    padding: 3vh;
+}
+
+.sidebar > h2{
+    text-align: center;
+}
+.sidebarLinksCont{
+    display: flex;
+    flex-direction: column;
+}
+.sbLinkHeader{
+    text-align: center;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-top: 1.5rem;
+    margin-bottom: .5rem;
+}
+.sidebarLinks{
+    display: grid;
+    grid-template-columns: 15% 85%;
+    column-gap: 1rem;
+    row-gap: .6rem;
+}
+.sidebarLinks >*{
+    margin-top: auto;
+    margin-bottom: auto;
+    color: white;
+    font-weight: bold;
+}
+.sbIcon{
+    max-width: 2rem;
+    max-height: 2rem;
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+}
+
+.logout{
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    margin-top: auto;
+    margin-bottom: auto;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-decoration: underline;
+}
+.logout:hover{
+    cursor: pointer;
+}
+
+.content{
+    margin: 1rem;
+    padding: 3vh;
+    border-radius: 10px;
+    background-color: rgb(21, 103, 54);
+    color: white;
+    overflow: scroll;
+
+}
+
+a{
+    color: white;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+button, input[type="submit"], input[type="button"]{
+    padding: 5px;
+    margin: 3px;
+    border: 1.5px solid white;
+    background-color: rgb(18, 87, 46);
+    border-radius: 7px;
+    color: white;
+    font-weight: bold;
+}
+
+button:hover, input[type="submit"]:hover, input[type="button"]:hover {
+    cursor: pointer;
+    color: rgb(21, 103, 54);
+    background-color: white;
+}
+
+.warnings{
+    margin: 1vw;
+    border-radius: 5px;
+    color:  darkred;
+    font-weight: bold;
+    padding: 5px;
+}
+
+select {
+    border-radius: 5px;
+    border: 1.5px solid white;
+    background-color: rgb(18, 87, 46);
+    padding: 2px;
+    color: white;
+    font-weight: bold;
+}
+select:hover {
+    cursor: pointer;
+    color: rgb(21, 103, 54);
+    background-color: white;
+}
+
+.selectSearch{
+    z-index: 1;
+    position: relative;
+    max-width: 19rem;
+    bottom: 3rem;
+}
+
+textarea {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+table {
+    overflow: scroll;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+td{
+    padding: 10px;
+}
+
+th {
+    background-color: rgb(13, 60, 32);
+    max-width: 30%;
+}
+
+.headerDiv{
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr;
+    gap: 5px;
+}
+tr:nth-child(odd) {
+    background-color: rgb(18, 87, 46);
+}
+
+form{
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    gap: 1vh;
+}
+
+.sort{
+    width: 20px;
+    height: 20px;
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+}
+
+.filter{
+    width: 20px;
+    height: 20px;
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+}
+
+.filterOptions{
+    z-index: 1;
+    padding: 10px;
+    position: absolute;
+}
+.content >* {
+    margin: 1vh;
+}
+
+.footer{
+    overflow: hidden;
+    height: 20vh;
+    background-color: rgb(18, 87, 46);
+}
+.footerLogo{
+    position: relative;
+    top: 3vh;
+    left: 3vw;
+    height: 15vh;
+}
+.footerLinks{
+    position: relative;
+    bottom: 8vh;
+    left: 40vw;
+    display: flex;
+    flex-direction: row;
+}
+.footerLinks >*{
+    font-size: larger;
+    margin-right: 3vw;
+}
+.footerContact{
+    position: relative;
+    bottom: 6vh;
+    left: 38vw;
+    display: flex;
+    flex-direction: row;
+}
+.footerContact >*{
+    font-size: small;
+    margin-right: 4vw;
+}
+.footerContact >*{
+    font-size: small;
+    margin-right: 4vw;
+}
+
+.legal{
+    font-size: x-small;
+    position: relative;
+    bottom: 9vh;
+    left: 85vw;
+}

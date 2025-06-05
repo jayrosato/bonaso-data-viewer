@@ -1,0 +1,18 @@
+.flags{
+    background-color: lightyellow;
+    border: 5px solid darkgoldenrod;
+    border-radius: 5px;
+    color: gold;
+}
+
+.questions {
+    padding: 1rem;
+    border: 3px solid white;
+    border-radius: 10px;
+    background-color: rgb(18, 87, 46);
+    max-height: 75vh;
+    overflow: scroll;
+}
+.qTitle{
+    font-weight: bold;
+}

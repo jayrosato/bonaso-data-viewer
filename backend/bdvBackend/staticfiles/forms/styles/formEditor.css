@@ -1,0 +1,58 @@
+label{
+    display: block;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+}
+select{
+    width: 45vw;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
+.question{
+    border: 1px solid white;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 30vw;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 5vh;
+    max-width: 50%;
+}
+.buttons{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    margin-top: 1rem;
+    gap: 3px;
+}
+
+.question-logic{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.question-logic >* {
+    margin-top: 1vh;
+}
+
+.logic-rule {
+    width: 50vw;
+    border: 1px solid white;
+    padding: 1vh;
+    margin: 2vh;
+}
+.logic-rule >* {
+    margin-bottom: 2vh;
+}
+.limitOptionsDiv, .negateDiv{
+    display: flex;
+    flex-direction: row;
+    
+}
+.limitOptions , .negate {
+    margin-left: 1vw;
+    
+}
