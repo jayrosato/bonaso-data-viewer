@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 const submitButton = document.getElementById('submit');
 const submitRedirectButton = document.getElementById('submit-create');
 const url = submitButton.getAttribute('submit-url')
-submitButton.onclick = () => submit();
+submitButton.onclick = () => submit(false);
 submitRedirectButton.onclick = () => submit(true);
 
 function loadExisting(){
@@ -161,9 +161,9 @@ async function submit(createAfter = false){
                             }),
     });
     const responseJSON = await response.json();
-    console.log(responseJSON);
     if(responseJSON.status == 'success'){
         const redirect = createAfter ? '/forms/questions/create' : '/forms/questions'
+        console.log(redirect);
         window.location.href = redirect;
     }
 };
