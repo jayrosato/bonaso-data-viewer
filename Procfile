@@ -1,1 +1,1 @@
-web: python manage.py collectstatic --noinput && gunicorn bdvBackend.wsgi --bind 0.0.0.0:$PORT
+web: gunicorn your_project_name.wsgi
