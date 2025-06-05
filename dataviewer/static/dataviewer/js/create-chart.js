@@ -277,6 +277,7 @@ function getDataset(data){
         axisGroups = Object.keys(groups).sort((a,b) => new Date(a) - new Date(b));
         targetAxisGroups = Object.keys(groups).sort((a,b) => new Date(a) - new Date(b));
     }
+
     const allAnswers = [... new Set(answers.map(item => item.answer_value || 'Unknown'))];
     labels = axisGroups;
     if(axisValueLabels.length > 0){
@@ -293,7 +294,7 @@ function getDataset(data){
 
     if(question.question_type == 'Number'){
         datasets = [{
-            label: 'Acheived Count', 
+            label: 'Sum of Total Acheived', 
             data: axisGroups.map(group => groups[group]['sum'] || 0),
             backgroundColor: getRandomColor()
         }]
