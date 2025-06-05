@@ -32,7 +32,7 @@ class Respondent(models.Model):
     contact_no = models.CharField(max_length=255, verbose_name='Phone Number', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, default=User.objects.first().id, on_delete=models.SET_DEFAULT)
+    created_by = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
 
     def get_full_name(self):
         return f'{self.fname} {self.lname}'
@@ -56,8 +56,8 @@ class Form(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     start_date = models.DateField('Start Date')
     end_date = models.DateField('End Date')
-    organization = models.ForeignKey('organizations.Organization', on_delete=models.PROTECT, default=Organization.get_default_pk)
-    created_by = models.ForeignKey(User, default=User.objects.first().id, on_delete=models.SET_DEFAULT)
+    organization = models.ForeignKey('organizations.Organization', on_delete=models.PROTECT, null=True, blank=True, default=None,)
+    created_by = models.ForeignKey(User, default=None, null=True, blank=True, on_delete=models.SET_DEFAULT)
     def __str__(self):
         return f'{self.organization}: {self.form_name}'
     
@@ -193,7 +193,7 @@ class Option(models.Model):
 class Response(models.Model):
     respondent = models.ForeignKey(Respondent, on_delete=models.CASCADE)
     form = models.ForeignKey(Form, on_delete=models.PROTECT)
-    created_by = models.ForeignKey(User, default=User.objects.first().id, on_delete=models.SET_DEFAULT)
+    created_by = models.ForeignKey(User, default=None, null=True, blank=True, on_delete=models.SET_DEFAULT)
     response_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     flag = models.BooleanField(default=False, blank=True, null=True)
