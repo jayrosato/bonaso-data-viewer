@@ -163,3 +163,16 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',  # Optional, for token auth
     ],
 }
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
