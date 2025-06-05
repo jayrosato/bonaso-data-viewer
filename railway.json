@@ -1,0 +1,17 @@
+{
+    "build": {
+        "nixpacks": {
+            "plan": {
+                "phases": {
+                    "start": {
+                        "cmds": [
+                            "python manage.py migrate",
+                            "python manage.py collectstatic --noinput",
+                            "gunicorn bdvBackend.wsgi"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
