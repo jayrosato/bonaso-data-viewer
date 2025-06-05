@@ -181,8 +181,10 @@ function getDataset(data){
     const groups = {};
     let respondents = [];
     let axisValueLabels = [];
+    console.log(data)
     answers.forEach(item => {
         let axisGroup = null
+
         if(axis == 'count'){
             axisGroup = 'Count';
         }
@@ -190,8 +192,9 @@ function getDataset(data){
             const rawDate = new Date(item.date)
             axisGroup = rawDate.toLocaleString('default',{month: 'short', year: 'numeric'});
         }
-        else{axisGroup = item[axis]}
-
+        else{
+            axisGroup = item[axis]
+        }
         if(axis == 'organization'){
             axisValueLabels.push({'id': item.organization, 'name': item.organization_name})
         }
@@ -204,8 +207,19 @@ function getDataset(data){
                 return;
             }
         }
-        if(showLegend){
-            groups[axisGroup][answer] = (groups[axisGroup][answer] || 0)+1;
+        let amount = 1;
+        if(question.question_type == 'Number'){
+            if(isNaN(item.answer_value)){
+                console.warn(`${question} was expecting a number.`)
+                return;
+            }
+            amount = parseInt(item.answer_value);
+        }
+        if(question.question_type == 'Number'){
+            groups[axisGroup]['sum'] = (groups[axisGroup]['count'] || 0) + amount;
+        }
+        else if(showLegend){
+            groups[axisGroup][answer] = (groups[axisGroup][answer] || 0)+ amount;
         }
         else{
             if(answer.toLowerCase() == 'none' || answer.toLowerCase() == 'no'){
@@ -217,7 +231,7 @@ function getDataset(data){
             else{
                 respondents.push(item.respondent_id);
             }
-            groups[axisGroup]['count'] = (groups[axisGroup]['count'] || 0)+1;
+            groups[axisGroup]['count'] = (groups[axisGroup]['count'] || 0) + amount;
         }
     });
     const targetGroups = {};
@@ -277,7 +291,14 @@ function getDataset(data){
         labels.push('Target');
     }
 
-    if(showLegend){
+    if(question.question_type == 'Number'){
+        datasets = [{
+            label: 'Acheived Count', 
+            data: axisGroups.map(group => groups[group]['sum'] || 0),
+            backgroundColor: getRandomColor()
+        }]
+    }
+    else if(showLegend){
         datasets = allAnswers.map(answer => {
             return {
                 label: answer,

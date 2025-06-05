@@ -129,7 +129,6 @@ class GetQuestionResponses(LoginRequiredMixin, View):
 
         data = {'questions': [],'filters': filters}
         for q in questionMap.values():
-            q.pop('question_type')  # Remove if not needed
             data['questions'].append(q)
 
         return JsonResponse(data, safe=False) 
