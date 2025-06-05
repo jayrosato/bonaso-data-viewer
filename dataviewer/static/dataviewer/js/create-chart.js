@@ -209,14 +209,15 @@ function getDataset(data){
         }
         let amount = 1;
         if(question.question_type == 'Number'){
-            if(isNaN(item.answer_value)){
-                console.warn(`${question} was expecting a number.`)
+            const value = Number(item.answer_value);
+            if (isNaN(value)) {
+                console.warn(`Question ${questionID} expected a number but got "${item.answer_value}".`);
                 return;
             }
-            amount = parseInt(item.answer_value);
+            amount = value;
         }
         if(question.question_type == 'Number'){
-            groups[axisGroup]['sum'] = (groups[axisGroup]['count'] || 0) + amount;
+            groups[axisGroup]['sum'] = (groups[axisGroup]['sum'] || 0) + amount;
         }
         else if(showLegend){
             groups[axisGroup][answer] = (groups[axisGroup][answer] || 0)+ amount;
@@ -295,7 +296,7 @@ function getDataset(data){
     if(question.question_type == 'Number'){
         datasets = [{
             label: 'Sum of Total Acheived', 
-            data: axisGroups.map(group => groups[group]['sum'] || 0),
+            data: axisGroups.map(group => (groups[group]?.sum || 0)),
             backgroundColor: getRandomColor()
         }]
     }
