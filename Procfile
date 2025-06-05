@@ -1,1 +1,1 @@
-web: gunicorn bdvBackend.wsgi
+web: python manage.py migrate && gunicorn bdvBackend.wsgi
