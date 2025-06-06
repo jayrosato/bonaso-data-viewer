@@ -79,14 +79,14 @@ class RecordResponse(LoginRequiredMixin, View):
             response = Response.objects.filter(id=rid).first()
             if not response:
                 print('WARNING: No response found, aborting upload!')
-                return HttpResponseRedirect(reverse("forms:view-forms-index"))
+                return HttpResponseRedirect(reverse("forms:view-form-detail", kwargs={'pk': pk}))
             response.updated_at = timezone.now()
         else:
             respondentID = request.POST.get('Respondent')
             respondent = Respondent.objects.filter(id=respondentID).first()
             if not respondent:
                 print('WARNING: No respondent found, aborting upload!')
-                return HttpResponseRedirect(reverse("forms:view-forms-index"))
+                return HttpResponseRedirect(reverse("forms:view-form-detail", kwargs={'pk': pk}))
             checkResponse = Response.objects.filter(form=form, respondent=respondent).first()
             flag = False
             if checkResponse:
@@ -103,11 +103,10 @@ class RecordResponse(LoginRequiredMixin, View):
                     answer.delete()
             else:
                 answer = Answer.objects.filter(question = question, response = response).first()
-            if not value:
-                if answer:
-                    for a in answer:
+                if not value:
+                    if answer:
                         answer.delete()
-                continue
+                    continue
             if not answer:
                 answer = Answer(response=response, question=question)
 
