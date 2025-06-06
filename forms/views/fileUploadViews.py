@@ -102,6 +102,7 @@ class FormTemplate(LoginRequiredMixin, View):
                         continue
 
                     #check email (if provided)
+                    email = None
                     if row['email'] != '':
                         try:
                             emailInfo = validate_email(row['email'], check_deliverability=False)
@@ -112,10 +113,10 @@ class FormTemplate(LoginRequiredMixin, View):
                             messages.add_message(request, messages.INFO, f'Respondent email at row {index+1} contained an invalid email address. Value was not recorded.')
                     else:
                         email = None
+                    num = None
                     if row['contact_no'] != '':
                         checkNum = re.search(r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', row['contact_no'])
                         if not checkNum:
-                            num = None
                             messages.add_message(request, messages.INFO, f'Respondent email at row {index+1} contained an invalid phone number. Value was not recorded.')
                         else:
                             num = row['contact_no']
