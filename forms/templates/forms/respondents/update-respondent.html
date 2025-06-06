@@ -3,7 +3,7 @@
 {% block content %}
 <div class="content">
     {% if user %}
-        {% if respondent.id and respondent.created_by == user %}
+        {% if user.userprofile.access_level == 'admin' or respondent.created_by == user or respondent.created_by.manager == user or respondent.created_by.supervisor == user %}
             <h1>Editing {{respondent}}</h1>
         {% else %}
             <h1>Create New respondent</h1>

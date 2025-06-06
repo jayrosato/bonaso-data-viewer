@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="content">
-    {% if user.userprofile.access_level == 'admin' or respondent.created_by == user or respondent.created_by.manager == user or respondent.created_by.supervisor %}
+    {% if user.userprofile.access_level == 'admin' or respondent.created_by == user or respondent.created_by.manager == user or respondent.created_by.supervisor == user %}
         <h2>Viewing {{respondent}}</h2>
         <p>First Name: {{respondent.fname}}</p>
         <p>Last Name: {{respondent.lname}}</p>

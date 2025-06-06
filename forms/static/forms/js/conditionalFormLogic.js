@@ -47,22 +47,23 @@ function verifyFields(){
             question.removeAttribute('required');
             const inputs = question.querySelectorAll('input');
             inputs.forEach(input => input.removeAttribute('required'))
+            return;
         }
-        if(question.style.display != 'none'){
-            if(question.nodeType == 'INPUT' && question.value == ''){
+        if (question.tagName === 'INPUT' && question.type === 'text') {
+            if (question.value.trim() === '') {
                 flag = true;
                 msgs.push(`You must answer question ${index + 1}`);
             }
-            else{
-                const inputs = question.querySelectorAll('input');
-                const inputArray = Array.from(inputs)
-                const anyFilled = inputArray.some(input => {
-                    const checked = input.checked ? true : false;
-                    return checked;
-                })
-                flag = anyFilled ? false : true
-                if(flag){msgs.push( `You must answer question ${index + 1}`);}
-            }
+        }
+        else{
+            const inputs = question.querySelectorAll('input');
+            const inputArray = Array.from(inputs)
+            const anyFilled = inputArray.some(input => {
+                const checked = input.checked ? true : false;
+                return checked;
+            })
+            flag = anyFilled ? false : true
+            if(flag){msgs.push( `You must answer question ${index + 1}`);}
         }
     })
     if(flag){
