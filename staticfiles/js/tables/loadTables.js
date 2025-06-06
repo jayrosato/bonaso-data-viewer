@@ -4,8 +4,8 @@ let entries = 10
 let lastPage = 1
 let max = 0
 
-import { addClickable, createFilters } from "../sortFilterTables/sort-filter-tables.js";
-import { createButtons, showPage } from "../sortFilterTables/table-pages.js";
+import { addClickable, createFilters } from "./sort-filter-tables.js";
+import { createButtons, showPage } from "./table-pages.js";
 document.addEventListener('DOMContentLoaded', async function () {
     //prepare pages
     const table = document.querySelector('.sortable-table');
