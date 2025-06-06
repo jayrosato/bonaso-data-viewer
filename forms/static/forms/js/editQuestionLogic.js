@@ -130,7 +130,7 @@ async function submit(createAfter = false){
     }
 
     const optionsInput = document.getElementsByName('option_text');
-    const optionsSpecial = document.getElementsByName('special');
+    const optionsSpecial = document.querySelectorAll('.specialOption');
     const options = []
     Array.from(optionsInput).forEach((o, index) => {
         if(o.value == ''){

@@ -1,0 +1,41 @@
+.content >*{
+    margin-bottom: 1rem;
+}
+.formInfo {
+    display: flex;
+    flex-direction: row;
+}
+.formInfo >* {
+    margin-right: 2rem;
+}
+.questions{
+    margin-left: 1rem;
+    margin-right: 2rem;
+    padding: 1rem;
+    border: 3px solid white;
+    border-radius: 10px;
+    background-color: rgb(18, 87, 46);
+    max-height: 75vh;
+    overflow: scroll;
+}
+.question{
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.templates >* {
+    margin-top: .5rem;
+    margin-bottom: .5rem;
+}
+
+.templateUpload{
+    padding: .5rem;
+    border-radius: 10px;
+}
+
+.fileWarnings {
+    border-radius: 5px;
+    background-color: lightcoral;
+    color: darkred;
+    font-weight: bold;
+}

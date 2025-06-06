@@ -1,0 +1,14 @@
+td, th {
+    max-width: 150px;
+    word-wrap: break-word;
+}
+input{
+    max-width: 100px;
+}
+select {
+    max-width: 140px;
+}
+form {
+    display: flex;
+    flex-direction: column;
+}
