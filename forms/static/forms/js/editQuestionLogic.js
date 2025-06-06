@@ -141,8 +141,15 @@ async function submit(createAfter = false){
             addWarning(`Option ${index + 1} text must be less than 255 characters.`)
             flag = true
         }
-        else{options.push({'text':o.value, 'special':optionsSpecial[index].value})}
-    
+        else{
+            if(qType == 'Multiple Selections' && optionsSpecial[index]){
+                options.push({'text':o.value, 'special':optionsSpecial[index].value})
+            }
+            else{
+                 options.push({'text':o.value, 'special':null})
+            }
+            
+        }
     })
     if(flag == true){
         initWarning();
