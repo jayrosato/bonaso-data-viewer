@@ -26,7 +26,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     location = document.querySelector('.axisSelect');
     const axisSelector = createSelect(['count','date', 'sex', 'district', 'organization'], ['Raw Count','By Date', 'By Sex', 'By District', 'By Organization'], true)
     axisSelector.setAttribute('class', 'axisSelector')  
-    axisSelector.onchange =() => getDataset(data)
+    axisSelector.onchange =() => {
+        const axis = axisSelector.value;
+        if(axis != 'count' && axis != 'date' && axis !='organization'){
+            targetCheck.checked = false;
+            targetCheck.disabled = true;
+            showTargets = false
+        }
+        else{
+            targetCheck.disabled = false;
+        }
+        getDataset(data)
+    }
     location.appendChild(axisSelector)
     
     //build a toggle for whether to show a legend or straight counts
@@ -39,6 +50,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     location.appendChild(legendToggle)
     legendCheck.onchange = () => {
         showLegend = legendCheck.checked ? true : false;
+        if(showLegend){
+            targetCheck.checked = false;
+            showTargets = false;
+        }
         getDataset(data)
     }
 
@@ -51,6 +66,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     location.appendChild(targetToggle)
     targetCheck.onchange = () => {
         showTargets = targetCheck.checked ? true : false
+        if(showTargets){
+            legendCheck.checked = false;
+            showLegend = false;
+        }
         getDataset(data)
     }
 
@@ -118,7 +137,7 @@ function selectDetails(data, targets){
     legendCont.style.display = '';
 
     const targetCont = document.querySelector('.targetToggle')
-    const showTargets = targets.some(target => target.question == qID)
+    let showTargets = targets.some(target => target.question == qID)
     if(showTargets){
         targetCont.style.display = '';
     }
@@ -181,7 +200,6 @@ function getDataset(data){
     const groups = {};
     let respondents = [];
     let axisValueLabels = [];
-    console.log(data)
     answers.forEach(item => {
         let axisGroup = null
 
@@ -235,9 +253,9 @@ function getDataset(data){
             groups[axisGroup]['count'] = (groups[axisGroup]['count'] || 0) + amount;
         }
     });
+    console.log(groups)
     const targetGroups = {};
     if(targets){
-        console.log(targets)
         let targetGroup = null;
         targets.forEach((target) => {
             if(axis=='date'){
@@ -265,9 +283,11 @@ function getDataset(data){
                 if(!targetGroups[targetGroup]) targetGroups[targetGroup] = 0;
                 targetGroups[targetGroup] += amount;
             }
-            else{
-                if(!targetGroups['target']) targetGroups['target'] = 0;
+            else if (axis === 'count') {
+                if (!targetGroups['target']) targetGroups['target'] = 0;
                 targetGroups['target'] += amount;
+            } else {
+                console.warn('Skipping target with missing axis value:', target);
             }
         })
     }
@@ -281,6 +301,7 @@ function getDataset(data){
 
     const allAnswers = [... new Set(answers.map(item => item.answer_value || 'Unknown'))];
     labels = axisGroups;
+
     if(axisValueLabels.length > 0){
         let tempGroups = []
         axisGroups.forEach(group => {
@@ -289,10 +310,6 @@ function getDataset(data){
         })
         labels = tempGroups
     }
-    if (targets && targetAxisGroups.length === 1 && targetAxisGroups[0] === 'target') {
-        labels.push('Target');
-    }
-
     if(question.question_type == 'Number'){
         datasets = [{
             label: 'Sum of Total Acheived', 
@@ -310,9 +327,11 @@ function getDataset(data){
         });
     }
     else{
+        console.log(axisGroups)
+        console.log(groups)
         datasets = [{
             label: 'Acheived Count', 
-            data: axisGroups.map(group => groups[group]['count'] || 0),
+            data: axisGroups.map(group => groups[group]?.count || 0),
             backgroundColor: getRandomColor()
         }]
     }
