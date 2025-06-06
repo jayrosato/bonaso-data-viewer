@@ -4,17 +4,6 @@ let page = 1
 let entries = 10
 let lastPage = 1
 let max = 0
-document.addEventListener('DOMContentLoaded', async function () {
-    const table = document.querySelector('.sortable-table');
-    if(!table){return;}
-    const tableBody = table.tBodies[0]
-    const rowsArray = Array.from(tableBody.rows)
-    rowsArray.forEach((row, index) =>{
-        max = index
-    })
-    lastPage = Math.floor(max / entries) +1
-});
-
 
 function pageForward(){
     page ++;

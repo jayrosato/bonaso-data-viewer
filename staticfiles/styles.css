@@ -41,7 +41,14 @@ body{
     top:3vh;
 }
 
-
+.headerIconLogout {
+    background: url("/static/images/logout.svg") no-repeat fixed;
+    height: 3rem;
+    width: 3rem;
+    filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
+    left: 100vw;
+    top:3vh;
+}
 .middle{
     padding-top: 3vh;
     display: grid;
@@ -99,8 +106,10 @@ body{
     font-size: 1rem;
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-decoration: underline;
+    text-align: start;
 }
 .logout:hover{
+    background-color: none;
     cursor: pointer;
 }
 

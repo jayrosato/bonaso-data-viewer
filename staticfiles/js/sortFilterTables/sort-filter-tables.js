@@ -1,16 +1,8 @@
 import createFilter from "./create-filter.js";
-import { createButtons, showPage, recalculatePage } from "./table-pages.js";
-
-document.addEventListener('DOMContentLoaded', async function () {
-    addClickable()
-    const search = document.querySelector('.search-records')
-    createFilters()
-    createButtons()
-    showPage()
-});
+import { recalculatePage } from "./table-pages.js";
 
 let check = [] //{row:int, col:int, bool:t/f}
-function createFilters(){
+export function createFilters(){
     let table = document.querySelector('.sortable-table');
     if(!table){
         return
@@ -184,7 +176,7 @@ function checkRows(){
     });
 }
 
-function addClickable(){
+export function addClickable(){
     let table = document.querySelector('.sortable-table');
     if(!table){
         return

@@ -42,7 +42,7 @@ body{
 }
 
 .headerIconLogout {
-    background: url("/static/images/logout.svg") no-repeat fixed;
+    background: url("/static/images/logout.19d835edfc49.svg") no-repeat fixed;
     height: 3rem;
     width: 3rem;
     filter: invert(100%) sepia(100%) saturate(100%) hue-rotate(87deg) brightness(100%) contrast(100%);
