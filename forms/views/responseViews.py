@@ -138,6 +138,8 @@ class RecordResponse(LoginRequiredMixin, View):
                         continue
                     answer = Answer(response=response, question=question,  option=option, open_answer=None)
                     answer.save()
+        if rid:
+            return HttpResponseRedirect(reverse("forms:view-response-detail", kwargs={'pk': rid}))
         return HttpResponseRedirect(reverse("forms:view-forms-index"))
 
 class NewResponse(LoginRequiredMixin, View):

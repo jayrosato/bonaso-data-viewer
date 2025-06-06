@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 const msg = document.getElementById('messages')
 
 function verifyFields(){
+    console.log('Verifying inputs...')
     clearWarning();
     let msgs = []
     let flag = false
@@ -118,7 +119,6 @@ function checkQuestion(rule){
         })
     }
     else{
-        console.log(rule.parent_question)
         actualValue = parentQuestion[0].value
     }
 
@@ -155,7 +155,6 @@ function checkQuestion(rule){
         return match;
     }
     if(valueComparison == 'DOES NOT CONTAIN'){
-        console.log(actualValue);
         const match = actualValue.includes(expectedValue) ? false : true;
         return match;
     }
@@ -208,7 +207,6 @@ function updateForm(fqInfo){
         if(operator == 'AND'){
             showValue = logic.rules.every((rule) => {
                 const checkValue = checkQuestion(rule)
-                console.log(question, checkValue)
                 if(rule.limit_options){
                     limitOptions.push({'question': question, 'rule':rule})
                 }

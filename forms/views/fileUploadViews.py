@@ -217,6 +217,8 @@ class FormTemplate(LoginRequiredMixin, View):
                     answer.open_answer=value
                     answer.save()
                 if question.question_type == 'Yes/No':
+                    if value == '':
+                        continue
                     if value.strip().lower() == 'yes':
                         value = 'Yes'
                     elif value.strip().lower() == 'no':
@@ -228,6 +230,8 @@ class FormTemplate(LoginRequiredMixin, View):
                     answer.save()
 
                 if question.question_type == 'Single Selection':
+                    if value == '':
+                        continue
                     notFound = False
                     value = value.strip().lower()
                     try:
@@ -249,6 +253,8 @@ class FormTemplate(LoginRequiredMixin, View):
                     answer.save()
 
                 if question.question_type == 'Multiple Selections':
+                    if value == '':
+                        continue
                     selectedOptions = value.split(',')
                     for option in selectedOptions:
                         value = option.strip().lower()

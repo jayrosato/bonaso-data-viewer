@@ -6,7 +6,6 @@
     {% if user_org.id == form_meta.organization.id or user.userprofile.access_level == 'admin' %}
     <div class="content">
         <p id="form_passer" form="{{ form_meta.id }}"></p>
-        <h1>New Response</h1>
         <div class="warnings">
             <ul>
             </ul>
@@ -25,6 +24,7 @@
                 <input type="submit" value="Submit Response" id="submitButton">
             </form>
         {% else %}
+            <h1>Editing {{response}}</h1>
             <form id="response_form" action="{% url 'forms:update-response' form_meta.id response.id %}" method="post">
                 {%csrf_token%}
                 {{ form }}
