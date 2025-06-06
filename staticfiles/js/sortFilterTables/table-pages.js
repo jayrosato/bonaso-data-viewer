@@ -13,8 +13,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         max = index
     })
     lastPage = Math.floor(max / entries) +1
-    createButtons();
-    showPage();
 });
 
 
@@ -32,7 +30,7 @@ function pageBack(){
     }
 }
 
-function createButtons(max){
+export function createButtons(max){
     const table = document.querySelector('.sortable-table');
     const tableNav = document.createElement('div')
     tableNav.setAttribute('class', 'tableNav')
@@ -108,7 +106,7 @@ export function recalculatePage(){
     showPage();
 }
 
-function showPage() {
+export function showPage() {
     const table = document.querySelector('.sortable-table');
     if(!table){return;}
     const last = entries * page-1;

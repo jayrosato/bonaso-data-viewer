@@ -1,10 +1,12 @@
 import createFilter from "./create-filter.js";
-import { recalculatePage } from "./table-pages.js";
+import { createButtons, showPage, recalculatePage } from "./table-pages.js";
 
 document.addEventListener('DOMContentLoaded', async function () {
     addClickable()
     const search = document.querySelector('.search-records')
     createFilters()
+    createButtons()
+    showPage()
 });
 
 let check = [] //{row:int, col:int, bool:t/f}
