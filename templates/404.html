@@ -1,19 +1,20 @@
 {% load static %}
+<link rel="stylesheet" href="{% static 'login.css' %}">
+{% if form.errors %}
+    <p>Incorrect username or password.</p>
+{%endif%}
 
-<html lang="en">
-    <head>
-        <link rel="stylesheet" href="{% static 'styles.css' %}">
-        <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
-        <link rel="stylesheet" href="{% static 'styles.css' %}">
-        {% block title %}
-            <title>Bonaso Data Portal</title>
-        {% endblock %}
-    </head>
+{% if next %}
+    {%if user.is_authenticated %}
+        <p>Your account does not have access to this page. Please contact an administrator.</p>
+    {%else%}
+        <p>Please login to see this page.</p>
+    {%endif%}
+{%endif%}
+<img class="headerImg" src="{% static 'images/boansoWhite.png' %}" />
+<div class="msg">
+    <h1>Whoops!</h1>
+    <p>The link you tried to visit doesn't exist. Double check you entered the address correctly.</p>
+    <p>In the meantime, why don't you just <a href ="{% url 'home:home' %}"> go home? </a></p>
+</div>
 
-    <body>
-        <img class = "errorLogo" src="{% static 'images/boansoWhite.png' %}">
-        <h1>Whoops!</h1>
-        <p>The link you tried to visit doesn't exist. Double check you entered the address correctly.</p>
-        <p>In the meantime, why don't you just <a href ="{% url 'home:home' %}"> go home? </a></p>
-    </body>
-</html>
