@@ -2,8 +2,8 @@
 {% load static %}
 {% block content %}
 <div class="content">
-    {% if perms.forms.change_respondent %}
-        {% if respondent.id %}
+    {% if user %}
+        {% if respondent.id and respondent.created_by == user %}
             <h1>Editing {{respondent}}</h1>
         {% else %}
             <h1>Create New respondent</h1>
