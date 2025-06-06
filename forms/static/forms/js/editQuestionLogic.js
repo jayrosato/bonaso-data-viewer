@@ -148,7 +148,6 @@ async function submit(createAfter = false){
         initWarning();
         return;
     }
-
     const response = await fetch(url, {
         method: 'POST',
         headers: {
